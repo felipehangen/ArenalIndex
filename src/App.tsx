@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { HomeIcon, MapIcon, CompassIcon } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { HomeIcon, MapIcon } from 'lucide-react';
 import { FilterBar } from './components/Filters/FilterBar';
 import type { FilterType } from './components/Filters/FilterBar';
 import { FiltersModal } from './components/Filters/FiltersModal';
