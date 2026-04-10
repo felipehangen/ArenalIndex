@@ -5,10 +5,14 @@ import type { FilterType } from './components/Filters/FilterBar';
 import { FiltersModal } from './components/Filters/FiltersModal';
 import { PropertyList } from './components/Sidebar/PropertyList';
 import { InteractiveMap } from './components/Map/InteractiveMap';
-import { mockProperties } from './data/mockData';
+import { supabase } from './supabaseClient';
+import type { Property } from './types';
 import './index.css';
 
 function App() {
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [dbLoading, setDbLoading] = useState(true);
+
   const [activeFilters, setActiveFilters] = useState<FilterType[]>([]);
   const [sizeFilter, setSizeFilter] = useState<string>('all');
   
@@ -21,9 +25,24 @@ function App() {
 
   const [isMobileListOpen, setIsMobileListOpen] = useState(false);
 
+  // Fetch Live Property Data
+  useEffect(() => {
+    async function loadProperties() {
+      const { data, error } = await supabase.from('properties').select('*');
+      if (error) {
+        console.error("Supabase Error:", error);
+      } else if (data) {
+        // Data aligns with Property type because of how we defined the DB
+        setProperties(data as Property[]);
+      }
+      setDbLoading(false);
+    }
+    loadProperties();
+  }, []);
+
   // Filter properties based on active filters
   const filteredProperties = useMemo(() => {
-    return mockProperties.filter(prop => {
+    return properties.filter(prop => {
       // Feature toggles
       for (const filter of activeFilters) {
         if (filter === 'plugAndPlay') {
@@ -45,7 +64,7 @@ function App() {
 
       return true;
     });
-  }, [activeFilters, sizeFilter, pricePerSqmRange, totalPriceRange]);
+  }, [properties, activeFilters, sizeFilter, pricePerSqmRange, totalPriceRange]);
 
   const handleToggleFilter = (filter: FilterType) => {
     setActiveFilters(prev => 
@@ -103,6 +122,11 @@ function App() {
 
       {/* Main Content Layout */}
       <main className="main-content">
+        {dbLoading && (
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.8)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontWeight: 600, color: 'var(--color-jungle-green)' }}>Syncing cloud data...</span>
+          </div>
+        )}
         <div className="map-container">
           <InteractiveMap 
             properties={filteredProperties}
@@ -140,6 +164,7 @@ function App() {
         setPricePerSqmRange={setPricePerSqmRange}
         totalPriceRange={totalPriceRange}
         setTotalPriceRange={setTotalPriceRange}
+        properties={properties}
       />
     </div>
   );

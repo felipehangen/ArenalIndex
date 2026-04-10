@@ -2,8 +2,8 @@ import React, { useMemo } from 'react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { XIcon, BuildingIcon, CarIcon, DropletsIcon, LeafIcon, TreePineIcon, ZapIcon } from 'lucide-react';
-import { mockProperties } from '../../data/mockData';
 import type { FilterType } from './FilterBar';
+import type { Property } from '../../types';
 
 interface FiltersModalProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ interface FiltersModalProps {
   setPricePerSqmRange: (val: [number, number]) => void;
   totalPriceRange: [number, number];
   setTotalPriceRange: (val: [number, number]) => void;
+  properties: Property[];
 }
 
 const CATEGORIES = [
@@ -38,6 +39,7 @@ export const FiltersModal: React.FC<FiltersModalProps> = ({
   setPricePerSqmRange,
   totalPriceRange,
   setTotalPriceRange,
+  properties
 }) => {
   // Static Min/Max constants
   const MAX_PRICE_SQM = 300; // Hard cap for slider UI
@@ -52,7 +54,7 @@ export const FiltersModal: React.FC<FiltersModalProps> = ({
     const sqmFrequencies = new Array(bins).fill(0);
     const totalFrequencies = new Array(bins).fill(0);
 
-    mockProperties.forEach(p => {
+    properties.forEach(p => {
       let sqIdx = Math.floor(p.pricePerSqm / sqmStep);
       if (sqIdx >= bins) sqIdx = bins - 1;
       sqmFrequencies[sqIdx]++;
@@ -63,7 +65,7 @@ export const FiltersModal: React.FC<FiltersModalProps> = ({
     });
 
     return { sqmFrequencies, totalFrequencies };
-  }, []);
+  }, [properties]);
 
   if (!isOpen) return null;
 
