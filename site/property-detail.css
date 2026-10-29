@@ -1,0 +1,213 @@
+/* Property detail: a photo-led sale listing, independent of the map sheet. */
+#arenal-index-dos .listing-title-link{color:inherit;text-decoration:none;display:inline-block;padding:5px 0;min-height:34px}
+#arenal-index-dos .listing-title-link:hover{text-decoration:underline;text-underline-offset:3px}
+#arenal-index-dos .gallery-track img{cursor:pointer}
+#arenal-index-dos .pd-page{position:fixed;inset:0;z-index:30;width:min(480px,100%);height:100dvh;margin:auto;background:#fff;color:#24362b;display:grid;grid-template-rows:64px minmax(0,1fr) auto;box-shadow:0 0 40px #173e2c14;--m-paper:#fff;--m-text:#24362b;--m-muted:#68776c;--m-line:#e2e6df;--m-green:#285a3d;--m-soft:#f2f5ee;color-scheme:light}
+#arenal-index-dos .pd-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #edf0ea;gap:8px;background:#fff}
+#arenal-index-dos .pd-bar-actions{display:flex;gap:4px}
+#arenal-index-dos .pd-brand{font-family:Manrope,system-ui,sans-serif;font-size:22px;font-weight:800;letter-spacing:-1px;color:#285a3d;display:flex;gap:8px;align-items:center}
+#arenal-index-dos .pd-brand small{font:700 7px/1 system-ui;letter-spacing:1px;background:#e5edd9;padding:5px;border-radius:3px}
+#arenal-index-dos .pd-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;background:transparent;border-radius:50%;padding:10px;cursor:pointer}
+#arenal-index-dos .pd-icon svg{width:21px;height:21px}
+#arenal-index-dos .pd-icon:hover{background:#f1f4ed}
+#arenal-index-dos .pd-icon[aria-pressed=true]{color:#285a3d}
+#arenal-index-dos .pd-icon[aria-pressed=true] svg{fill:#285a3d}
+#arenal-index-dos .pd-scroll{overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;min-height:0;scroll-behavior:smooth}
+#arenal-index-dos button.pd-hero{padding:0;border:0;border-radius:0;display:block;position:relative;width:100%;background:#edf1e8;cursor:pointer;text-align:left;min-height:0}
+#arenal-index-dos .pd-photo-grid{height:330px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;overflow:hidden}
+#arenal-index-dos .pd-photo-grid img{width:100%;height:100%;min-height:0;object-fit:cover;display:block}
+#arenal-index-dos .pd-photo-grid img:first-child{grid-column:1/-1;grid-row:1}
+#arenal-index-dos .pd-photo-count{position:absolute;right:16px;bottom:24px;background:#173e2cd9;color:#fff;border-radius:7px;padding:7px 11px;font-size:11px;display:flex;gap:7px;align-items:center}
+#arenal-index-dos .pd-photo-label{position:absolute;left:16px;top:14px;border-radius:6px;background:#ffffffe8;padding:5px 8px;font-size:10px;color:#435644}
+#arenal-index-dos .pd-content{position:relative;margin-top:-12px;border-radius:20px 20px 0 0;background:#fff;padding:25px 24px 32px}
+#arenal-index-dos .pd-kicker{font-size:10px;letter-spacing:1.5px;font-weight:700;color:#62745c;margin:0 0 9px;text-transform:uppercase}
+#arenal-index-dos .pd-content h1{font-size:26px;line-height:1.2;letter-spacing:-.7px;margin:0 0 12px;font-weight:600}
+#arenal-index-dos .pd-location{margin:0 0 20px;font-size:13px;color:#64735e;line-height:1.6}
+#arenal-index-dos .pd-location a{color:inherit;text-underline-offset:3px}
+#arenal-index-dos .pd-section{padding:26px 0;border-bottom:1px solid #e3e7e0;scroll-margin-top:20px}
+#arenal-index-dos .pd-section h2{font-size:20px;font-weight:600;line-height:1.3;letter-spacing:-.4px;margin:0 0 18px}
+#arenal-index-dos .pd-section p{font-size:14px;line-height:1.7;margin:0 0 15px}
+#arenal-index-dos .pd-attributes{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+#arenal-index-dos .pd-attributes>div{padding:13px 0;border-bottom:1px solid #eff1ed;min-width:0}
+#arenal-index-dos .pd-attributes dt{font-size:12px;color:#68776c;margin-bottom:5px}
+#arenal-index-dos .pd-attributes dd{font-size:14px;margin:0;font-weight:500}
+#arenal-index-dos .pd-attributes dd.pd-unknown{color:#899184;font-weight:400;font-size:12px}
+#arenal-index-dos button.pd-outline{background:#fff;border:1px solid #314f38;border-radius:10px;font-size:13px;font-weight:600;min-height:46px;padding:10px 16px;cursor:pointer}
+#arenal-index-dos button.pd-text{border:0;background:none;padding:0;min-height:44px;font-size:13px;text-decoration:underline;text-underline-offset:4px;font-weight:600;cursor:pointer}
+#arenal-index-dos .pd-map{height:230px;border-radius:14px;overflow:hidden;background:#edf1e8;margin:15px 0 12px;position:relative}
+#arenal-index-dos .pd-map .maplibregl-ctrl-bottom-right{bottom:0!important;top:auto!important;right:0;transition:none}
+#arenal-index-dos .pd-map .maplibregl-ctrl-attrib{font-size:9px}
+#arenal-index-dos .pd-map-pin{width:44px;height:44px;border:3px solid #fff;border-radius:50%;background:#285a3d;color:#fff;display:grid;place-items:center;box-shadow:0 2px 10px #173e2c44}
+#arenal-index-dos .pd-map-pin svg{width:22px;height:22px}
+#arenal-index-dos .pd-section .pd-muted{font-size:12px;color:#68776c;line-height:1.6}
+#arenal-index-dos .pd-demo{font-size:11px;color:#788471;line-height:1.6;margin:24px 0 0}
+#arenal-index-dos .pd-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 20px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid #e2e6df;background:#fff}
+#arenal-index-dos .pd-footer strong{display:block;font-size:19px;letter-spacing:-.4px;white-space:nowrap;font-weight:650}
+#arenal-index-dos .pd-footer strong small{font-size:10px;font-weight:500;letter-spacing:0}
+#arenal-index-dos .pd-footer .pd-unit{display:block;font-size:11px;color:#68776c;margin-top:3px;white-space:nowrap}
+#arenal-index-dos button.pd-primary{border:0;border-radius:11px;background:#285a3d;color:#fff;padding:14px 20px;font-size:13px;font-weight:600;cursor:pointer;min-height:48px}
+#arenal-index-dos button.pd-primary:hover{background:#1c452d}
+#arenal-index-dos .pd-footer .pd-primary{max-width:52%}
+#arenal-index-dos .pd-aside{display:none}
+#arenal-index-dos .pd-dialog{color:#24362b;background:#fff;border:0;border-radius:20px;padding:0;width:calc(100% - 24px);max-width:480px;max-height:90dvh;box-sizing:border-box;box-shadow:0 16px 70px #142b2440;color-scheme:light}
+#arenal-index-dos .pd-dialog::backdrop{background:#10251dc4}
+#arenal-index-dos .pd-dialog .pd-dialog-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e2e6df;gap:12px}
+#arenal-index-dos .pd-dialog h2{font-size:18px;margin:0;font-weight:600;line-height:1.35}
+#arenal-index-dos .pd-dialog-body{padding:22px;overflow:auto}
+#arenal-index-dos .pd-dialog-body p{font-size:13px;line-height:1.65;margin:0 0 17px}
+#arenal-index-dos .pd-dialog label{display:block;font-size:13px;margin:14px 0 8px}
+#arenal-index-dos .pd-dialog textarea,#arenal-index-dos .pd-dialog input{width:100%;box-sizing:border-box;border:1px solid #c9d3c4;border-radius:9px;padding:12px;background:#fff;color:#24362b;font:14px/1.6 system-ui;resize:vertical}
+#arenal-index-dos .pd-dialog .pd-primary{width:100%;margin-top:14px}
+#arenal-index-dos .pd-dialog-status{font-size:12px;color:#285a3d;margin:12px 0 0;min-height:18px}
+#arenal-index-dos :is(.pd-page,.pd-dialog) :focus-visible,#arenal-index-dos .listing-title-link:focus-visible{outline:3px solid #7c9a4f;outline-offset:3px}
+@media(max-width:360px){#arenal-index-dos .pd-content{padding:23px 20px}#arenal-index-dos .pd-content h1{font-size:24px}#arenal-index-dos .pd-photo-grid{height:280px}#arenal-index-dos .pd-footer{padding:12px;gap:8px}#arenal-index-dos .pd-footer strong{font-size:17px}#arenal-index-dos .pd-footer .pd-primary{padding:12px;font-size:12px}#arenal-index-dos .pd-summary>div{padding:0 9px}}
+@media(min-width:900px){#arenal-index-dos .pd-page{width:min(1120px,100%);grid-template-rows:72px minmax(0,1fr)}#arenal-index-dos .pd-bar{padding:10px 40px}#arenal-index-dos .pd-scroll{padding:24px 40px 0}#arenal-index-dos .pd-photo-grid{height:430px;grid-template-columns:2fr 1fr;gap:6px;border-radius:16px}#arenal-index-dos .pd-photo-grid img:first-child{grid-column:1;grid-row:1/3}#arenal-index-dos button.pd-hero{border-radius:16px;overflow:hidden}#arenal-index-dos .pd-content{margin:0;padding:32px 0;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:60px}#arenal-index-dos .pd-aside{display:block;align-self:start;position:sticky;top:24px;border:1px solid #dce3d7;border-radius:16px;padding:24px;box-shadow:0 6px 24px #193f2b12}#arenal-index-dos .pd-aside strong{font-size:27px;display:block;letter-spacing:-.8px}#arenal-index-dos .pd-aside small{font-size:12px;letter-spacing:0;font-weight:400}#arenal-index-dos .pd-aside p{font-size:12px;color:#68776c;line-height:1.7}#arenal-index-dos .pd-aside .pd-primary{width:100%;margin-top:12px}#arenal-index-dos .pd-footer{display:none}#arenal-index-dos .pd-content h1{font-size:30px}}
+@media(prefers-reduced-motion:reduce){#arenal-index-dos .pd-scroll{scroll-behavior:auto}}
+
+#arenal-index-dos .pd-content h1:focus{outline:none}
+
+/* One home for each fact; the sale price stays with the contact action. */
+#arenal-index-dos .pd-facts{display:flex;flex-wrap:wrap;gap:12px 22px;font-size:13px;padding:0 0 24px;border-bottom:1px solid #e3e7e0;color:#52614e}
+#arenal-index-dos .pd-facts>span{display:flex;align-items:center;gap:7px}
+#arenal-index-dos .pd-facts svg{width:20px;height:20px;flex-shrink:0}
+#arenal-index-dos .pd-facts strong{font-weight:600;color:#24362b}
+#arenal-index-dos .pd-disclosure{margin:0;padding:0;border-top:0;border-bottom:1px solid #edf0e9}
+#arenal-index-dos .pd-disclosure summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 0;min-height:70px;cursor:pointer;list-style:none;font-size:14px}
+#arenal-index-dos .pd-disclosure summary::-webkit-details-marker{display:none}
+#arenal-index-dos .pd-disclosure summary::after{content:'+';font-size:20px;font-weight:300;flex-shrink:0}
+#arenal-index-dos .pd-disclosure[open] summary::after{content:'−'}
+#arenal-index-dos .pd-disclosure summary>span:first-child{flex:1}
+#arenal-index-dos .pd-disclosure summary small{display:block;font-size:11px;font-weight:400;color:#788471;margin-top:4px}
+#arenal-index-dos .pd-disclosure summary .pd-disclosure-status{font-size:10px;color:#7e8878;white-space:nowrap}
+#arenal-index-dos .pd-disclosure p{font-size:12px;line-height:1.7;color:#68776c;padding:0 0 8px;margin:0 0 10px}
+#arenal-index-dos .pd-information h2{margin-bottom:4px}
+#arenal-index-dos .pd-information .pd-text{display:inline-flex;align-items:center;gap:8px;margin-top:10px}
+#arenal-index-dos .pd-contact-note{display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:24px 0 0;color:#61705a}
+#arenal-index-dos .pd-contact-note span{color:#85907d}
+#arenal-index-dos .pd-demo{margin-top:18px;font-size:10px}
+/* Photo tour: overview blocks and an immersive viewer share one dialog. */
+#arenal-index-dos dialog.pd-tour{width:min(1080px,calc(100% - 48px));max-width:1080px;height:min(880px,92dvh);max-height:92dvh;overflow:hidden;background:#fff;color:#24362b;--m-paper:#fff;--m-line:#e2e6df;--m-text:#24362b;--m-green:#285a3d}
+#arenal-index-dos dialog.pd-tour[open]{display:flex;flex-direction:column}
+#arenal-index-dos .pd-tour .pd-dialog-head{padding:12px 24px;flex-shrink:0;min-height:68px}
+#arenal-index-dos .pd-tour .pd-dialog-head h2{font-size:19px;letter-spacing:-.4px}
+#arenal-index-dos .pd-tour-overview{display:grid;grid-template-columns:180px minmax(0,1fr);flex:1;min-height:0}
+#arenal-index-dos .pd-tour-nav{padding:24px 18px;border-right:1px solid #e7ebe3;overflow:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:12px}
+#arenal-index-dos button.pd-tour-link{padding:6px;border:1px solid transparent;border-radius:12px;background:transparent;text-align:left;flex-shrink:0;cursor:pointer;transition:background .15s,border-color .15s}
+#arenal-index-dos .pd-tour-link img{width:100%;height:82px;object-fit:cover;border-radius:7px;display:block}
+#arenal-index-dos .pd-tour-link span{display:block;font-size:11px;line-height:1.35;padding:8px 2px 3px;font-weight:500}
+#arenal-index-dos .pd-tour-link[aria-current=true]{border-color:#285a3d;background:#f0f5ea}
+#arenal-index-dos .pd-tour-link:hover{background:#f4f6f0}
+#arenal-index-dos .pd-tour-scroll{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;padding:24px 32px 40px;scrollbar-width:thin;overflow-anchor:none}
+#arenal-index-dos .pd-tour-note{color:#77836d;font-size:11px;margin:0 0 28px}
+#arenal-index-dos .pd-tour-block{margin:0 0 40px;scroll-margin-top:20px}
+#arenal-index-dos .pd-tour-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}
+#arenal-index-dos .pd-tour-heading h3{font-size:19px;font-weight:600;letter-spacing:-.3px;margin:0}
+#arenal-index-dos .pd-tour-heading>span{font-size:10px;letter-spacing:.7px;color:#7a8871;white-space:nowrap}
+#arenal-index-dos button.pd-tour-photo{position:relative;display:block;width:100%;padding:0;border:0;border-radius:12px;overflow:hidden;background:#eef2e8;cursor:zoom-in;min-height:0}
+#arenal-index-dos .pd-tour-photo>img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+#arenal-index-dos .pd-tour-photo>span{position:absolute;bottom:12px;right:12px;display:flex;align-items:center;gap:6px;background:#fffffff0;color:#2d4834;border-radius:6px;padding:7px 9px;font-size:10px;box-shadow:0 2px 8px #12382012}
+#arenal-index-dos .pd-tour-photo>span svg{width:13px;height:13px}
+#arenal-index-dos .pd-tour-end{border-top:1px solid #e6eae0;padding-top:24px;text-align:center;font-size:11px;color:#7c8876;margin:0}
+#arenal-index-dos .pd-photo-view{display:flex;flex-direction:column;flex:1;min-height:0;background:#15251b;color:#fff}
+#arenal-index-dos .pd-photo-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 18px;flex-shrink:0}
+#arenal-index-dos button.pd-tour-return{display:flex;gap:7px;align-items:center;padding:6px;border:0;background:transparent;color:#fff;font-size:12px;cursor:pointer}
+#arenal-index-dos .pd-photo-position{font-size:12px;padding:0 8px;white-space:nowrap}
+#arenal-index-dos .pd-photo-track{display:flex;overflow-x:auto;overflow-y:hidden;min-height:0;flex:1;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;touch-action:pan-x pinch-zoom;background:#0e1a13}
+#arenal-index-dos .pd-photo-track::-webkit-scrollbar{display:none}
+#arenal-index-dos .pd-photo-slide{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;display:flex;align-items:center;justify-content:center}
+#arenal-index-dos .pd-photo-slide img{width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
+#arenal-index-dos .pd-photo-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 18px calc(12px + env(safe-area-inset-bottom,0px));flex-shrink:0}
+#arenal-index-dos .pd-photo-controls .pd-icon{color:#fff;background:#ffffff0c;border:1px solid #ffffff25}
+#arenal-index-dos .pd-photo-controls .pd-icon:disabled{opacity:.25;cursor:default}
+#arenal-index-dos .pd-photo-caption{font-size:12px;color:#e4ebde;text-align:center}
+#arenal-index-dos .pd-tour :focus-visible{outline:3px solid #7c9a4f;outline-offset:2px}
+@media(max-width:700px){
+#arenal-index-dos dialog.pd-tour{width:100%;max-width:100%;height:100dvh;max-height:100dvh;margin:0;border-radius:0}
+#arenal-index-dos .pd-tour .pd-dialog-head{padding:8px 20px;min-height:64px}
+#arenal-index-dos .pd-tour-overview{display:flex;flex-direction:column}
+#arenal-index-dos .pd-tour-nav{flex-direction:row;gap:10px;flex-shrink:0;padding:12px 16px;border-right:0;border-bottom:1px solid #e7ebe3;overflow-x:auto;overscroll-behavior-x:contain}
+#arenal-index-dos button.pd-tour-link{width:calc((100vw - 52px)/3);max-width:150px;padding:5px;border-radius:10px}
+#arenal-index-dos .pd-tour-link img{height:58px}
+#arenal-index-dos .pd-tour-link span{font-size:10px;padding:7px 1px 2px;min-height:35px}
+#arenal-index-dos .pd-tour-scroll{padding:20px 20px 32px}
+#arenal-index-dos .pd-tour-note{margin-bottom:22px;font-size:10px}
+#arenal-index-dos .pd-tour-heading h3{font-size:18px}
+#arenal-index-dos .pd-tour-photo>img{aspect-ratio:4/3}
+#arenal-index-dos .pd-tour-block{margin-bottom:32px}
+}
+@media(prefers-reduced-motion:reduce){#arenal-index-dos .pd-tour-link{transition:none}}
+
+/* Multiple photos per section: one lead image, then a two-column rhythm. */
+#arenal-index-dos .pd-tour-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+#arenal-index-dos .pd-tour-grid.has-lead>.pd-tour-photo:first-child{grid-column:1/-1}
+#arenal-index-dos .pd-tour-grid .pd-tour-photo>img{aspect-ratio:4/3}
+#arenal-index-dos .pd-tour-grid.has-lead>.pd-tour-photo:first-child>img{aspect-ratio:16/10}
+#arenal-index-dos .pd-tour-link small{display:block;margin-top:4px;font-size:10px;font-weight:400;color:#7b8771}
+@media(max-width:700px){
+#arenal-index-dos .pd-tour-grid{gap:8px}
+#arenal-index-dos .pd-tour-grid .pd-tour-photo{border-radius:8px}
+#arenal-index-dos .pd-tour-grid .pd-tour-photo>span{bottom:7px;right:7px;padding:6px}
+#arenal-index-dos .pd-tour-grid .pd-enlarge-label{display:none}
+#arenal-index-dos .pd-tour-link span{min-height:0}
+}
+
+/* Rounded section previews; square photo edges inside each section. */
+#arenal-index-dos .pd-tour-link img{border-radius:14px}
+#arenal-index-dos .pd-tour-grid button.pd-tour-photo{border-radius:0}
+
+/* Lightweight upward entrance makes the new navigation layer visible. */
+@keyframes arenal-panel-rise{
+  from{opacity:.25;transform:translateY(72px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes arenal-backdrop-in{
+  from{background-color:transparent}
+  to{background-color:#10251dc4}
+}
+#arenal-index-dos .pd-page:not([hidden]),
+#arenal-index-dos .pd-dialog[open],
+#arenal-index-dos[data-screen="filters"] #index-filter-page:not([hidden]){
+  animation:arenal-panel-rise 440ms cubic-bezier(.16,1,.3,1);
+}
+#arenal-index-dos .pd-dialog[open]::backdrop{animation:arenal-backdrop-in 440ms cubic-bezier(.16,1,.3,1)}
+#arenal-index-dos .pd-photo-view:not([hidden]){animation:arenal-panel-rise 360ms cubic-bezier(.16,1,.3,1)}
+/* Header and action stay visible; only the filter fields scroll. */
+body:has(#arenal-index-dos[data-screen="filters"]){overflow:hidden;padding:0}
+#arenal-index-dos[data-screen="filters"]{height:100dvh;max-height:100dvh;min-height:0!important;overflow:hidden;border:0;border-radius:0}
+#arenal-index-dos[data-screen="filters"] #index-filter-page{
+  position:fixed;inset:0;z-index:25;width:min(480px,100%);margin:auto;
+  display:grid;grid-template-rows:auto minmax(0,1fr) auto;
+  height:100dvh;max-height:100dvh;min-height:0;overflow:hidden;background:#fff;
+}
+#arenal-index-dos #index-filter-page .panel-header{position:relative;z-index:2}
+#arenal-index-dos #index-filter-page .panel-body{overflow-y:auto;overscroll-behavior:contain;min-height:0;scrollbar-width:thin;padding-bottom:28px;scroll-padding:16px}
+#arenal-index-dos #index-filter-page .panel-footer{position:relative;z-index:3;padding:14px 22px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 20px #173e2c0d;background:#fff}
+#arenal-index-dos #index-filter-page .panel-footer .primary{min-height:50px}
+@media(prefers-reduced-motion:reduce){
+  #arenal-index-dos .pd-page:not([hidden]),
+  #arenal-index-dos .pd-dialog[open],
+  #arenal-index-dos .pd-dialog[open]::backdrop,
+  #arenal-index-dos .pd-photo-view:not([hidden]),
+  #arenal-index-dos[data-screen="filters"] #index-filter-page:not([hidden]){animation:none}
+}
+
+#arenal-index-dos .pd-service-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;font-size:13px;line-height:1.5}
+#arenal-index-dos .pd-service-list li{display:flex;gap:8px;align-items:flex-start}
+#arenal-index-dos .pd-service-list li::before{content:'✓';color:#285a3d;flex-shrink:0}
+
+/* Keep exiting panels mounted until their reverse motion finishes. */
+#arenal-index-dos [data-panel-leaving]{animation:none!important;pointer-events:none}
+#arenal-index-dos .pd-dialog[data-panel-leaving]::backdrop{animation:arenal-backdrop-in 320ms ease-in reverse forwards}
+/* Tight association between photos and copy, with a clear gap to the next card. */
+#arenal-index-dos .listing-info-row{margin-top:6px;gap:10px}
+#arenal-index-dos .listing-info-copy h3{margin:0 0 2px;line-height:1.35}
+#arenal-index-dos .listing-title-link{min-height:0;padding:1px 0;line-height:1.35}
+#arenal-index-dos .listing-description{margin:0 0 2px;line-height:1.35}
+#arenal-index-dos .listing-meta{line-height:1.35}
+#arenal-index-dos .listing-prices{margin-top:3px;line-height:1.4}
+#arenal-index-dos .listing-prices>*,#arenal-index-dos .listing-prices>:first-child{line-height:1.4}
+#arenal-index-dos .listing-card{margin-bottom:28px}
+/* Slightly smaller map zoom controls. */
+#arenal-index-dos #index-map .maplibregl-ctrl-group{border-radius:8px}
+#arenal-index-dos #index-map .maplibregl-ctrl-group button{width:36px;height:36px;min-width:36px;min-height:36px}
+#arenal-index-dos #index-map .maplibregl-ctrl-group .maplibregl-ctrl-icon{background-size:24px 24px}

@@ -1,0 +1,144 @@
+/* Shared visual language: quiet typography, line icons and floating surfaces. */
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f4f4f2}
+#arenal-index-dos{--m-text:#30332f;--m-muted:#72756f;--m-line:#e2e4df;--m-soft:#f4f5f2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.5;color:var(--m-text);-webkit-font-smoothing:antialiased}
+#arenal-index-dos :is(button,input,select,textarea){font-family:inherit}
+#arenal-index-dos :is(h1,h2,h3){font-weight:600;letter-spacing:0;color:#424242}
+#arenal-index-dos button svg{stroke-width:1.75}
+#arenal-index-dos :is(.listing-title-link,.listing-price,.search-copy strong){font-weight:600;color:#424242}
+#arenal-index-dos :is(.listing-description,.listing-meta,.pd-location,.pd-muted){color:#777}
+#arenal-index-dos .pd-brand{font-family:inherit;font-size:21px;font-weight:600;letter-spacing:-.7px}
+#arenal-index-dos .pd-brand small{font-family:inherit}
+#arenal-index-dos :is(.pd-page,.pd-dialog){--m-text:#424242;--m-muted:#777;--m-line:#dededb;--m-soft:#f3f5f1;color:#424242;font-family:inherit}
+/* Keep the real home visible behind filters; native dialogs provide focus trapping. */
+#arenal-index-dos[data-screen="filters"] #index-home{display:flex!important}
+#arenal-index-dos[data-screen="filters"]{height:100dvh;max-height:100dvh;background:#fff}
+#arenal-index-dos[data-screen="filters"] #index-filter-page,
+#arenal-index-dos .pd-page,
+#arenal-index-dos .pd-dialog{
+  position:fixed;inset:0;margin:auto;padding:0;border:0;border-radius:22px;
+  width:min(560px,calc(100% - 40px));max-width:calc(100% - 40px);
+  max-height:calc(100dvh - 56px);background:#fff;overflow:hidden;
+  box-shadow:0 18px 70px #0003;color-scheme:light;
+}
+#arenal-index-dos[data-screen="filters"] #index-filter-page{height:min(860px,calc(100dvh - 56px));min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+#arenal-index-dos .pd-page{height:calc(100dvh - 56px);display:grid;grid-template-rows:64px minmax(0,1fr) auto}
+#arenal-index-dos .pd-dialog[open]{display:flex;flex-direction:column}
+#arenal-index-dos .pd-dialog-body{min-height:0;overflow:auto;overscroll-behavior:contain}
+#arenal-index-dos :is(#index-filter-page,.pd-page,.pd-dialog)::backdrop{background:#0006;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);animation:arenal-overlay-in 440ms cubic-bezier(.16,1,.3,1)}
+@keyframes arenal-overlay-in{from{background:#0000;backdrop-filter:blur(0)}to{background:#0006;backdrop-filter:blur(3px)}}
+#arenal-index-dos :is(#index-filter-page,.pd-page,.pd-dialog)[data-panel-leaving]::backdrop{animation:arenal-overlay-in 320ms ease-in reverse forwards}
+/* Symmetrical headers and a single, anchored action row. */
+#arenal-index-dos #index-filter-page .panel-header{display:grid;grid-template-columns:44px 1fr 44px;min-height:72px;padding:12px 20px;border-bottom:1px solid #dededb}
+#arenal-index-dos #index-filter-page .panel-header h2{text-align:center;font-size:20px;font-weight:600;letter-spacing:0}
+#arenal-index-dos #index-cancel{border:0;border-radius:50%;background:transparent;padding:10px;color:#242424}
+#arenal-index-dos #index-cancel svg{width:24px;height:24px}
+#arenal-index-dos #index-filter-page .panel-body{padding:0 24px 20px}
+#arenal-index-dos #index-filter-page [data-section]{padding:26px 0;border-color:#e4e4e1}
+#arenal-index-dos #index-filter-page [data-section="price"]{padding-bottom:8px}
+#arenal-index-dos #index-filter-page [data-section]>h3{font-size:19px;font-weight:600;letter-spacing:0;color:#424242}
+#arenal-index-dos #index-filter-page .field-note{font-size:13px;line-height:1.5;color:#777}
+#arenal-index-dos #index-filter-page .panel-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 24px;background:#fff;box-shadow:none;border-top:1px solid #dededb}
+#arenal-index-dos #index-filter-page #index-clear{border:0;background:transparent;padding:8px 0;min-width:62px;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:3px;color:#424242}
+#arenal-index-dos #index-filter-page #index-apply{width:auto;min-width:160px;max-width:75%;border-radius:10px;font-size:14px;font-weight:600;padding:13px 20px}
+#arenal-index-dos #index-filter-page .range-numbers label{font-size:12px;color:#777}
+#arenal-index-dos #index-filter-page .range-value{border-color:#ddd;border-radius:12px;color:#424242}
+#arenal-index-dos #index-filter-page .disclosure-copy strong{font-size:15px;font-weight:600;color:#424242}
+#arenal-index-dos #index-filter-page .disclosure-content select{background:#fff;color:#424242;border-color:#ddd;font-size:15px}
+/* Spacious selectable feature cards echo the reference without adding new filters. */
+#arenal-index-dos #index-filter-page .nature-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+#arenal-index-dos #index-filter-page .nature-options button{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;min-height:100px;padding:16px 10px;border:1px solid #ddd;border-radius:14px;background:#fff;color:#777;font-size:14px;font-weight:500;text-align:center;line-height:1.35}
+#arenal-index-dos #index-filter-page .nature-options button svg{width:29px;height:29px;stroke-width:1.65}
+#arenal-index-dos #index-filter-page .nature-options button[aria-pressed=true]{border-color:#285a3d;box-shadow:inset 0 0 0 1px #285a3d;background:#f1f5ef;color:#285a3d}
+#arenal-index-dos #index-filter-page .nature-options button:hover{border-color:#8a9787}
+/* Detail, gallery, spec, share and contact dialogs all belong to the same family. */
+#arenal-index-dos .pd-bar{border-color:#dededb;padding:10px 16px}
+#arenal-index-dos .pd-content h1{font-size:26px;font-weight:600;letter-spacing:0;color:#424242}
+#arenal-index-dos .pd-section h2{font-size:20px;font-weight:600;letter-spacing:0;color:#424242}
+#arenal-index-dos .pd-facts{color:#777;border-color:#e4e4e1}
+#arenal-index-dos .pd-facts strong{color:#424242;font-weight:600}
+#arenal-index-dos :is(.pd-footer,.pd-aside) strong{font-weight:600;color:#424242;letter-spacing:0}
+#arenal-index-dos :is(.pd-primary,.pd-outline){border-radius:10px;font-weight:600}
+#arenal-index-dos .pd-dialog .pd-dialog-head{position:relative;min-height:72px;flex-shrink:0;padding:14px 60px;justify-content:center;border-color:#dededb}
+#arenal-index-dos .pd-dialog .pd-dialog-head h2{font-size:19px;font-weight:600;letter-spacing:0;text-align:center;color:#424242}
+#arenal-index-dos .pd-dialog .pd-dialog-head .pd-icon{position:absolute;left:14px;top:14px;color:#242424}
+#arenal-index-dos .pd-icon svg{width:22px;height:22px}
+#arenal-index-dos .pd-dialog :is(textarea,input){font-family:inherit;color:#424242;border-color:#ddd}
+#arenal-index-dos .pd-service-list{gap:12px}
+#arenal-index-dos .pd-service-list li{border:1px solid #e2e2df;border-radius:12px;padding:14px;flex-direction:column;gap:10px;font-size:13px;color:#777}
+#arenal-index-dos .pd-service-list li::before{content:none}
+#arenal-index-dos .pd-service-list svg{width:26px;height:26px;flex-shrink:0}
+#arenal-index-dos dialog.pd-tour{width:min(1080px,calc(100% - 56px));max-width:calc(100% - 56px);height:calc(100dvh - 80px);max-height:calc(100dvh - 80px);border-radius:22px;margin:auto}
+#arenal-index-dos .pd-tour-section h3{font-weight:600;color:#424242;letter-spacing:0}
+#arenal-index-dos .pd-tour-link span{font-family:inherit;font-size:12px;font-weight:500}
+#arenal-index-dos .pd-tour-link img{border-radius:10px}
+#arenal-index-dos .pd-tour-photo{border-radius:0}
+@media(min-width:900px){
+ #arenal-index-dos .pd-page{width:min(1120px,calc(100% - 64px));max-width:calc(100% - 64px);grid-template-rows:72px minmax(0,1fr)}
+}
+@media(max-width:600px){
+ #arenal-index-dos[data-screen="filters"] #index-filter-page,#arenal-index-dos .pd-page,#arenal-index-dos .pd-dialog{width:calc(100% - 24px);max-width:calc(100% - 24px);max-height:calc(100dvh - 32px);border-radius:20px}
+ #arenal-index-dos[data-screen="filters"] #index-filter-page,#arenal-index-dos .pd-page{height:calc(100dvh - 32px)}
+ #arenal-index-dos dialog.pd-tour{width:calc(100% - 32px);max-width:calc(100% - 32px);height:calc(100dvh - 48px);max-height:calc(100dvh - 48px)}
+ #arenal-index-dos #index-filter-page .panel-body{padding-left:20px;padding-right:20px}
+ #arenal-index-dos #index-filter-page .panel-footer{padding:14px 20px calc(14px + env(safe-area-inset-bottom,0px));gap:12px}
+ #arenal-index-dos #index-filter-page #index-apply{min-width:0;max-width:75%;padding:13px 15px}
+ #arenal-index-dos .pd-content{padding-left:20px;padding-right:20px}
+ #arenal-index-dos .pd-footer{padding-left:16px;padding-right:16px;gap:10px}
+ #arenal-index-dos .pd-footer strong{font-size:18px}
+}
+@media(prefers-reduced-motion:reduce){#arenal-index-dos :is(#index-filter-page,.pd-page,.pd-dialog)::backdrop{animation:none}}
+
+/* A consistent reading scale across the map, filters and property detail. */
+#arenal-index-dos #index-count{font-size:16px;font-weight:600;letter-spacing:-.2px;color:var(--m-text)}
+#arenal-index-dos .results-sheet-header{padding:0 18px 8px}
+#arenal-index-dos button#results-handle{height:20px;min-height:20px}
+#arenal-index-dos .listing-card{font-family:inherit;font-size:14px;line-height:1.5;color:var(--m-text)}
+#arenal-index-dos .listing-card .listing-info-row{margin-top:10px}
+#arenal-index-dos .listing-card h3{font-family:inherit;font-size:16px;line-height:1.4;font-weight:500;letter-spacing:-.2px;color:var(--m-text);margin:0 0 4px}
+#arenal-index-dos .listing-card .listing-title-link{font:inherit;color:inherit;padding:0}
+#arenal-index-dos .listing-meta{font-size:14px;line-height:1.5;color:var(--m-muted)}
+#arenal-index-dos .listing-description{font-size:14px;line-height:1.5;color:var(--m-muted)}
+#arenal-index-dos .listing-meta .listing-unit{font-size:14px;color:var(--m-muted)}
+#arenal-index-dos .listing-prices{gap:12px;margin:0}
+#arenal-index-dos .listing-prices>*,#arenal-index-dos .listing-prices>:first-child{font-size:14px;line-height:1.5;color:var(--m-muted)}
+#arenal-index-dos .listing-prices .listing-total{font-weight:600;color:var(--m-text)}
+#arenal-index-dos .listing-card-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:2px;min-height:44px}
+#arenal-index-dos button.listing-map-action{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:64px;min-height:44px;padding:8px 0 8px 8px;border:0;border-radius:8px;background:transparent;color:var(--m-muted);font-size:13px;font-weight:400;line-height:1.4;flex-shrink:0}
+#arenal-index-dos .listing-map-action svg{width:17px;height:17px;stroke-width:1.65}
+#arenal-index-dos button.listing-map-action:hover{color:var(--m-green);background:var(--m-soft)}
+#arenal-index-dos button.listing-map-action:focus-visible{outline:2px solid var(--m-green);outline-offset:2px}
+#arenal-index-dos .listing-bottom>span{font-size:12px}
+#arenal-index-dos .listing-bottom button,#arenal-index-dos button#results-expand,#arenal-index-dos button#results-return{font-size:13px;font-weight:500}
+#arenal-index-dos .search-pill strong{font-size:14px;font-weight:600}
+#arenal-index-dos .search-pill small{font-size:11px}
+#arenal-index-dos .pd-content h1{font-size:26px;line-height:1.2;font-weight:600;letter-spacing:-.6px;color:var(--m-text)}
+#arenal-index-dos :is(.pd-section h2,.pd-tour-section h3){font-size:20px;line-height:1.3;font-weight:600;letter-spacing:-.3px;color:var(--m-text)}
+#arenal-index-dos .pd-kicker{font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:none;color:var(--m-muted)}
+#arenal-index-dos :is(.pd-location,.pd-facts,.pd-section p){font-size:14px;line-height:1.6}
+#arenal-index-dos #index-filter-page .panel-header h2,#arenal-index-dos .pd-dialog .pd-dialog-head h2{font-size:18px;font-weight:600;letter-spacing:-.2px}
+#arenal-index-dos #index-filter-page [data-section]>h3{font-size:20px;line-height:1.3;letter-spacing:-.35px;font-weight:600;color:var(--m-text);margin-bottom:6px}
+#arenal-index-dos #index-filter-page .field-note{font-size:13px;line-height:1.5;margin-bottom:20px;color:var(--m-muted)}
+#arenal-index-dos #index-filter-page .disclosure-copy strong{font-size:16px;font-weight:600;letter-spacing:-.15px}
+#arenal-index-dos #index-filter-page .disclosure-end .disclosure-value{font-size:13px}
+#arenal-index-dos #index-filter-page .nature-options button{font-size:14px;line-height:1.4;font-weight:400}
+/* Bars end on the slider rail; one pair of editable amounts labels the range. */
+#arenal-index-dos [data-range]{--hist-selected:#79937e;--hist-muted:#e7e9e4;--range-thumb:28px}
+#arenal-index-dos #index-filter-page .histogram{height:64px;margin-top:24px}
+#arenal-index-dos #index-filter-page .range-track{margin-top:-14px;height:28px}
+#arenal-index-dos #index-filter-page .range-track::before{height:2px;top:13px}
+#arenal-index-dos #index-filter-page input[type=range]::-webkit-slider-thumb{border:1px solid #7f897d;background:#fff;box-shadow:0 1px 4px #0002}
+#arenal-index-dos #index-filter-page input[type=range]::-moz-range-thumb{border:1px solid #7f897d;background:#fff;box-shadow:0 1px 4px #0002}
+#arenal-index-dos #index-filter-page input[type=range]:focus-visible{outline:none}
+#arenal-index-dos #index-filter-page input[type=range]:focus-visible::-webkit-slider-thumb{outline:3px solid #285a3d55;outline-offset:3px}
+#arenal-index-dos #index-filter-page input[type=range]:focus-visible::-moz-range-thumb{outline:3px solid #285a3d55;outline-offset:3px}
+#arenal-index-dos #index-filter-page .range-numbers{margin-top:12px;gap:16px}
+#arenal-index-dos #index-filter-page .range-numbers label{font-size:12px;color:var(--m-muted)}
+#arenal-index-dos #index-filter-page .range-value{margin-top:6px;min-height:50px;padding:11px 14px;border-radius:12px;border-color:#d8dcd5;background:#fff}
+#arenal-index-dos #index-filter-page .range-amount{font-size:16px;line-height:1.4;font-weight:500;color:var(--m-text)}
+#arenal-index-dos #index-filter-page .range-value>span{font-size:16px;color:var(--m-muted)}
+@media(max-width:350px){
+ #arenal-index-dos .search-pill strong{font-size:12px}
+ #arenal-index-dos .search-pill small{font-size:10px}
+ #arenal-index-dos #index-count{font-size:14px}
+ #arenal-index-dos #index-filter-page .disclosure-end .disclosure-value{max-width:116px;font-size:12px}
+}
