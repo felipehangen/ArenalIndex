@@ -28,7 +28,7 @@ test('both boundaries clamp without overscroll or inaccessible content',()=>{
 });
 test('short and landscape viewports keep space for both map and sheet',()=>{
  const small=window.ArenalSheetBounds(240);
- assert.equal(small.min,132);assert.equal(small.max,216);
+ assert.equal(small.min,132);assert.equal(small.max,240);
  const regular=window.ArenalSheetBounds(700);
- assert.equal(regular.min,308);assert.equal(regular.max,676);
+ assert.equal(regular.min,308);assert.equal(regular.max,700);
 });

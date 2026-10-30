@@ -14,7 +14,7 @@ window.ArenalSheetStep = ({height, min, max, scrollTop, scrollMax}, delta) => {
 };
 
 window.ArenalSheetBounds = space => {
-  const max=Math.max(0,space-24);
+  const max=Math.max(0,space);
   // Leave usable map space even on short windows and landscape phones.
   return {min:Math.min(max,space*.55,Math.min(340,Math.max(250,space*.44))),max};
 };
@@ -29,6 +29,7 @@ window.ArenalResultsScroll = ({root, sheet, scroll, handle, onChange, loadMore})
     height = Math.max(min, Math.min(max,value));
     progress = max>min ? (height-min)/(max-min) : 0;
     root.style.setProperty('--sheet-height', height+'px');
+    root.style.setProperty('--sheet-progress', progress);
     onChange(progress);
   };
   const more = () => {
