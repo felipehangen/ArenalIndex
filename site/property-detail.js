@@ -150,7 +150,7 @@
   // Preserve horizontal card swipes; a deliberate photo tap opens the listing.
   const list=document.getElementById('index-list');let pointer=null;
   list.addEventListener('pointerdown',e=>{pointer={x:e.clientX,y:e.clientY,scroll:e.target.closest('.gallery-track')?.scrollLeft};},{capture:true,passive:true});
-  list.addEventListener('click',e=>{const link=e.target.closest('.listing-title-link');if(link){if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();open(link.closest('[data-id]').dataset.id);return;}const track=e.target.closest('.gallery-track');if(track&&e.target.tagName==='IMG'&&pointer&&Math.abs(e.clientX-pointer.x)<8&&Math.abs(e.clientY-pointer.y)<8&&Math.abs(track.scrollLeft-pointer.scroll)<8){open(track.closest('[data-id]').dataset.id);}});
+  list.addEventListener('click',e=>{const link=e.target.closest('.listing-title-link,.listing-total');if(link){if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();open(link.closest('[data-id]').dataset.id);return;}const track=e.target.closest('.gallery-track');if(track&&e.target.tagName==='IMG'&&pointer&&Math.abs(e.clientX-pointer.x)<8&&Math.abs(e.clientY-pointer.y)<8&&Math.abs(track.scrollLeft-pointer.scroll)<8){open(track.closest('[data-id]').dataset.id);}});
   window.addEventListener('popstate',route);window.addEventListener('hashchange',route);
   window.arenalDetail={open};route();
 })();
