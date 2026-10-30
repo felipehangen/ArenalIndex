@@ -92,17 +92,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 #arenal-index-dos #index-count{font-size:16px;font-weight:600;letter-spacing:-.2px;color:var(--m-text)}
 #arenal-index-dos .results-sheet-header{padding:0 18px 8px}
 #arenal-index-dos button#results-handle{height:20px;min-height:20px}
-#arenal-index-dos .listing-card{font-family:inherit;font-size:14px;line-height:1.5;color:var(--m-text)}
-#arenal-index-dos .listing-card .listing-info-row{margin-top:10px}
-#arenal-index-dos .listing-card h3{font-family:inherit;font-size:16px;line-height:1.4;font-weight:500;letter-spacing:-.2px;color:var(--m-text);margin:0 0 4px}
+#arenal-index-dos .listing-card{font-family:inherit;font-size:14px;line-height:1.35;color:var(--m-text)}
+#arenal-index-dos .listing-card .listing-info-row{margin-top:8px}
+#arenal-index-dos .listing-info-copy{display:grid;gap:1px}
+#arenal-index-dos .listing-card h3{font-family:inherit;font-size:14px;line-height:1.35;font-weight:500;letter-spacing:0;color:var(--m-text);margin:0}
 #arenal-index-dos .listing-card .listing-title-link{font:inherit;color:inherit;padding:0}
-#arenal-index-dos .listing-meta{font-size:14px;line-height:1.5;color:var(--m-muted)}
-#arenal-index-dos .listing-description{font-size:14px;line-height:1.5;color:var(--m-muted)}
+#arenal-index-dos .listing-meta{font:inherit;color:var(--m-muted);margin:0}
+#arenal-index-dos .listing-description{font:inherit;color:var(--m-muted);margin:0}
 #arenal-index-dos .listing-meta .listing-unit{font-size:14px;color:var(--m-muted)}
 #arenal-index-dos .listing-prices{gap:12px;margin:0}
 #arenal-index-dos .listing-prices>*,#arenal-index-dos .listing-prices>:first-child{font-size:14px;line-height:1.5;color:var(--m-muted)}
-#arenal-index-dos .listing-prices .listing-total{font-weight:600;color:var(--m-text)}
-#arenal-index-dos .listing-card-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:2px;min-height:44px}
+#arenal-index-dos .listing-prices .listing-total{font-size:18px;line-height:1.3;font-weight:650;letter-spacing:-.3px;color:var(--m-text);text-decoration:none}
+#arenal-index-dos .listing-card-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:0;min-height:44px}
 #arenal-index-dos button.listing-map-action{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:64px;min-height:44px;padding:8px 0 8px 8px;border:0;border-radius:8px;background:transparent;color:var(--m-muted);font-size:13px;font-weight:400;line-height:1.4;flex-shrink:0}
 #arenal-index-dos .listing-map-action svg{width:17px;height:17px;stroke-width:1.65}
 #arenal-index-dos button.listing-map-action:hover{color:var(--m-green);background:var(--m-soft)}
