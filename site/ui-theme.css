@@ -143,8 +143,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 #arenal-index-dos .listing-total:hover{text-decoration:underline;text-underline-offset:3px}
 #arenal-index-dos .gallery-track img{cursor:pointer}
 
-/* Continuous sheet motion: no snapping or CSS lag while scrolling. */
-#arenal-index-dos #index-preview.results-sheet{transition:none;touch-action:pan-x;border-radius:calc(28px * (1 - var(--sheet-progress,0))) calc(28px * (1 - var(--sheet-progress,0))) 0 0}
-#arenal-index-dos #results-scroll,#arenal-index-dos .gallery-track{touch-action:pan-x}
+/* One native scrolling surface: the top space reveals the interactive map.
+   The sticky heading joins the list without resizing either on every frame. */
+#arenal-index-dos #index-preview.results-sheet{inset:0;height:100%;display:block;overflow:visible;background:transparent;border-radius:0;box-shadow:none;transition:none;pointer-events:none;touch-action:auto}
+#arenal-index-dos #results-scroll{height:100%;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;padding:0;pointer-events:none;touch-action:auto;overscroll-behavior-y:none;overflow-anchor:none;scrollbar-width:none;scroll-padding-top:72px}
+#arenal-index-dos .results-map-space{height:var(--sheet-travel,56%);pointer-events:none}
+#arenal-index-dos #results-scroll::-webkit-scrollbar{display:none}
+#arenal-index-dos .results-sheet-header{position:sticky;top:0;pointer-events:auto;border-radius:calc(28px * (1 - var(--sheet-progress,0))) calc(28px * (1 - var(--sheet-progress,0))) 0 0;box-shadow:0 -4px 20px #173e2c16}
+#arenal-index-dos .results-body{position:relative;min-height:calc(var(--sheet-space,700px) - 72px);padding:0 18px 20px;background:#fff;pointer-events:auto}
+#arenal-index-dos .gallery-track{touch-action:auto;overscroll-behavior-x:contain}
 #arenal-index-dos .maplibregl-ctrl-bottom-right,#arenal-index-dos.results-expanded .maplibregl-ctrl-bottom-right{top:auto;bottom:calc(var(--sheet-height) + 4px);transition:none}
 #arenal-index-dos button#results-handle{cursor:ns-resize}
+@media(max-width:350px){#arenal-index-dos .results-body{padding-left:14px;padding-right:14px}}

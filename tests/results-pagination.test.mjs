@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const html=fs.readFileSync(new URL('../site/index.html',import.meta.url),'utf8');
+const appendFunction=html.match(/ function appendMoreResults\(\)\{[^\n]+/)[0];
+test('loading more preserves existing cards, images and carousel state',()=>{
+ const data=Array.from({length:45},(_,i)=>({id:'lot-'+i}));
+ const original=data.slice(0,20).map(d=>({...d,image:{decoded:true},photo:2}));
+ const list={children:[...original],append(batch){this.children.push(...batch.children);}};
+ const more={},progress={};let created=0;
+ const context={visibleLimit:20,selected:null,selectedGroup:null,results:()=>data,q:selector=>({'#index-list':list,'#results-more':more,'#results-progress':progress})[selector],document:{createDocumentFragment:()=>({children:[],append(card){this.children.push(card);}})},property:d=>{created++;return {...d};}};
+ vm.createContext(context);vm.runInContext(appendFunction+';appendMoreResults();',context);
+ assert.equal(list.children.length,40);assert.equal(created,20);
+ original.forEach((card,i)=>assert.equal(list.children[i],card));
+ assert.equal(original[0].photo,2);assert.equal(more.hidden,false);
+ vm.runInContext('appendMoreResults();',context);
+ assert.equal(list.children.length,45);assert.equal(more.hidden,true);assert.equal(progress.textContent,'Mostrando 45 de 45');
+ vm.runInContext('appendMoreResults();',context);assert.equal(created,25);
+});
