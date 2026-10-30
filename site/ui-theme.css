@@ -142,3 +142,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 #arenal-index-dos .listing-total:focus-visible{outline:2px solid var(--m-green);outline-offset:3px;border-radius:2px}
 #arenal-index-dos .listing-total:hover{text-decoration:underline;text-underline-offset:3px}
 #arenal-index-dos .gallery-track img{cursor:pointer}
+
+/* Continuous sheet motion: no snapping or CSS lag while scrolling. */
+#arenal-index-dos #index-preview.results-sheet{transition:none;touch-action:pan-x}
+#arenal-index-dos #results-scroll,#arenal-index-dos .gallery-track{touch-action:pan-x}
+#arenal-index-dos .maplibregl-ctrl-bottom-right,#arenal-index-dos.results-expanded .maplibregl-ctrl-bottom-right{top:auto;bottom:calc(var(--sheet-height) + 4px);transition:none}
+#arenal-index-dos button#results-handle{cursor:ns-resize}
