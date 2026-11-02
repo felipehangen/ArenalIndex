@@ -48,6 +48,14 @@ Las migraciones en `supabase/migrations/` crean la tabla y cargan los **100 anun
 
 Las fotos actuales son ilustraciones. El formulario de consulta permite preparar y copiar un mensaje; todavía no hay contacto de corredor ni envío de consultas. No se ha añadido un panel administrador, autenticación de visitantes ni almacenamiento de información privada. Para empezar a operar con anuncios reales, registrar los datos y fotos verificados y asignar el canal de contacto.
 
+## Guía de captación de propiedades
+
+`/requisitos.html` es un recorrido de ocho pasos, sin enlace en el catálogo y con `noindex,nofollow`. Incluye ubicación exacta, información del terreno, servicios, construcciones, guía visual de fotografías, documentos y revisión de pendientes. La ubicación exacta se solicita como condición para preparar el anuncio; la guía no publica propiedades.
+
+El borrador y los adjuntos se guardan en IndexedDB, en este navegador y origen. No se envían a Supabase ni a otro backend. La guía no está protegida por autenticación y el guardado local no es una bóveda cifrada: quien use el mismo perfil del navegador puede abrir el borrador. Borrar datos del navegador elimina la copia local. Se puede exportar una copia JSON con respuestas y archivos, restaurarla en otro dispositivo y descargar un resumen de texto o imprimirlo como PDF. El mapa usa MapLibre y teselas públicas de OpenStreetMap.
+
+Se admite un borrador a la vez, con fotos JPG/PNG/WebP y documentos PDF: 12 MB por archivo, 60 MB en total. No hay recepción central de expedientes ni publicación automática. Las pruebas de `requisitos.test.mjs` cubren pendientes, coordenadas, formularios condicionales y validación de las copias importadas.
+
 ## Recuperación de la versión anterior
 
 Se conservan las ramas:
