@@ -17,7 +17,7 @@ test('empty and unknown service states stay pending; a documented absence is an 
   assert.ok(!M.pending({water:'No tiene',electricity:'No tiene',access:'Calle pública'}).some(x=>x.label.includes('agua')));
 });
 test('a lot without construction still captures residential rules and fees',()=>{
-  const fields=M.activeFields({buildings:'no'}).map(x=>x.id);
+  const fields=M.activeFields({type:'land',buildings:'no',residential:'condo'}).map(x=>x.id);
   assert.ok(fields.includes('residential'));assert.ok(fields.includes('fees'));assert.ok(!fields.includes('bedrooms'));
 });
 test('a complete backup restores all answers and actual attachment bytes',()=>{
@@ -33,7 +33,33 @@ test('restore rejects corrupt, foreign and executable attachments without modify
   assert.throws(()=>M.validateImport(backup({},[{category:'overview',name:'x.png',type:'image/png',data:'data:image/png;base64,@@@='}])));
 });
 test('required photos and permission are separate from field completeness',()=>{
-  const pending=M.pending({photo_permission:true},[{category:'entrance'},{category:'overview'}]);
+  const pending=M.pending({type:'land',photo_permission:true,cover_id:'cover'},[{id:'entry',category:'entrance',type:'image/jpeg'},{id:'cover',category:'overview',type:'image/jpeg'}]);
   assert.ok(!pending.some(x=>x.step===5));
   assert.ok(M.pending({},[{category:'entrance'},{category:'overview'}]).some(x=>x.label.includes('Permiso')));
+});
+
+test('a reference is optional, limited to 60 characters and legacy long names are not lost',()=>{
+  const name=M.steps[0].fields.find(f=>f.id==='name');assert.equal(name.maxLength,60);assert.equal(name.essential,false);
+  assert.ok(!M.pending({type:'land'}).some(p=>p.label===name.label));
+  const imported=M.validateImport(backup({name:'a'.repeat(100),type:'Lote'}));
+  assert.equal(imported.values.name.length,100);assert.ok(M.pending(imported.values).some(p=>p.label.includes('acortar')));
+  assert.equal(M.reference({type:'land'}),'Terreno');
+});
+test('legacy categories preserve buildings and previous location metadata',()=>{
+  const imported=M.validateImport(backup({type:'Quinta',buildings:'yes',province:'Alajuela',district:'La Fortuna'}));
+  assert.equal(imported.values.type,'built_land');assert.ok(M.hasBuildings(imported.values));assert.equal(imported.values.province,'Alajuela');
+  assert.ok(!M.steps[1].fields.some(f=>['province','canton','district','locality'].includes(f.id)));
+});
+test('service details depend on their own service, never another block',()=>{
+  const a=M.activeFields({water:'No tiene',electricity:'Red cercana, conexión pendiente',internet:'No tiene',well:'no'}).map(f=>f.id);
+  assert.ok(!a.includes('water_provider'));assert.ok(a.includes('electric_distance'));assert.ok(!a.includes('internet_provider'));assert.ok(!a.includes('well_details'));
+});
+test('legacy photo groups migrate without dropping files; cover IDs follow import',()=>{
+  const data='data:image/png;base64,iVBORw0KGgo=';
+  const restored=M.validateImport({...backup({type:'Lote',cover_id:'one'},[{id:'one',category:'flat',name:'a.png',type:'image/png',data,caption:'Pendiente al fondo'},{id:'two',category:'services',name:'b.png',type:'image/png',data}]),version:2});
+  assert.equal(restored.files[0].category,'overview');assert.equal(restored.files[1].category,'technical');assert.equal(restored.values.cover_id,restored.files[0].id);assert.equal(restored.files[0].caption,'Pendiente al fondo');
+});
+test('technical evidence cannot be used as cover and room photos only apply to buildings',()=>{
+  assert.ok(!M.activePhotos({type:'land'}).some(p=>p.building));assert.ok(M.activePhotos({type:'home'}).some(p=>p.id==='bedrooms'));
+  assert.ok(M.pending({type:'land',cover_id:'t'},[{id:'t',category:'technical',type:'image/jpeg'}]).some(p=>p.label.includes('portada')));
 });

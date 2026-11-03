@@ -56,6 +56,8 @@ El borrador y los adjuntos se guardan en IndexedDB, en este navegador y origen. 
 
 Se admite un borrador a la vez, con fotos JPG/PNG/WebP y documentos PDF: 12 MB por archivo, 60 MB en total. No hay recepción central de expedientes ni publicación automática. Las pruebas de `requisitos.test.mjs` cubren pendientes, coordenadas, formularios condicionales y validación de las copias importadas.
 
+El recorrido usa descripciones de lo que se vende, una referencia opcional de hasta 60 caracteres y bloques independientes para cada servicio. El pin reemplaza la captura repetida de provincia, cantón y distrito; no se realiza geocodificación inversa y los nombres administrativos se revisan con el plano. Las fotos se organizan por espacios, con guía de tomas, notas y selección de portada sobre una foto existente. Las pruebas técnicas están separadas de la galería. Las copias versión 2 conservan los pies de foto y admiten migración desde la versión 1 sin eliminar adjuntos ni respuestas anteriores.
+
 ## Recuperación de la versión anterior
 
 Se conservan las ramas:

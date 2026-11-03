@@ -2,9 +2,9 @@
   'use strict';
   const field=(id,label,type='text',extra={})=>({id,label,type,...extra});
   const select=(id,label,options,extra={})=>field(id,label,'select',{options:[['','Lo agregaré después'],...options.map(x=>Array.isArray(x)?x:[x,x]),['unknown','No lo sé']],...extra});
-  const text=(id,label,placeholder='',extra={})=>field(id,label,'text',{placeholder,...extra});
+  const text=(id,label,placeholder='',extra={})=>field(id,label,'text',{placeholder,maxLength:120,...extra});
   const num=(id,label,extra={})=>field(id,label,'number',{min:0,...extra});
-  const note=(id,label,placeholder='')=>field(id,label,'textarea',{wide:true,placeholder});
+  const note=(id,label,placeholder='')=>field(id,label,'textarea',{wide:true,placeholder,maxLength:500});
   const group=(label,help='')=>({type:'group',label,help});
   const baseOptions=['Declarado por el propietario','Observado durante una visita','Respaldado por documentos','Varias fuentes: detallar abajo'];
   const evidence=prefix=>[group('De dónde viene esta información','Una declaración, una observación y un documento son respaldos distintos.'),select(prefix+'_source','Fuente principal',baseOptions),field(prefix+'_date','Fecha de la información','date'),note(prefix+'_evidence','Respaldo o aclaraciones','Quién lo informó, qué se observó y qué documento lo respalda. Indicá las excepciones.')];
@@ -18,61 +18,113 @@
     {id:'documents',short:'Documentos',title:'Los datos también necesitan respaldo.',lead:'Reuní lo disponible. Recibir un documento no significa que ya se haya revisado ni que la propiedad esté lista para construir.',art:'documents',caption:'Documento ficticio de ejemplo. Identificá el número, la fecha y la propiedad a la que corresponde.',tips:['Plano: anotá el número y conservá una copia legible. Compará el área con la información registral.','Certificación registral: permite conocer titularidad y anotaciones. Su interpretación y revisión para una compra corresponde al profesional que la atienda.','Uso de suelo: registrá fecha, actividad consultada y condiciones. No lo presentés como un permiso de construcción.','Antes de adjuntar, evitá copias de cédulas, firmas innecesarias y datos de terceros. Los documentos completos no se publican con esta guía.','Podés consultar los servicios del Registro Nacional y pedir a la municipalidad competente la información de uso de suelo.'],fields:[text('finca','Número de finca / matrícula'),text('plan','Número de plano catastrado'),text('owner','Titular registral indicado','Dato para el expediente, no para la ficha pública'),select('ownership','Situación indicada',['Finca inscrita individual','Derecho en copropiedad','Segregación pendiente','Otra / requiere aclaración']),field('registry_date','Fecha de certificación registral','date'),field('landuse_date','Fecha de uso de suelo','date'),note('landuse','Actividad consultada y condiciones del uso de suelo'),note('restrictions','Anotaciones, servidumbres y restricciones por revisar','Transcribí o referenciá lo que indica el documento; no saqués conclusiones sin revisión.'),note('taxes','Impuestos, cuotas y pendientes reportados'),note('documents_notes','Documentos o revisiones que faltan')]},
     {id:'review',short:'Precio y revisión',title:'Una ficha clara. Los pendientes, también.',lead:'Revisá los datos de venta y lo que falta por conseguir. Guardá una copia completa o un resumen para tu próxima visita.',art:'review',caption:'Esta revisión organiza el expediente; no publica el anuncio ni certifica los datos.',tips:['El precio se guarda en su moneda original. El precio por m² es un cálculo, no un avalúo.','Si incluye casa, el precio dividido entre el terreno incorpora también el valor de las construcciones.','La autorización registrada aquí es una declaración del usuario. La publicación y los acuerdos comerciales se gestionan por separado.'],fields:[num('price','Precio de venta',{min:1,essential:true}),select('currency','Moneda',[['USD','Dólares (USD)'],['CRC','Colones (CRC)']],{essential:true}),select('negotiable','¿Es negociable?',['Sí','No','Consultar']),select('financing','Financiamiento del propietario',['Sí','No','Consultar']),note('terms','Condiciones y qué incluye la venta','Prima, plazo y tasa si ofrece financiamiento; muebles o equipos incluidos.'),select('availability','Estado de la propiedad',['Disponible','Reservada','Vendida','Retirada'],{essential:true}),field('availability_date','Última confirmación de disponibilidad','date',{essential:true}),note('visits','Coordinación de visitas','Contacto, horarios y anticipación. Visitas únicamente con cita.'),field('authorization','Soy propietario o representante autorizado y autorizo preparar el anuncio con esta información.','checkbox',{wide:true}),field('photo_rights_review','Revisé el permiso de uso de las fotos y la ubicación exacta.','checkbox',{wide:true})]}
   ];
+
+  // Describe observable facts, not ambiguous real-estate classifications.
+  const originalFields=steps.flatMap(s=>s.fields).filter(f=>f.id);
+  const byId=Object.fromEntries(originalFields.map(f=>[f.id,f]));
+  const get=(id,extra={})=>({...byId[id],...extra});
+  const groupFields=(label,help,ids)=>[group(label,help),...ids.map(x=>typeof x==='string'?get(x):x)];
+  const hideUnless=(id,key,values)=>get(id,{when:{key,values}});
+  const typeOptions=[['land','Solo terreno','Sin edificaciones. Puede tener árboles, cultivos o cercas.'],['built_land','Terreno con construcciones','Incluye casas, cabañas, ranchos, bodegas u otras edificaciones.'],['home','Una vivienda','La casa es el elemento principal, con su terreno o jardín.'],['business','Una propiedad con negocio','Se ofrece también una operación: alojamiento, comercio u otra actividad.'],['unknown','Todavía no sé cómo describirla','Podés precisarlo después.']];
+  steps[0]={...steps[0],short:'Qué se vende',title:'Contanos qué querés vender.',lead:'No necesitás conocer categorías inmobiliarias. Elegí la descripción que más se parezca a tu propiedad.',caption:'Primero lo que existe hoy; el nombre del anuncio lo definimos después.',tips:['“Lote”, “quinta” y “finca” pueden significar cosas distintas. Describimos qué incluye la venta y cómo se utiliza hoy.','El nombre es una referencia interna, no el título del anuncio. Podés dejarlo vacío.','Podés guardar y continuar luego. Lo que no sepás queda pendiente.'],fields:[field('type','¿Qué incluye la venta?','choices',{options:typeOptions,essential:true,wide:true}),get('name',{label:'¿Cómo la identificamos?',essential:false,optional:true,maxLength:60,help:'Nombre interno, máximo 60 caracteres. Si lo dejás vacío, usaremos una referencia automática.'}),select('current_use','¿Cómo se utiliza hoy?',['Sin uso','Vivienda','Cultivos o ganadería','Recreación / descanso','Alojamiento turístico','Comercio','Otro'],{optional:true})]};
+  steps[1]={...steps[1],short:'Dónde está',title:'Marcá la entrada en el mapa.',lead:'Con ese punto guardamos la ubicación. No te pedimos volver a escribir provincia, cantón y distrito.',caption:'La entrada sirve para llegar. Los linderos se documentan con el plano.',tips:['Acercá el mapa y tocá la entrada. Podés arrastrar el pin.','Si ya tenés coordenadas, abrí “Ingresar coordenadas”.','Los nombres del mapa orientan. La división administrativa se revisa contra el plano al preparar el anuncio; no la deducimos del nombre más cercano.','No confirmés el punto si todavía es aproximado.'],fields:[get('lat',{label:'Latitud'}),get('lng',{label:'Longitud'}),get('exact',{label:'Sí, el pin está en la entrada correcta.'}),get('directions',{label:'¿Hay algo que ayude a encontrar la entrada?',optional:true,placeholder:'Ej. Portón verde al final de la calle. No entrar por la finca vecina.'})]};
+  steps[2]={...steps[2],title:'Del tamaño a la experiencia de llegar.',lead:'Un bloque a la vez. Si no tenés una medida, dejala pendiente; no hace falta inventar una estimación.',fields:[
+    ...groupFields('Superficie y forma','Usá el plano o una medición si los tenés.',['area',get('area_source',{label:'¿De dónde sale esa medida?'}),get('front',{optional:true}),get('depth',{optional:true}),get('terrain',{label:'¿Cómo es el relieve?'}),get('usable',{optional:true})]),
+    ...groupFields('Cómo se llega','Describí el último tramo, no solo la carretera principal.',['road',get('vehicle',{label:'¿Con qué vehículo se puede entrar?'}),select('access','¿La entrada es directa o se pasa por otro terreno?',[['Calle pública','Entrada directa desde la calle'],['Servidumbre','Se pasa por otro terreno / servidumbre'],['Otro / por aclarar','Otro acceso por aclarar']],{help:'La condición legal del acceso se revisa con los documentos.'}),get('unpaved',{optional:true}),get('rain',{label:'¿Qué cambia cuando llueve?',optional:true})]),
+    ...groupFields('Entorno y vistas','Según lo que se ve estando dentro de la propiedad.',['volcano','waterbody',get('vegetation',{optional:true})]),
+    ...groupFields('Residencial o condominio','Las cuotas y reglas solo aparecen cuando corresponden.',['residential',hideUnless('fees','residential',['residential','condo']),hideUnless('rules','residential',['residential','condo'])]),
+    ...groupFields('Algo que deba revisarse','Una observación honesta evita sorpresas durante la visita.',[get('land_evidence',{label:'Detalles o diferencias pendientes',optional:true})])
+  ]};
+  const waterStates=['Conexión activa con medidor','Conexión existente sin servicio activo','Disponibilidad documentada','Red cercana, sin confirmar disponibilidad','Pozo o naciente como abastecimiento'];
+  const electricStates=['Medidor y servicio activo','Instalación existente sin servicio activo','Disponibilidad documentada','Red cercana, conexión pendiente'];
+  steps[3]={...steps[3],short:'Servicios',title:'Un servicio, una respuesta clara.',lead:'Primero indicá el estado actual. Solo aparecen los detalles que ayudan a explicarlo.',caption:'Agua, electricidad, conectividad, saneamiento y lluvia se registran por separado.',tips:['Una red frente al terreno no significa que una conexión esté aprobada.','Elegí “No lo sé” cuando falte confirmar: no equivale a “No tiene”.','Adjuntá cartas, recibos o fotos de medidores en Documentos y respaldos.'],fields:[
+    ...groupFields('01 · Agua','Cómo se abastece hoy y qué se puede demostrar.',[select('water','¿Cuál es la situación del agua?',[...waterStates,'No tiene']),hideUnless('water_provider','water',waterStates),hideUnless('water_document_date','water',['Disponibilidad documentada']),hideUnless('water_scope','water',waterStates),'well',hideUnless('well_details','well',['yes'])]),
+    ...groupFields('02 · Electricidad','Diferenciá medidor propio de red cercana.',[get('electricity',{label:'¿Cuál es la situación eléctrica?'}),hideUnless('electric_provider','electricity',electricStates),hideUnless('electric_distance','electricity',['Red cercana, conexión pendiente']),note('electric_notes','Condiciones o trabajos pendientes','Ej. Falta la acometida; presupuesto de conexión disponible.')]),
+    ...groupFields('03 · Internet y señal celular','Una conexión fija y la señal del teléfono son cosas diferentes.',[get('internet',{label:'Internet fijo'}),hideUnless('internet_provider','internet',['Instalado','Cobertura confirmada por proveedor']),get('mobile',{optional:true})]),
+    ...groupFields('04 · Aguas residuales','Qué recibe el agua de baños, cocina y lavandería.',['sewage',{...note('sewage_details','Estado y mantenimiento que conocés','Ubicación, último mantenimiento o problemas conocidos.'),when:{key:'sewage',values:['Tanque séptico','Planta de tratamiento','Alcantarillado sanitario']}}]),
+    ...groupFields('05 · Agua de lluvia','Cómo sale el agua cuando llueve fuerte.',[select('rainwater','Drenaje observado',['Escurre por pendiente natural','Hay cunetas o drenajes construidos','Se acumula en algunas zonas','No se ha observado durante lluvia']),get('drainage',{optional:true})])
+  ]};
+  steps[4]={...steps[4],title:'Describí los espacios incluidos.',lead:'Estos datos aparecen si la venta incluye edificaciones. Registrá lo que existe hoy y las reparaciones conocidas.',fields:[
+    ...groupFields('Tamaño y distribución','Las áreas construidas se registran aparte del terreno.',[num('building_count','Número de edificaciones',{min:1,step:1}),'built_area',get('built_source',{optional:true}),get('bedrooms',{step:1}),get('bathrooms',{step:.5}),get('parking',{step:1})]),
+    ...groupFields('Estado y equipamiento','Qué recibe el comprador y qué necesita atención.',[get('built_year',{optional:true,step:1}),'materials','condition','equipment']),
+    ...groupFields('Uso y entrega','Para organizar visitas y conocer la disponibilidad.',['occupancy','delivery',hideUnless('tourism','type',['business'])])
+  ]};
+  steps[5]={...steps[5],short:'Recorrido fotográfico',title:'Armá una visita en fotografías.',lead:'Primero el terreno y cómo llegar. Después las vistas y los espacios. Los medidores y detalles técnicos van en un apartado de respaldo.',caption:'Cada grupo responde una pregunta del comprador. Elegí una portada entre las fotos del recorrido.',tips:['Tomá fotos horizontales, con luz natural y el lente limpio. Evitá filtros que alteren la propiedad.','Hacé una toma amplia y luego detalles útiles. No repitás el mismo ángulo.','La portada debe representar lo que se vende: elegila entre las fotos que ya subiste.','Para un terreno, apuntá a 8–12 fotos útiles. Con construcciones, agregá las necesarias para mostrar cada espacio. Es una recomendación, no una cuota.','Las tomas aéreas son opcionales. Mostrá las vistas también desde el suelo.'],fields:[]};
+  steps[6]={...steps[6],short:'Documentos y respaldos',title:'Reuní lo disponible, sin transcribirlo todo.',lead:'Adjuntá cada respaldo en su lugar. No hace falta copiar lo que ya se lee en los documentos para continuar.',fields:[...groupFields('Identificadores, si los tenés a mano','Son opcionales si ya aparecen legibles en los adjuntos.',[get('finca',{optional:true,maxLength:40}),get('plan',{optional:true,maxLength:40})]),...groupFields('Pendientes que ya conocés','Ayuda a orientar la revisión.',[get('documents_notes',{label:'¿Hay algo que debamos aclarar?',optional:true,placeholder:'Acceso, servidumbres, segregación, restricciones, impuestos o documentos faltantes.'})])]};
+  steps[7]={...steps[7],short:'Venta y revisión',title:'Precio, contacto y próximos pasos.',lead:'Terminá con las condiciones de venta. Abajo verás lo que está reunido y lo que falta.',fields:[
+    ...groupFields('Condiciones de venta','Qué se pide y en qué condiciones.',[get('price',{step:1}),'currency','negotiable','financing',hideUnless('terms','financing',['Sí']),'availability','availability_date']),
+    ...groupFields('Persona de contacto','Responsable de aclarar información y coordinar visitas.',[get('contact',{maxLength:80}),get('phone',{maxLength:25}),get('email',{optional:true,maxLength:120}),'role','language',get('visits',{optional:true})]),
+    ...groupFields('Autorizaciones','Preparan la ficha; nada se publica automáticamente.',['authorization','location_consent','photo_permission'])
+  ]};
+  const photo=(id,title,question,help,shots,count,extra={})=>({id,title,question,help,shots,count,...extra});
   const photos=[
-    {id:'entrance',title:'01 · Entrada y calle',help:'Desde la vía pública: entrada completa y camino en ambas direcciones.',essential:true},
-    {id:'overview',title:'02 · Vista general',help:'Desde dos extremos: forma, vegetación y relación con el entorno.',essential:true},
-    {id:'flat',title:'03 · Zona plana y pendientes',help:'Mostrá el relieve real, los desniveles y el área despejada.'},
-    {id:'view',title:'04 · Vista desde el suelo',help:'A la altura de los ojos. Si hay vista al volcán, mostrá también el contexto.'},
-    {id:'services',title:'05 · Servicios y limitaciones',help:'Medidores, drenajes, cauces, erosión o reparaciones por resolver.'},
-    {id:'interior',title:'06 · Construcciones',help:'Fachadas y cada espacio interior; incluí baños, cocina y equipos.',building:true},
-    {id:'aerial',title:'07 · Contexto aéreo (opcional)',help:'Ubicación y entorno. Señalá cualquier lindero aproximado como orientativo.'}
+    photo('overview','El terreno','¿Cómo es y cómo se puede recorrer?','Mostrá el conjunto, el relieve y las zonas distintas.',['Desde la entrada hacia adentro.','Desde el fondo hacia la entrada.','Dos ángulos de las zonas planas y las pendientes.'],'4–6 fotos sugeridas',{essential:true}),
+    photo('entrance','Llegada y acceso','¿Qué encontrará el comprador al llegar?','Desde el camino hasta entrar a la propiedad.',['Camino: superficie y ancho visibles.','Frente completo, incluyendo la entrada.','Desde la entrada hacia la calle.'],'3 fotos sugeridas',{essential:true}),
+    photo('view','Vistas y entorno','¿Qué se ve estando ahí?','Volcán, paisaje, vecinos y privacidad reales.',['Desde el área de uso, a la altura de los ojos.','Incluí el contexto; no solo un acercamiento al volcán.'],'2–3 fotos sugeridas'),
+    photo('nature','Río, jardín y vegetación','¿Qué espacios naturales incluye?','Solo si existen: río, jardín, árboles o senderos.',['Una toma amplia que ubique cada espacio.','Un acercamiento de lo que destaca.'],'Opcional · según lo que exista'),
+    photo('exterior','Fachadas y exteriores','¿Cómo son las edificaciones por fuera?','Cada construcción y su relación con el terreno.',['Fachada completa de cada edificio.','Laterales, terraza, estacionamiento y patio.'],'3–5 fotos sugeridas',{building:true,essential:true}),
+    photo('living','Sala y espacios comunes','¿Cómo se conectan los espacios?','Sala, comedor y áreas compartidas existentes.',['Desde una esquina, mostrando dos paredes y el piso.','Otro ángulo que explique la circulación.'],'1–2 fotos por espacio',{building:true}),
+    photo('kitchen','Cocina','¿Qué instalaciones y equipos incluye?','Distribución, superficies y equipos que se venden.',['Una toma completa y otra del área de trabajo.'],'1–2 fotos por cocina',{building:true}),
+    photo('bedrooms','Habitaciones','¿Cómo es cada dormitorio?','Identificá cada habitación en la nota de su foto.',['Una toma amplia de cada habitación con sus ventanas.','Segundo ángulo si ayuda a entender el tamaño.'],'1–2 fotos por habitación',{building:true}),
+    photo('bathrooms','Baños','¿Qué tiene cada baño y en qué estado?','Ducha, sanitario, lavamanos y ventilación.',['Desde la puerta, evitando aparecer en el espejo.','Otro ángulo si no caben todos los elementos.'],'1–2 fotos por baño',{building:true}),
+    photo('amenities','Otros espacios','¿Qué más está incluido?','Piscina, rancho, bodega, lavado o instalaciones de trabajo.',['Una toma amplia de cada espacio.','Identificá cuál es en la nota de la foto.'],'Opcional · 1–2 por espacio',{building:true}),
+    photo('aerial','Contexto aéreo','¿Cómo se relaciona con sus alrededores?','Complementa las fotos desde el suelo.',['Una toma oblicua del conjunto y su entorno.','Toma superior si ayuda a entender su forma.','Indicá si los límites dibujados son aproximados.'],'Opcional · 1–3 fotos')
   ];
   const documents=[
-    {id:'plan_file',title:'Plano catastrado',help:'Copia legible, número de plano y área.'},
-    {id:'registry_file',title:'Certificación registral',help:'Documento reciente; anotá su fecha y pendientes de revisión.'},
-    {id:'water_file',title:'Respaldo de agua',help:'Carta de disponibilidad o información de la conexión existente.'},
+    {id:'plan_file',title:'Plano catastrado',help:'Copia legible con número y área.'},
+    {id:'registry_file',title:'Información registral',help:'Certificación disponible. Titularidad y anotaciones se revisan después.'},
+    {id:'water_file',title:'Documento de agua',help:'Disponibilidad o respaldo de la conexión existente.'},
     {id:'landuse_file',title:'Uso de suelo',help:'Documento municipal con actividad consultada y condiciones.'},
-    {id:'permits_file',title:'Planos y permisos de obra',help:'Si existen construcciones, adjuntá los documentos disponibles.',building:true},
-    {id:'other_file',title:'Otros respaldos',help:'Acceso, reglamento, pozo u otra información pertinente.'}
+    {id:'permits_file',title:'Planos y permisos de obra',help:'Los que existan para las edificaciones incluidas.',building:true},
+    {id:'technical',title:'Fotos para revisión técnica',help:'Medidores, drenajes, daños o condiciones por aclarar. Separadas de la galería del anuncio.'},
+    {id:'other_file',title:'Otros respaldos',help:'Acceso, reglamento, pozo u otra información pertinente.'},
+    {id:'interior',title:'Interiores de la versión anterior',help:'Conservamos tus archivos. Podés moverlos a la sección correcta con el selector de cada foto.',legacy:true}
   ];
-  const hasBuildings=v=>v.buildings==='yes'||(v.buildings!=='no'&&['Terreno con casa','Casa','Negocio turístico'].includes(v.type));
-  const activeFields=v=>steps.flatMap(s=>s.id==='buildings'&&v.buildings==='no'?[]:s.fields).filter(f=>f.id&&!(f.id==='well_details'&&v.well==='no')&&!(['fees','rules'].includes(f.id)&&v.residential==='no'));
+  function normalizeValues(input={}){const v={...input},legacy={Lote:'land',Quinta:'land',Finca:'land','Terreno con casa':'built_land',Casa:'home','Negocio turístico':'business'};if(legacy[v.type])v.type=(['Lote','Quinta','Finca'].includes(v.type)&&v.buildings==='yes')?'built_land':legacy[v.type];if(v.type==='land')v.buildings='no';else if(['built_land','home','business'].includes(v.type))v.buildings='yes';return v;}
+  const hasBuildings=v=>['built_land','home','business'].includes(v.type)||(!['land'].includes(v.type)&&v.buildings==='yes');
+  const visible=(f,v)=>!f.when||f.when.values.includes(v[f.when.key]);
+  const activeFields=v=>steps.flatMap(s=>s.id==='buildings'&&!hasBuildings(v)?[]:s.fields).filter(f=>f.id&&visible(f,v));
+  const activePhotos=v=>photos.filter(p=>!p.building||hasBuildings(v));
   const answered=v=>v!==undefined&&v!==''&&v!==false&&v!=='unknown';
+  const reference=v=>v.name?.trim()||({land:'Terreno',built_land:'Terreno con construcciones',home:'Vivienda',business:'Propiedad con negocio'}[v.type]||'Propiedad')+(v.area?' · '+Number(v.area).toLocaleString('es-CR')+' m²':'');
   const validPoint=v=>v.lat!==''&&v.lng!==''&&v.lat!==undefined&&v.lng!==undefined&&Number.isFinite(Number(v.lat))&&Number.isFinite(Number(v.lng))&&Math.abs(Number(v.lat))<=90&&Math.abs(Number(v.lng))<=180;
   function pending(v,files=[]){
-    const result=activeFields(v).filter(f=>f.essential&&!answered(v[f.id])).map(f=>({label:f.label,step:steps.findIndex(s=>s.fields.includes(f))}));
+    const result=activeFields(v).filter(f=>(f.essential&&!answered(v[f.id]))||(f.maxLength&&String(v[f.id]||'').length>f.maxLength)).map(f=>({label:f.label+(f.maxLength&&String(v[f.id]||'').length>f.maxLength?' (acortar texto)':''),step:steps.findIndex(s=>s.fields.includes(f))}));
     if(!validPoint(v)||!v.exact)result.push({label:'Entrada exacta confirmada en el mapa',step:1});
-    if(!v.location_consent)result.push({label:'Autorización de ubicación exacta',step:1});
-    if(!v.area_source||v.area_source==='unknown')result.push({label:'Fuente del área del terreno',step:2});
-    if(!v.water||v.water==='unknown'||!v.electricity||v.electricity==='unknown'||!v.access||v.access==='unknown')result.push({label:'Estado del acceso, agua y electricidad',step:!v.access||v.access==='unknown'?2:3});
-    for(const photo of photos.filter(p=>p.essential))if(!files.some(f=>f.category===photo.id))result.push({label:photo.title,step:5});
-    if(!v.photo_permission)result.push({label:'Permiso de uso de fotografías',step:5});
+    if(!v.location_consent)result.push({label:'Autorización de ubicación exacta',step:7});
+    if(!answered(v.area_source))result.push({label:'Fuente del área del terreno',step:2});
+    for(const [id,label,step] of [['access','Cómo se accede al terreno',2],['water','Situación del agua',3],['electricity','Situación de la electricidad',3]])if(!answered(v[id]))result.push({label,step});
+    for(const photo of activePhotos(v).filter(p=>p.essential))if(!files.some(f=>f.category===photo.id&&f.type?.startsWith('image/')))result.push({label:'Fotos: '+photo.title,step:5});
+    if(!files.some(f=>f.id===v.cover_id&&activePhotos(v).some(p=>p.id===f.category)&&f.type?.startsWith('image/')))result.push({label:'Elegir una foto de portada',step:5});
+    if(!v.photo_permission)result.push({label:'Permiso de uso de fotografías',step:7});
     if(!v.authorization)result.push({label:'Autorización para preparar el anuncio',step:7});
     return result;
   }
   const maxFile=12*1024*1024,maxTotal=60*1024*1024;
   const types=['image/jpeg','image/png','image/webp','application/pdf'];
   function validateImport(obj){
-    if(!obj||obj.format!=='arenalindex-intake'||obj.version!==1||!obj.values||typeof obj.values!=='object'||Array.isArray(obj.values)||!Array.isArray(obj.files))throw Error('Esta no es una copia válida de ArenalIndex.');
-    const values={};
-    for(const f of steps.flatMap(s=>s.fields).filter(f=>f.id)){
-      const value=obj.values[f.id];if(value===undefined)continue;
+    if(!obj||obj.format!=='arenalindex-intake'||![1,2].includes(obj.version)||!obj.values||typeof obj.values!=='object'||Array.isArray(obj.values)||!Array.isArray(obj.files))throw Error('Esta no es una copia válida de ArenalIndex.');
+    const values={},source=normalizeValues(obj.values);
+    for(const f of [...originalFields.filter(f=>!steps.some(s=>s.fields.some(n=>n.id===f.id))),...steps.flatMap(s=>s.fields).filter(f=>f.id),{id:'cover_id'}]){
+      const value=source[f.id];if(value===undefined)continue;
       if(f.type==='checkbox'){if(typeof value!=='boolean')throw Error('La copia contiene una respuesta inválida.');values[f.id]=value;continue;}
       if(typeof value!=='string'||value.length>12000)throw Error('La copia contiene un campo inválido.');
-      if(f.options&&!f.options.some(o=>o[0]===value))throw Error('La copia contiene una opción no reconocida.');
+      if(f.options&&value!==''&&!f.options.some(o=>o[0]===value))throw Error('La copia contiene una opción no reconocida.');
       if(f.type==='number'&&value!==''&&(!Number.isFinite(Number(value))||(f.min!==undefined&&Number(value)<f.min)||(f.max!==undefined&&Number(value)>f.max)))throw Error('La copia contiene un número fuera de rango.');
       if(f.type==='date'&&value!==''&&!/^\d{4}-\d{2}-\d{2}$/.test(value))throw Error('La copia contiene una fecha inválida.');
       values[f.id]=value;
     }
     const categories=[...photos,...documents].map(x=>x.id);let total=0;
-    const files=obj.files.map((f,i)=>{
+    const files=obj.files.map((original,i)=>{
+      const f={...original,category:({flat:'overview',services:'technical'}[original?.category]||original?.category)};
       if(!f||!categories.includes(f.category)||!types.includes(f.type)||typeof f.name!=='string'||f.name.length>255||typeof f.data!=='string'||!f.data.startsWith('data:'+f.type+';base64,'))throw Error('La copia contiene un archivo no válido.');
       const base64=f.data.split(',')[1];if(!/^[A-Za-z0-9+/]*={0,2}$/.test(base64)||base64.length%4)throw Error('Archivo incompleto en la copia.');
       const size=base64.length*3/4-(base64.endsWith('==')?2:base64.endsWith('=')?1:0);total+=size;
       if(size>maxFile||total>maxTotal)throw Error('La copia supera el límite de archivos (60 MB).');
-      return {id:'import-'+i+'-'+Date.now(),category:f.category,type:f.type,name:f.name,data:f.data,size};
+      const id='import-'+i+'-'+Date.now();if(source.cover_id===original.id)values.cover_id=id;
+      return {id,category:f.category,type:f.type,name:f.name,data:f.data,size,caption:typeof f.caption==='string'?f.caption.slice(0,160):''};
     });
     return {values,files,step:Number.isInteger(obj.step)?Math.min(7,Math.max(0,obj.step)):0,updated:obj.updated||''};
   }
-  root.ArenalIntake={steps,photos,documents,hasBuildings,activeFields,answered,validPoint,pending,maxFile,maxTotal,types,validateImport};
+  root.ArenalIntake={steps,photos,documents,hasBuildings,activeFields,activePhotos,visible,answered,validPoint,pending,reference,normalizeValues,maxFile,maxTotal,types,validateImport,originalFields};
 })(globalThis);
