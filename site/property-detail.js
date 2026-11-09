@@ -148,10 +148,15 @@
   function specs(){dialog('Ficha de la propiedad',`<div class="pd-dialog-body">${content.content(current)}</div>`);}
   page.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(!action)return;if(action==='back')back();if(action==='photos')gallery();if(action==='contact')contact();if(action==='share')share();if(action==='specs')specs();if(action==='save'){app.toggleSaved(current.id);syncSave();}if(action==='map'){if(window.ArenalPreview)app.focusProperty(current.id);else{pendingMap=current.id;back();}}});
   page.addEventListener('keydown',e=>{if(e.key==='Escape'&&!openDialog){e.preventDefault();back();}});
-  // Preserve horizontal card swipes; a deliberate photo tap opens the listing.
-  const list=document.getElementById('index-list');let pointer=null;
-  list?.addEventListener('pointerdown',e=>{pointer={x:e.clientX,y:e.clientY,scroll:e.target.closest('.gallery-track')?.scrollLeft};},{capture:true,passive:true});
-  list?.addEventListener('click',e=>{const link=e.target.closest('.listing-title-link,.listing-total');if(link){if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();open(link.closest('[data-id]').dataset.id);return;}const track=e.target.closest('.gallery-track');if(track&&e.target.tagName==='IMG'&&pointer&&Math.abs(e.clientX-pointer.x)<8&&Math.abs(e.clientY-pointer.y)<8&&Math.abs(track.scrollLeft-pointer.scroll)<8){open(track.closest('[data-id]').dataset.id);}});
+  // Native scrolling and carousel swipes must never activate a listing.
+  const list=document.getElementById('index-list');
+  if(list)window.ArenalListingActivation(document.getElementById('results-scroll'));
+  list?.addEventListener('click',e=>{
+    const link=e.target.closest('.listing-title-link,.listing-total');
+    if(link){if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();open(link.closest('[data-id]').dataset.id);return;}
+    const track=e.target.closest('.gallery-track');
+    if(track&&e.target.tagName==='IMG')open(track.closest('[data-id]').dataset.id);
+  });
   window.addEventListener('popstate',route);window.addEventListener('hashchange',route);
   window.arenalDetail={open};route();
 })();

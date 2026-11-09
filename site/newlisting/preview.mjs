@@ -19,5 +19,5 @@ try{
   window.arenalDemo={items:[item],state:{saved},toggleSaved(id){const index=saved.indexOf(id);if(index<0)saved.push(id);else saved.splice(index,1);},focusProperty(){if(item.coordinates)window.open('https://www.openstreetmap.org/?mlat='+item.coordinates[1]+'&mlon='+item.coordinates[0]+'#map=15/'+item.coordinates[1]+'/'+item.coordinates[0],'_blank','noopener,noreferrer');}};
   history.replaceState(null,'','#propiedad/'+item.id);
   window.arenalReady=Promise.resolve();
-  await import('/property-detail.js?v=10-draft-preview');
+  await import('/property-detail.js?v=11-scroll-guard');
 }catch(error){document.querySelector('#index-home p').textContent=error.message;}

@@ -1,7 +1,7 @@
 /* Public listing: generous photography, a quiet type scale, and useful disclosures. */
 #arenal-index-dos .pd-page{width:100%;height:100dvh;border:0;padding:0;max-height:100dvh;max-width:min(1440px,100vw);border-radius:0;grid-template-rows:68px minmax(0,1fr) auto;color:#24352b}
 #arenal-index-dos .pd-page .pd-brand{text-decoration:none}
-#arenal-index-dos .pd-heading{padding:26px 22px 18px}
+#arenal-index-dos .pd-heading{display:block;background:#fff;color:#24352b;padding:26px 22px 18px}
 #arenal-index-dos .pd-heading h1{font:600 clamp(25px,3vw,36px)/1.18 Manrope,system-ui,sans-serif;letter-spacing:-1px;margin:0 0 14px;overflow-wrap:anywhere}
 #arenal-index-dos .pd-heading h1:focus{outline:none}
 #arenal-index-dos .pd-kicker{font-size:10px;letter-spacing:1.2px;margin:0 0 10px;color:#718073}
