@@ -46,10 +46,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 #arenal-index-dos #index-filter-page .disclosure-content select{background:#fff;color:#424242;border-color:#ddd;font-size:15px}
 /* Spacious selectable feature cards echo the reference without adding new filters. */
 #arenal-index-dos #index-filter-page .nature-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
-#arenal-index-dos #index-filter-page .nature-options button{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;min-height:100px;padding:16px 10px;border:1px solid #ddd;border-radius:14px;background:#fff;color:#777;font-size:14px;font-weight:500;text-align:center;line-height:1.35}
-#arenal-index-dos #index-filter-page .nature-options button svg{width:29px;height:29px;stroke-width:1.65}
+#arenal-index-dos #index-filter-page .nature-options button{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;min-height:84px;padding:12px 10px;border:1px solid #ddd;border-radius:14px;background:#fff;color:#777;font-size:14px;font-weight:500;text-align:center;line-height:1.35}
+#arenal-index-dos #index-filter-page .nature-options button svg{width:22px;height:22px;stroke-width:1.65}
 #arenal-index-dos #index-filter-page .nature-options button[aria-pressed=true]{border-color:#285a3d;box-shadow:inset 0 0 0 1px #285a3d;background:#f1f5ef;color:#285a3d}
 #arenal-index-dos #index-filter-page .nature-options button:hover{border-color:#8a9787}
+#arenal-index-dos #index-filter-page .condo-note{font-size:12px;line-height:1.5;color:var(--m-muted);margin:12px 0 24px}
+#arenal-index-dos #index-filter-page .construction-filter{border:0;border-top:1px solid #e4e4e1;min-width:0;margin:0;padding:22px 0 0}
+#arenal-index-dos #index-filter-page .construction-filter legend{float:left;width:100%;font-size:16px;font-weight:600;color:#424242;margin-bottom:14px;padding:0}
+#arenal-index-dos #index-filter-page .construction-options{clear:both;display:grid;gap:8px}
+#arenal-index-dos #index-filter-page .construction-options label{display:flex;align-items:center;gap:12px;min-height:48px;padding:12px 14px;border:1px solid #ddd;border-radius:12px;font-size:14px;line-height:1.4;color:#424242;cursor:pointer}
+#arenal-index-dos #index-filter-page .construction-options label:has(:checked){border-color:#285a3d;box-shadow:inset 0 0 0 1px #285a3d;background:#f1f5ef}
+#arenal-index-dos #index-filter-page .construction-options input{margin:0;width:18px;height:18px;flex-shrink:0;accent-color:#285a3d}
+#arenal-index-dos #index-filter-page .construction-options label:has(:focus-visible){outline:2px solid #285a3d;outline-offset:3px}
+#arenal-index-dos #index-filter-page .construction-options small{display:block;font-size:12px;line-height:1.5;color:var(--m-muted);margin-top:2px}
 /* Detail, gallery, spec, share and contact dialogs all belong to the same family. */
 #arenal-index-dos .pd-bar{border-color:#dededb;padding:10px 16px}
 #arenal-index-dos .pd-content h1{font-size:26px;font-weight:600;letter-spacing:0;color:#424242}
