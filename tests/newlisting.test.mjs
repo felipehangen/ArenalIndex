@@ -33,6 +33,42 @@ test('cover must belong to the active public tour; document groups never satisfy
   const d=completeDraft();d.values.cover_id='plan-1';assert.ok(M.pending(d).some(i=>i.label.includes('portada')));
   assert.ok(!M.activeGroups(d.values).some(g=>g.id==='permits_file'));
 });
+test('photo completion follows classified shots and cover, independently of final permissions',()=>{
+  const d=completeDraft(),photos=M.stepIndex('photos');
+  delete d.values.photo_permission;delete d.values.cover_id;
+  for(const file of d.files.filter(f=>f.category==='access'))file.shot='general';
+  assert.equal(M.stepComplete(d,photos),false);
+  assert.deepEqual(M.photoRequirements(d).filter(item=>!item.complete).map(item=>item.label),['Una foto de la entrada','Una foto de la vía de llegada','Elegir una foto de portada']);
+  d.files.find(f=>f.id==='entry-1').shot='entrance';
+  d.files.find(f=>f.id==='road-1').shot='road';
+  d.values.cover_id='land-1';
+  assert.equal(M.stepComplete(d,photos),true);
+  assert.equal(M.stepComplete(d,M.stepIndex('review')),false);
+  d.files=d.files.filter(f=>f.id!=='road-1');
+  assert.equal(M.stepComplete(d,photos),false);
+});
+test('photo exceptions can explain missing shots but never replace a cover or reviewer acceptance',()=>{
+  const d=completeDraft(),photos=M.stepIndex('photos');
+  d.files=d.files.filter(f=>f.category!=='access');d.values.photo_exception='No pude fotografiar el acceso.';
+  assert.equal(M.stepComplete(d,photos),true);
+  assert.ok(M.pending(d,{publication:true}).some(issue=>issue.step===photos));
+  assert.ok(!M.pending(d,{publication:true,review:{photo_exception_accepted:true}}).some(issue=>issue.step===photos));
+  delete d.values.cover_id;assert.equal(M.stepComplete(d,photos),false);
+});
+test('sale data precedes review, and saved drafts preserve both the previous sale step and new final step',()=>{
+  const d=completeDraft(),sale=M.stepIndex('sale'),review=M.stepIndex('review');
+  assert.equal(sale,7);assert.equal(review,sale+1);
+  const requiredSale=['price','currency','contact','phone','email','role'];
+  assert.ok(requiredSale.every(id=>M.steps[sale].fields.some(field=>field.id===id)));
+  assert.deepEqual(M.steps[review].fields.filter(field=>field.id).map(field=>field.id),['authorization','location_consent','photo_permission']);
+  delete d.values.price;delete d.values.phone;delete d.values.email;delete d.values.authorization;
+  const issues=M.pending(d);
+  assert.equal(issues.find(issue=>issue.label==='Precio de venta').step,sale);
+  assert.equal(issues.find(issue=>issue.label==='Un teléfono o correo de contacto').step,sale);
+  assert.equal(issues.find(issue=>issue.label==='Autorización de publicación').step,review);
+  d.values.authorization=true;assert.equal(M.stepComplete(d,review),false);
+  for(const step of [sale,review])assert.equal(M.normalizeDraft({...d,step}).step,step);
+});
 test('the entrance marker and status are cleared when either coordinate is removed',()=>{
   let removed=false,message='',marker={setLngLat(){},remove(){removed=true;}};
   const controller={marker};

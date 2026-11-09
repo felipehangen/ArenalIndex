@@ -1,4 +1,4 @@
-import {visible,photoTour,photoCaption,areaDifference} from './model.mjs';
+import {visible,photoTour,photoCaption,areaDifference,photoRequirements,pending,stepIndex} from './model.mjs?v=4-workflow';
 
 export const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function renderField(f,values={},prefix=''){
@@ -17,6 +17,19 @@ export function renderField(f,values={},prefix=''){
 export function areaNotice(values){
   const difference=areaDifference(values),format=value=>new Intl.NumberFormat('es-CR',{maximumFractionDigits:2}).format(value);
   return difference?'El área declarada ('+format(difference.declared)+' m²) y la indicada en el plano ('+format(difference.documented)+' m²) son distintas. Podés enviar la ficha; aclararemos la diferencia antes de publicar.':'';
+}
+export function renderPhotoGroupStatus(draft,group){
+  const requirements=photoRequirements(draft).filter(item=>item.group===group);
+  if(!requirements.length)return '';
+  return requirements.every(item=>item.complete)?' <span class="complete-label">✓ Completo</span>':' <span class="required-label">Necesario</span>';
+}
+export function renderPhotoChecklist(draft){
+  const requirements=photoRequirements(draft),issues=pending(draft).filter(issue=>issue.step===stepIndex('photos'));
+  const exception=!!draft.values.photo_exception?.trim();
+  return '<section id="photo-checklist" class="photo-checklist" aria-labelledby="photo-checklist-title"><h2 id="photo-checklist-title">'+(issues.length?'Para completar Fotos':'✓ Fotos completas')+'</h2><p>'+(issues.length?'El check aparece cuando completás estos requisitos. Subir las fotos no indica automáticamente qué muestran.':'Los requisitos de este paso están completos.')+'</p><ul>'+requirements.map(item=>{
+    const waived=!item.complete&&item.group!=='cover'&&exception;
+    return '<li><span>'+escapeHTML(item.label)+'</span>'+(item.complete?'<span class="complete-label">✓ Listo</span>':waived?'<span class="badge pending">Para revisión</span>':'<button type="button" class="photo-pending" data-photo-group="'+item.group+'">Completar →</button>')+'</li>';
+  }).join('')+'</ul>'+(exception&&requirements.some(item=>item.group!=='cover'&&!item.complete)?'<p>La explicación de las fotos faltantes se enviará para revisión. ArenalIndex deberá aceptar la excepción antes de publicar.</p>':'')+'</section>';
 }
 export function renderFields(items,values={},prefix=''){
   const sections=[];let current={fields:[]};

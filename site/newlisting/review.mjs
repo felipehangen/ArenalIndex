@@ -1,4 +1,4 @@
-import * as M from './model.mjs';
+import * as M from './model.mjs?v=4-workflow';
 import {renderPhotoTour} from './view.mjs';
 const params=new URLSearchParams(location.hash.slice(1)),id=params.get('id'),token=params.get('token');
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

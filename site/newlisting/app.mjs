@@ -1,14 +1,15 @@
-import * as M from './model.mjs';
+import * as M from './model.mjs?v=4-workflow';
 import {openStore,createSaver} from './local.mjs';
 import {createAPI,randomToken,submitDraft} from './api.mjs';
 import {mountMap} from './map.mjs';
-import {renderFields,renderPhotoTour,areaNotice} from './view.mjs?v=2-required';
+import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,areaNotice} from './view.mjs?v=4-workflow';
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const api=createAPI();
 let draft=M.newDraft(),storage,save,ready=false,busy=false,map,urls=new Map(),saveTimer,noticeTimer;
 const status=text=>$('#save-status').textContent=text;
 const locked=()=>!!draft.submission&&draft.submission.status!=='draft';
+const isReview=()=>M.steps[draft.step].id==='review';
 function notify(text){$('#notice').textContent=text;$('#notice').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('#notice').hidden=true,8000);}
 function confirm(title,copy){return new Promise(resolve=>{const dialog=$('#confirm-dialog');$('#confirm-title').textContent=title;$('#confirm-copy').textContent=copy;$('#confirm-ok').onclick=()=>{dialog.close();resolve(true);};$('#confirm-cancel').onclick=()=>{dialog.close();resolve(false);};dialog.oncancel=()=>resolve(false);dialog.showModal();});}
 try {storage=await openStore();const previous=await storage.read();if(previous)draft=M.normalizeDraft(previous);status(previous?'Retomamos tu borrador':'El borrador se guarda en este navegador');}
@@ -27,26 +28,27 @@ function attachment(file){
   const current=groups.find(g=>g.id===file.category);
   const gallery=M.photoGroups.some(g=>g.id===file.category&&(!g.building||M.hasBuildings(draft.values)));
   return '<article class="attachment">'+(image?'<img src="'+url+'" alt="'+esc(imageCaption(file))+'" loading="lazy">':'<span class="file-icon">PDF</span>')+'<div class="attachment-info"><a href="'+url+'" download="'+esc(file.name)+'">'+esc(file.name)+'</a><small>'+esc(imageCaption(file))+' · '+Math.ceil(file.size/1024)+' KB</small><label>Grupo<select data-file="'+file.id+'" data-meta="category">'+(!current?'<option value="'+file.category+'" selected>Archivo conservado: '+esc(file.category)+'</option>':'')+groups.filter(g=>image||!M.photoGroups.some(p=>p.id===g.id)).map(g=>'<option value="'+g.id+'"'+(g.id===file.category?' selected':'')+'>'+esc(g.title)+'</option>').join('')+'</select></label>'+
-    (image&&file.category==='access'?'<label>Qué muestra<select data-file="'+file.id+'" data-meta="shot">'+[['general','Elegir toma'],['entrance','Entrada'],['road','Vía de llegada']].map(([v,l])=>'<option value="'+v+'"'+(file.shot===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>':'')+
-    (image&&file.category==='buildings'?'<label>Construcción<select data-file="'+file.id+'" data-meta="buildingId"><option value="">Elegir construcción</option>'+draft.buildings.map((b,i)=>'<option value="'+b.id+'"'+(file.buildingId===b.id?' selected':'')+'>'+esc(b.name||'Construcción '+(i+1))+'</option>').join('')+'</select></label><label>Toma<select data-file="'+file.id+'" data-meta="shot">'+[['general','Elegir toma'],['exterior','Exterior'],['interior','Interior']].map(([v,l])=>'<option value="'+v+'"'+(file.shot===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>':'')+
+    (image&&file.category==='access'?'<label>Qué muestra <span class="required-label">Para completar el grupo</span><select data-file="'+file.id+'" data-meta="shot">'+[['general','Elegir toma'],['entrance','Entrada'],['road','Vía de llegada']].map(([v,l])=>'<option value="'+v+'"'+(file.shot===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>':'')+
+    (image&&file.category==='buildings'?'<label>Construcción <span class="required-label">Para completar el grupo</span><select data-file="'+file.id+'" data-meta="buildingId"><option value="">Elegir construcción</option>'+draft.buildings.map((b,i)=>'<option value="'+b.id+'"'+(file.buildingId===b.id?' selected':'')+'>'+esc(M.buildingName(b,i))+'</option>').join('')+'</select></label><label>Toma <span class="required-label">Para completar el grupo</span><select data-file="'+file.id+'" data-meta="shot">'+[['general','Elegir toma'],['exterior','Exterior'],['interior','Interior']].map(([v,l])=>'<option value="'+v+'"'+(file.shot===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>':'')+
     (image&&gallery?'<label>Punto de vista<select data-file="'+file.id+'" data-meta="perspective"><option value="ground"'+(file.perspective!=='drone'?' selected':'')+'>Desde el suelo</option><option value="drone"'+(file.perspective==='drone'?' selected':'')+'>Dron</option></select></label><button type="button" class="cover-button" data-cover="'+file.id+'">'+(draft.values.cover_id===file.id?'✓ Portada elegida':'Usar de portada')+'</button>':'')+
     '</div><button type="button" data-remove-file="'+file.id+'" aria-label="Quitar '+esc(file.name)+'">Quitar</button></article>';
 }
 function attachments(photo){
   const original=photo?M.photoGroups:M.documentGroups;
   const groups=original.filter(g=>!g.building||M.hasBuildings(draft.values)||draft.files.some(f=>f.category===g.id));
-  const cover=draft.files.find(f=>f.id===draft.values.cover_id&&f.type.startsWith('image/'));
-  return (photo?'<section class="cover-card"><div><p class="eyebrow">LA PRIMERA IMPRESIÓN</p><h2>Elegí una portada <span class="required-label">Necesario</span></h2><p>Usá una foto que represente el terreno. La selección no duplica el archivo.</p></div><div id="cover-preview">'+(cover?'<img src="'+objectURL(cover.blob)+'" alt="Portada elegida">':'Todavía no elegiste una portada.')+'</div></section>':'')+
+  const cover=draft.files.find(f=>f.id===draft.values.cover_id&&f.type.startsWith('image/')&&M.photoGroups.some(g=>g.id===f.category&&(!g.building||M.hasBuildings(draft.values))));
+  return (photo?renderPhotoChecklist(draft)+'<section class="cover-card" id="photo-group-cover"><div><p class="eyebrow">LA PRIMERA IMPRESIÓN</p><h2>Elegí una portada'+renderPhotoGroupStatus(draft,'cover')+'</h2><p>En la foto que prefirás, pulsá «Usar de portada». La selección no duplica el archivo.</p></div><div id="cover-preview">'+(cover?'<img src="'+objectURL(cover.blob)+'" alt="Portada elegida">':'Todavía no elegiste una portada.')+'</div></section>':'')+
     '<p class="map-note">'+(photo?'JPG, PNG o WebP. Exportá HEIC como JPG.':'JPG, PNG, WebP o PDF.')+' Hasta 12 MB por archivo y 60 MB en total.</p>'+groups.map((g,i)=>{
       const inactive=g.building&&!M.hasBuildings(draft.values),list=draft.files.filter(f=>f.category===g.id);
-      const required=!inactive&&(g.min>0||g.id==='plan_file'||g.id==='buildings');
-      return '<details class="photo-section" data-group="'+g.id+'"'+(i===0||list.length?' open':'')+'><summary><span>'+esc(g.title)+(inactive?' · archivos conservados':'')+(required?' <span class="required-label">Necesario</span>':'')+'</span><span class="photo-count">'+list.length+' archivo(s)</span></summary><div class="upload-content"><p>'+esc(g.help)+'</p>'+(inactive?'<p class="note">Estos archivos se conservan. Podés moverlos o quitarlos; no se incluirán en el recorrido de un terreno sin construcciones.</p>':'<label class="file-picker">Agregar '+(photo?'fotos':'archivos')+'<input type="file" data-upload="'+g.id+'" accept="'+(photo?'image/jpeg,image/png,image/webp':'image/jpeg,image/png,image/webp,application/pdf')+'" multiple></label>')+list.map(attachment).join('')+'</div></details>';
+      const requirement=inactive?'':photo?renderPhotoGroupStatus(draft,g.id):g.id==='plan_file'?' <span class="required-label">Necesario</span>':'';
+      const guidance=g.id==='access'?'Después de subirlas, elegí «Entrada» en una foto y «Vía de llegada» en otra, en el campo «Qué muestra».':g.id==='buildings'?'En cada exterior, elegí la construcción correspondiente y la toma «Exterior».':'';
+      return '<details class="photo-section" id="photo-group-'+g.id+'" data-group="'+g.id+'"'+(i===0||list.length?' open':'')+'><summary><span>'+esc(g.title)+(inactive?' · archivos conservados':'')+requirement+'</span><span class="photo-count">'+list.length+' archivo(s)</span></summary><div class="upload-content"><p>'+esc(g.help)+'</p>'+(guidance&&!inactive?'<p class="photo-guidance">'+guidance+'</p>':'')+(inactive?'<p class="note">Estos archivos se conservan. Podés moverlos o quitarlos; no se incluirán en el recorrido de un terreno sin construcciones.</p>':'<label class="file-picker">Agregar '+(photo?'fotos':'archivos')+'<input type="file" data-upload="'+g.id+'" accept="'+(photo?'image/jpeg,image/png,image/webp':'image/jpeg,image/png,image/webp,application/pdf')+'" multiple></label>')+list.map(attachment).join('')+'</div></details>';
     }).join('');
 }
 function review(){
   const issues=M.pending(draft),exception=M.photoIssues(draft);
   return '<section id="review-summary"><div class="section-divider"><h2>'+ (issues.length?'Antes de enviar':'Tu propuesta está lista para enviar')+'</h2><p>'+draft.files.length+' archivo(s) · '+issues.length+' dato(s) pendiente(s)</p></div>'+
-    '<div class="review-list">'+issues.map(i=>'<div class="review-item"><span>'+esc(i.label)+'</span><button type="button" data-step="'+i.step+'">Completar →</button></div>').join('')+'</div>'+
+    '<div class="review-list">'+issues.map(i=>'<div class="review-item"><span>'+esc(i.label)+'</span><button type="button" '+(i.step===M.stepIndex('review')?'data-action="authorizations"':'data-step="'+i.step+'"')+'>Completar →</button></div>').join('')+'</div>'+
     (exception.length&&draft.values.photo_exception?'<p class="note">Se enviará una excepción de fotografías para revisión: '+esc(draft.values.photo_exception)+'</p>':'')+
     (areaNotice(draft.values)?'<p class="note area-note">'+esc(areaNotice(draft.values))+'</p>':'')+
     '<h2>Vista previa del anuncio</h2><p class="map-note">Texto preparado con tus respuestas. El nombre corto es una sugerencia; ArenalIndex decide el título definitivo durante la revisión.</p><div class="buyer-preview">'+esc(M.buyerCopy(draft))+'</div>'+
@@ -63,19 +65,21 @@ function submissionState(){
   $('#submission-state').innerHTML='<section class="submission-banner"><strong>'+esc(M.STATES[s.status]||s.status)+'</strong><p>Versión '+s.version+'. '+(s.status==='approved'?'Aprobada para preparar la publicación.':s.status==='draft'?'La versión anterior se retiró de revisión. Enviá los cambios cuando estén listos.':'La ficha enviada se conserva como una versión para revisión.')+'</p>'+(s.feedback?'<p>'+esc(s.feedback)+'</p>':'')+(s.status==='ready_for_review'&&!s.notificationSent?'<p>Tu ficha está recibida, pero el correo de aviso sigue pendiente.</p><button class="secondary" data-action="retry-email">Reintentar aviso</button>':'')+(locked()?'<button class="secondary" data-action="edit">Editar y volver a enviar</button>':'')+' <button class="quiet" data-action="refresh">Actualizar estado</button></section>';
 }
 function updateReview(){
-  if(draft.step===7&&$('#review-summary')){
+  if(isReview()&&$('#review-summary')){
     const disclosureState=new Map([...document.querySelectorAll('[data-review-section]')].map(el=>[el.dataset.reviewSection,el.open]));
     $('#review-summary').outerHTML=review();
     for(const el of document.querySelectorAll('[data-review-section]'))if(disclosureState.has(el.dataset.reviewSection))el.open=disclosureState.get(el.dataset.reviewSection);
   }
   const notice=$('#area-notice');if(notice){notice.textContent=areaNotice(draft.values);notice.hidden=!notice.textContent;}
   const issues=M.pending(draft);
+  if($('#photo-checklist'))$('#photo-checklist').outerHTML=renderPhotoChecklist(draft);
   for(const button of document.querySelectorAll('.nav-step')){
-    const complete=!issues.some(issue=>issue.step===Number(button.dataset.step));
+    const complete=M.stepComplete(draft,Number(button.dataset.step),issues);
     button.querySelector('.step-complete').hidden=!complete;
   }
+  for(const [n,option] of [...$('#step-select').options].entries())option.textContent=(n+1)+' · '+M.steps[Number(option.value)].short+(M.stepComplete(draft,Number(option.value),issues)?' ✓':'');
   $('#draft-reference').textContent=M.reference(draft);
-  $('#next').disabled=busy||(draft.step===7&&!locked()&&(!ready||issues.length>0));
+  $('#next').disabled=busy||(isReview()&&!locked()&&(!ready||issues.length>0));
 }
 function render(focus=true){
   release();const s=M.steps[draft.step],active=M.activeSteps(draft);
@@ -88,14 +92,14 @@ function render(focus=true){
   if(s.id==='photos')content=attachments(true)+content;
   if(['land','documents'].includes(s.id))content+='<p id="area-notice" class="note area-note" role="status" hidden></p>';
   if(s.id==='documents')content=content+attachments(false);
-  $('#step-body').innerHTML='<p class="eyebrow">'+esc(s.short)+'</p><h1>'+esc(s.title)+'</h1><p class="lead">'+esc(s.lead)+'</p><fieldset class="form-shell"'+(locked()||busy?' disabled':'')+'>'+content+'</fieldset>'+(s.id==='review'?review():'');
+  $('#step-body').innerHTML='<p class="eyebrow">'+esc(s.short)+'</p><h1>'+esc(s.title)+'</h1><p class="lead">'+esc(s.lead)+'</p>'+(isReview()?review():'')+'<fieldset class="form-shell"'+(isReview()?' id="review-authorizations"':'')+(locked()||busy?' disabled':'')+'>'+content+'</fieldset>';
   if(s.id==='location')map=mountMap($('#entry-map'),draft.values,(lng,lat,method)=>{
     if(locked()||busy)return;
     draft.values.lng=String(Number(lng.toFixed(6)));draft.values.lat=String(Number(lat.toFixed(6)));draft.values.location_method=method;draft.values.exact=false;
     $('#field-lng').value=draft.values.lng;$('#field-lat').value=draft.values.lat;$('#field-location_method').value=method;$('#field-exact').checked=false;map?.update(draft.values);changed();
   },message=>{if($('#map-status'))$('#map-status').textContent=message;});
   $('#previous').disabled=busy||active.indexOf(draft.step)===0;
-  $('#next').textContent=draft.step===7?(locked()?'Actualizar estado':'Enviar para revisión'):'Continuar →';
+  $('#next').textContent=isReview()?(locked()?'Actualizar estado':'Enviar para revisión'):'Continuar →';
   for(const id of ['backup','restore','new-draft','step-select'])$('#'+id).disabled=busy;
   submissionState();updateReview();
   if(focus){$('#content').focus({preventScroll:true});window.scrollTo({top:0,behavior:'instant'});}
@@ -103,7 +107,7 @@ function render(focus=true){
 async function go(step){
   if(busy)return notify('Esperá a que termine la operación.');
   if(step===4&&!M.hasBuildings(draft.values))step=5;
-  draft.step=Math.max(0,Math.min(7,step));await save();render();
+  draft.step=Math.max(0,Math.min(M.steps.length-1,step));await save();render();
 }
 async function verifyFile(file){
   if(!M.TYPES.includes(file.type)||file.size>M.MAX_FILE||file.size<1)throw Error('Usá JPG, PNG, WebP o PDF de hasta 12 MB.');
@@ -163,7 +167,7 @@ async function restore(file){
 async function send(){
   if(busy||locked()||!ready)return;
   const issues=M.pending(draft);if(issues.length)return notify('Completá los datos indicados antes de enviar.');
-  if(!await confirm('¿Enviar la ficha para revisión?','Compartirás tus respuestas y archivos de forma privada con ArenalIndex. El anuncio se publicará después de su aprobación.'))return;
+  if(!await confirm('¿Enviar la ficha para revisión?','Compartirás tus respuestas y archivos de forma privada con ArenalIndex. El envío no publica el anuncio: ArenalIndex deberá revisarlo, aprobarlo y publicarlo.'))return;
   busy=true;draft.accessToken ||= randomToken();await save();render(false);
   try {draft.submission=await submitDraft(draft,api,notify);await save();notify('Ficha recibida: lista para revisión de publicación.');}
   catch(error){
@@ -214,10 +218,12 @@ document.addEventListener('change',event=>{
 document.addEventListener('click',async event=>{
   const button=event.target.closest('button');if(!button||button.disabled)return;
   if(button.dataset.step)return go(Number(button.dataset.step));
+  if(button.dataset.photoGroup){const section=$('#photo-group-'+button.dataset.photoGroup);if(section){if(section.tagName==='DETAILS')section.open=true;section.scrollIntoView({behavior:'smooth',block:'start'});}return;}
   if(button.dataset.cover&&!locked()){draft.values.cover_id=button.dataset.cover;changed();render(false);}
   if(button.dataset.removeFile&&!locked()&&await confirm('¿Quitar este archivo?','El original en tu dispositivo no cambia.')){draft.files=draft.files.filter(f=>f.id!==button.dataset.removeFile);if(draft.values.cover_id===button.dataset.removeFile)delete draft.values.cover_id;changed();render(false);}
   if(button.dataset.removeBuilding&&!locked()&&await confirm('¿Quitar esta construcción?','Sus fotos se conservan para que podás reasignarlas o quitarlas.')){draft.buildings=draft.buildings.filter(b=>b.id!==button.dataset.removeBuilding);changed();render(false);}
   const action=button.dataset.action;
+  if(action==='authorizations')$('#review-authorizations')?.scrollIntoView({behavior:'smooth',block:'start'});
   if(action==='add-building'&&!locked()){if(draft.buildings.length>=30)return notify('Se admite un máximo de 30 construcciones.');draft.buildings.push({id:crypto.randomUUID(),kind:'',name:''});changed();render(false);}
   if(action==='backup')backup();if(action==='summary')summary();if(action==='refresh')refresh();if(action==='edit')edit();if(action==='retry-email')retryEmail();
   if(action==='gps'&&!locked()){
@@ -227,7 +233,7 @@ document.addEventListener('click',async event=>{
 });
 $('#step-select').onchange=e=>go(Number(e.target.value));
 $('#previous').onclick=()=>{const active=M.activeSteps(draft);go(active[active.indexOf(draft.step)-1]);};
-$('#next').onclick=()=>draft.step===7?(locked()?refresh():send()):go(M.activeSteps(draft)[M.activeSteps(draft).indexOf(draft.step)+1]);
+$('#next').onclick=()=>isReview()?(locked()?refresh():send()):go(M.activeSteps(draft)[M.activeSteps(draft).indexOf(draft.step)+1]);
 $('#backup').onclick=backup;$('#restore').onclick=()=>$('#restore-file').click();$('#restore-file').onchange=e=>restore(e.target.files[0]);
 $('#new-draft').onclick=async()=>{if(!busy&&await confirm('¿Empezar otra propiedad?','Guardá una copia si querés conservar este borrador en tu dispositivo. Las fichas enviadas se conservan en ArenalIndex.')){draft=M.newDraft();await save();render();}};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')save();});

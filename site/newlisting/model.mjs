@@ -104,7 +104,7 @@ export const steps = [
     group('Asuntos para revisar'),
     note('documents_notes','Diferencias de área, documentos o asuntos pendientes')
   ]},
-  {id:'review',short:'Venta y envío',title:'Revisá y enviá tu propuesta.',lead:'ArenalIndex revisará la ficha antes de publicar. Podés corregirla o dejarla guardada como borrador.',fields:[
+  {id:'sale',short:'Venta y contacto',title:'Los últimos datos de la venta.',lead:'Indicá el precio y cómo podemos contactarte. En el siguiente paso podés revisar la propuesta completa y enviarla.',fields:[
     group('Precio'),
     number('price','Precio de venta',{min:1,step:1,required:true}),
     select('currency','Moneda',[['USD','Dólares (USD)'],['CRC','Colones (CRC)']],{required:true,known:true}),
@@ -115,8 +115,10 @@ export const steps = [
     text('contact','Nombre',{maxLength:80,required:true}),
     text('phone','Teléfono / WhatsApp',{type:'tel',maxLength:25}),
     text('email','Correo electrónico',{type:'email',maxLength:120}),
-    select('role','Tu relación con la propiedad',[['owner','Propietario'],['representative','Representante autorizado']],{required:true,known:true}),
-    group('Autorizaciones'),
+    select('role','Tu relación con la propiedad',[['owner','Propietario'],['representative','Representante autorizado']],{required:true,known:true})
+  ]},
+  {id:'review',short:'Resumen y envío',title:'Revisá tu propuesta antes de enviarla.',lead:'Revisá los datos y las fotos, confirmá las autorizaciones y enviá la ficha a ArenalIndex. El envío es privado; la publicación se realiza después de la revisión y aprobación.',fields:[
+    group('Autorizaciones para enviar'),
     check('authorization','Soy propietario o representante autorizado y autorizo publicar esta información después de la aprobación de ArenalIndex.'),
     check('location_consent','Autorizo mostrar la ubicación precisa de la entrada en el anuncio.'),
     check('photo_permission','Tengo permiso para usar estas fotografías en el anuncio.')
@@ -141,7 +143,9 @@ export const documentGroups = [
 ];
 export const hasBuildings = values => values.buildings === 'yes';
 export const visible = (field,values) => !field.when || field.when.values.includes(values[field.when.key]);
-export const activeSteps = draft => steps.map((_,i)=>i).filter(i=>i!==4||hasBuildings(draft.values));
+export const stepIndex = id => steps.findIndex(step=>step.id===id);
+export const activeSteps = draft => steps.map((_,i)=>i).filter(i=>steps[i].id!=='buildings'||hasBuildings(draft.values));
+export const stepComplete = (draft,step,issues=pending(draft)) => steps[step].id==='review' ? issues.length===0 : !issues.some(issue=>issue.step===step);
 export const activeGroups = values => [...photoGroups,...documentGroups].filter(g=>!g.building||hasBuildings(values));
 export const validPoint = values => ['lat','lng'].every((key,i)=>typeof values[key]==='string'&&values[key].trim()!==''&&Number.isFinite(Number(values[key]))&&Math.abs(Number(values[key]))<=[90,180][i]);
 export const label = (field,value) => field.type==='checkbox' ? (value?'Sí':'Pendiente') : field.options?.find(o=>o[0]===value)?.[1] || value || 'Pendiente';
@@ -179,7 +183,7 @@ export function normalizeDraft(input,id) {
   if(d.buildings[0]?.id==='legacy-building'&&d.buildings[0].name==='Construcción de la ficha anterior')d.buildings[0].name='';
   const categories={overview:'land',flat:'land',entrance:'access',view:'surroundings',nature:'surroundings',aerial:'land',services:'technical',exterior:'buildings',living:'buildings',kitchen:'buildings',bedrooms:'buildings',bathrooms:'buildings',amenities:'buildings',interior:'buildings'};
   d.files=(input.files||[]).map(f=>({...f,category:categories[f.category]||f.category,shot:f.shot||(f.category==='entrance'?'entrance':f.category==='exterior'?'exterior':'general'),perspective:f.perspective||(f.category==='aerial'?'drone':'ground'),buildingId:f.buildingId||(['exterior','living','kitchen','bedrooms','bathrooms','amenities','interior'].includes(f.category)?d.buildings[0]?.id||'':'')}));
-  d.step=Math.max(0,Math.min(7,Number.isInteger(d.step)?d.step:0));
+  d.step=Math.max(0,Math.min(steps.length-1,Number.isInteger(d.step)?d.step:0));
   if(d.step===4&&!hasBuildings(v))d.step=5;
   return d;
 }
@@ -195,35 +199,38 @@ function fieldIssues(field,value) {
   if(field.type==='tel')return value.replace(/\D/g,'').length<7;
   return false;
 }
-export function photoIssues(draft) {
+export function photoRequirements(draft) {
   const images=draft.files.filter(f=>f.type?.startsWith('image/'));
-  const issues=[];
-  if(images.filter(f=>f.category==='land').length<2)issues.push('Dos fotos del terreno');
-  if(!images.some(f=>f.category==='access'&&f.shot==='entrance'))issues.push('Una foto de la entrada');
-  if(!images.some(f=>f.category==='access'&&f.shot==='road'))issues.push('Una foto de la vía de llegada');
-  if(hasBuildings(draft.values))for(const [index,b] of draft.buildings.entries())if(!images.some(f=>f.category==='buildings'&&f.buildingId===b.id&&f.shot==='exterior'))issues.push('Foto exterior: '+buildingName(b,index));
-  return issues;
+  const requirements=[
+    {group:'land',label:'Dos fotos del terreno',complete:images.filter(f=>f.category==='land').length>=2},
+    {group:'access',label:'Una foto de la entrada',complete:images.some(f=>f.category==='access'&&f.shot==='entrance')},
+    {group:'access',label:'Una foto de la vía de llegada',complete:images.some(f=>f.category==='access'&&f.shot==='road')}
+  ];
+  if(hasBuildings(draft.values))for(const [index,b] of draft.buildings.entries())requirements.push({group:'buildings',label:'Foto exterior: '+buildingName(b,index),complete:images.some(f=>f.category==='buildings'&&f.buildingId===b.id&&f.shot==='exterior')});
+  const gallery=photoGroups.filter(g=>!g.building||hasBuildings(draft.values)).map(g=>g.id);
+  requirements.push({group:'cover',label:'Elegir una foto de portada',complete:images.some(f=>f.id===draft.values.cover_id&&gallery.includes(f.category))});
+  return requirements;
 }
+export const photoIssues = draft => photoRequirements(draft).filter(item=>item.group!=='cover'&&!item.complete).map(item=>item.label);
 export function pending(draft,{publication=false,review={}}={}) {
   const v=draft.values,issues=[];
   steps.forEach((s,step)=>s.fields.filter(f=>f.id&&visible(f,v)).forEach(f=>{if(fieldIssues(f,v[f.id]))issues.push({label:f.label,step});}));
   if(!validPoint(v)||v.exact!==true)issues.push({label:'Entrada exacta confirmada en el mapa',step:1});
-  if(!v.phone?.trim()&&!v.email?.trim())issues.push({label:'Un teléfono o correo de contacto',step:7});
-  for(const [key,title] of [['authorization','Autorización de publicación'],['location_consent','Permiso para mostrar la entrada'],['photo_permission','Permiso de uso de fotografías']])if(v[key]!==true)issues.push({label:title,step:7});
+  if(!v.phone?.trim()&&!v.email?.trim())issues.push({label:'Un teléfono o correo de contacto',step:stepIndex('sale')});
+  for(const [key,title] of [['authorization','Autorización de publicación'],['location_consent','Permiso para mostrar la entrada'],['photo_permission','Permiso de uso de fotografías']])if(v[key]!==true)issues.push({label:title,step:stepIndex('review')});
   if(!draft.files.some(f=>f.category==='plan_file'))issues.push({label:'Copia del plano catastrado',step:6});
   if(hasBuildings(v)) {
     if(!draft.buildings.length)issues.push({label:'Agregar las construcciones incluidas',step:4});
     for(const [index,b] of draft.buildings.entries()){if(!b.kind||b.kind==='unknown')issues.push({label:'Tipo de cada construcción',step:4});for(const f of buildingFields)if(fieldIssues(f,b[f.id]))issues.push({label:f.label+' · '+buildingName(b,index),step:4});}
   }
   if(!v.photo_exception?.trim()||(publication&&!review.photo_exception_accepted))for(const title of photoIssues(draft))issues.push({label:title,step:5});
-  const gallery=photoGroups.filter(g=>!g.building||hasBuildings(v)).map(g=>g.id);
-  if(!draft.files.some(f=>f.id===v.cover_id&&gallery.includes(f.category)&&f.type?.startsWith('image/')))issues.push({label:'Elegir una foto de portada',step:5});
+  if(!photoRequirements(draft).find(item=>item.group==='cover').complete)issues.push({label:'Elegir una foto de portada',step:5});
   if(publication) {
     if(!review.plan_number?.trim())issues.push({label:'Confirmar el número del plano',step:6});
     if(!(Number(review.documented_area)>0&&Number(review.documented_area)<1e9))issues.push({label:'Confirmar el área documentada',step:6});
     if(!review.plan_matches)issues.push({label:'Confirmar que el plano corresponde a la propiedad',step:6});
     if(Number(review.documented_area)!==Number(v.area)&&!review.discrepancy_resolved)issues.push({label:'Resolver la diferencia de área',step:6});
-    if(!review.copy_checked)issues.push({label:'Revisar texto, fotos y condiciones conocidas',step:7});
+    if(!review.copy_checked)issues.push({label:'Revisar texto, fotos y condiciones conocidas',step:stepIndex('review')});
     if(v.buildings==='unknown')issues.push({label:'Confirmar si la venta incluye construcciones',step:0});
   }
   return issues;

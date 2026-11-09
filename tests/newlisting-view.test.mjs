@@ -1,8 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as M from '../site/newlisting/model.mjs';
-import {renderFields,renderPhotoTour,areaNotice} from '../site/newlisting/view.mjs';
+import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,areaNotice} from '../site/newlisting/view.mjs';
 import {completeDraft} from './intake-fixtures.mjs';
+
+test('photo checklist exposes missing classification, completion, and per-building requirements',()=>{
+  const d=completeDraft();
+  for(const file of d.files.filter(f=>f.category==='access'))file.shot='general';
+  assert.match(renderPhotoChecklist(d),/Para completar Fotos/);
+  assert.equal((renderPhotoChecklist(d).match(/data-photo-group="access"/g)||[]).length,2);
+  assert.match(renderPhotoGroupStatus(d,'land'),/✓ Completo/);
+  assert.doesNotMatch(renderPhotoGroupStatus(d,'access'),/✓/);
+  d.files.find(f=>f.id==='entry-1').shot='entrance';d.files.find(f=>f.id==='road-1').shot='road';
+  assert.match(renderPhotoChecklist(d),/✓ Fotos completas/);
+  assert.match(renderPhotoGroupStatus(d,'access'),/✓ Completo/);
+  d.values.buildings='yes';d.buildings=[{id:'house',kind:'house',name:'Casa <privada>'}];
+  assert.match(renderPhotoChecklist(d),/Foto exterior: Casa &lt;privada&gt;/);
+  assert.match(renderPhotoChecklist(d),/data-photo-group="buildings"/);
+  d.values.photo_exception='Falta el exterior de la casa.';
+  assert.match(renderPhotoChecklist(d),/Para revisión/);
+  assert.match(renderPhotoChecklist(d),/deberá aceptar la excepción/);
+  assert.doesNotMatch(renderPhotoGroupStatus(d,'buildings'),/✓/);
+  d.values.buildings='no';assert.doesNotMatch(renderPhotoChecklist(d),/Foto exterior/);
+});
 
 test('the first pass shows necessary questions while optional answers remain accessible',()=>{
   const fields=M.steps.find(s=>s.id==='services').fields;
