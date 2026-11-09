@@ -48,7 +48,7 @@ function review(){
     '<div class="review-list">'+issues.map(i=>'<div class="review-item"><span>'+esc(i.label)+'</span><button type="button" data-step="'+i.step+'">Completar →</button></div>').join('')+'</div>'+
     (exception.length&&draft.values.photo_exception?'<p class="note">Se enviará una excepción de fotografías para revisión: '+esc(draft.values.photo_exception)+'</p>':'')+
     (areaNotice(draft.values)?'<p class="note area-note">'+esc(areaNotice(draft.values))+'</p>':'')+
-    '<h2>Vista previa del anuncio</h2><p class="map-note">Texto preparado con tus respuestas. ArenalIndex lo revisará antes de publicar.</p><div class="buyer-preview">'+esc(M.buyerCopy(draft))+'</div>'+
+    '<h2>Vista previa del anuncio</h2><p class="map-note">Texto preparado con tus respuestas. El nombre corto es una sugerencia; ArenalIndex decide el título definitivo durante la revisión.</p><div class="buyer-preview">'+esc(M.buyerCopy(draft))+'</div>'+
     (M.knownConcerns(draft).length?'<details class="review-detail" data-review-section="concerns" open><summary>Condiciones que revisaremos contigo</summary><ul>'+M.knownConcerns(draft).map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul></details>':'')+
     (M.photoTour(draft).length?'<details class="review-detail" data-review-section="photos"><summary>Ver el recorrido de fotos</summary>'+renderPhotoTour(draft,file=>objectURL(file.blob))+'</details>':'')+
     '<details class="review-detail" data-review-section="answers"><summary>Revisar todas las respuestas</summary>'+M.steps.map(s=>'<h3>'+esc(s.short)+'</h3><dl>'+s.fields.filter(f=>f.id&&M.visible(f,draft.values)).map(f=>'<dt>'+esc(f.label)+'</dt><dd>'+esc(M.label(f,draft.values[f.id]))+'</dd>').join('')+'</dl>').join('')+'</details>'+
@@ -196,6 +196,7 @@ document.addEventListener('input',event=>{
   if(['lat','lng'].includes(el.dataset.key)){draft.values.exact=false;draft.values.location_method='coordinates';$('#field-exact').checked=false;$('#field-location_method').value='coordinates';}
   if(['lat','lng','exact'].includes(el.dataset.key))map?.update(draft.values);
   for(const f of M.steps[draft.step].fields.filter(f=>f.id)) {const wrapper=$('[data-visible="'+f.id+'"]');if(wrapper)wrapper.hidden=!M.visible(f,draft.values);}
+  if(el.dataset.key==='access')for(const section of document.querySelectorAll('[data-conditional-group="access"]'))section.open=el.value==='private';
   if(el.dataset.key==='buildings'){const previousStep=draft.step;render(false);draft.step=previousStep;}
   changed();updateReview();
 });

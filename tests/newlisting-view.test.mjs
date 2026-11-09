@@ -16,6 +16,31 @@ test('the first pass shows necessary questions while optional answers remain acc
   assert.match(html,/aria-required="true"/);
   const resumed=renderFields(fields,{water:'active',water_provider:'ASADA local'});
   assert.match(resumed,/<details class="optional-section" open>[\s\S]*?value="ASADA local"/);
+  for(const title of ['Agua de red pública o comunitaria','Pozo o naciente','Electricidad','Internet y señal celular','Saneamiento y lluvia'])assert.match(html,new RegExp('<h2>'+title+'</h2>'));
+});
+
+test('the listing title stays separate from the private reference and has a short limit',()=>{
+  const d=completeDraft();d.values.name='Terreno de don Carlos';d.values.listing_title='Lote con vista al Arenal';
+  const field=M.steps[0].fields.find(f=>f.id==='listing_title');
+  assert.equal(field.maxLength,45);
+  assert.equal(M.reference(d),'Terreno de don Carlos');
+  assert.match(M.buyerCopy(d),/^Lote con vista al Arenal/);
+  assert.doesNotMatch(M.buyerCopy(d),/Terreno de don Carlos/);
+  d.values.listing_title='x'.repeat(46);
+  assert.ok(M.pending(d).some(issue=>issue.label==='Nombre corto sugerido para el anuncio'));
+});
+
+test('access details only apply to a private route, and an old construction label is removed',()=>{
+  const fields=M.steps.find(s=>s.id==='land').fields;
+  const privateRoute=renderFields(fields,{access:'private'});
+  assert.match(privateRoute,/data-conditional-group="access" open/);
+  assert.match(privateRoute,/Documento sobre el derecho de paso/);
+  const d=completeDraft();Object.assign(d.values,{access:'direct',private_length:'100',legal_access:'supplied',residential:'condo'});
+  assert.doesNotMatch(M.buyerCopy(d),/Tramo privado indicado|Derecho de acceso:/);
+  assert.match(M.buyerCopy(d),/Condominio con áreas comunes privadas/);
+  const old=M.normalizeDraft({version:2,values:{buildings:'yes'},files:[]},'legacy-draft-1');
+  assert.equal(old.buildings[0].name,'');
+  assert.equal(M.buildingName({id:'legacy-building',name:'Construcción de la ficha anterior'},0),'Construcción 1');
 });
 
 test('hidden conditional answers do not open extra sections or become public claims',()=>{

@@ -9,14 +9,14 @@ const text = (id,label,extra={}) => ({id,label,type:'text',maxLength:120,...extr
 const number = (id,label,extra={}) => ({id,label,type:'number',min:0,max:999999999,step:'any',...extra});
 const note = (id,label) => text(id,label,{type:'textarea',maxLength:500,optional:true,wide:true});
 const check = (id,label) => ({id,label,type:'checkbox',wide:true});
-const group = (label,help='') => ({type:'group',label,help});
+const group = (label,help='',extra={}) => ({type:'group',label,help,...extra});
 const when = (key,values) => ({key,values});
 const source = id => select(id,'¿Cómo conocés ese dato?',[
   ['seller','Información del propietario'],['observed','Lo observé en el sitio'],['document','Figura en un documento']
 ],{optional:true,help:'Opcional. La fuente indicada no equivale a una verificación de ArenalIndex.'});
 export const buildingFields = [
   select('kind','Tipo de construcción',[['house','Casa'],['cabin','Cabaña'],['commercial','Local comercial'],['storage','Bodega / construcción agrícola'],['other','Otra']]),
-  text('name','Referencia opcional',{maxLength:40,optional:true,prominent:true,placeholder:'Ej. Casa principal'}),
+  text('name','Nombre para distinguirla',{maxLength:40,optional:true,prominent:true,placeholder:'Ej. Casa principal'}),
   number('area','Área construida (m²)',{min:1,optional:true}),
   select('area_source','Fuente de esa medida',['Plano / documento','Medición','Estimación del propietario'],{optional:true}),
   number('bedrooms','Habitaciones',{step:1,optional:true}),
@@ -27,7 +27,8 @@ export const buildingFields = [
 export const steps = [
   {id:'property',short:'La propiedad',title:'Todo empieza con el terreno.',lead:'Completá lo que sepás. Podés guardar el borrador y volver después.',fields:[
     select('buildings','¿Incluye construcciones?',[['yes','Sí'],['no','No']],{required:true}),
-    text('name','Referencia para reconocerla',{maxLength:60,optional:true,prominent:true,placeholder:'Ej. Terreno de don Carlos'}),
+    text('name','Referencia privada para reconocerla',{maxLength:60,optional:true,prominent:true,placeholder:'Ej. Terreno de don Carlos',help:'Solo para identificar tu borrador y la revisión; no se muestra en el anuncio.'}),
+    text('listing_title','Nombre corto sugerido para el anuncio',{maxLength:45,optional:true,prominent:true,placeholder:'Ej. Lote con vista al Arenal',help:'Hasta 45 caracteres. Describí un rasgo comprobable; evitá nombres personales, dirección exacta, precio, emojis y MAYÚSCULAS sostenidas. ArenalIndex decide el título definitivo durante la revisión.'}),
     select('current_use','¿Cómo se utiliza hoy?',['Sin uso','Vivienda','Cultivos o ganadería','Recreación / descanso','Alojamiento turístico','Comercio','Otro'],{optional:true}),
     note('intro','Algún detalle que no encaje en las opciones')
   ]},
@@ -45,39 +46,42 @@ export const steps = [
     number('usable','Área relativamente plana observada (m²)',{optional:true,help:'Una observación; no equivale a área construible autorizada.'}),
     group('Cómo se llega'),
     select('road','Superficie de la vía de llegada',['Asfalto / concreto','Lastre','Tierra','Mixto'],{required:true}),
-    select('access','Acceso a la propiedad',[['direct','Directo desde la vía de llegada'],['private','Por camino privado / servidumbre']],{required:true}),
-    number('private_length','Tramo privado o sin pavimentar (m)',{optional:true}),
+    select('access','¿Cómo se llega desde la vía hasta la entrada?',[['direct','La entrada da directamente a la vía'],['private','Hay que pasar por un camino privado o servidumbre']],{required:true,help:'Esta respuesta describe el trayecto hasta la entrada; el camino dentro de la propiedad se pregunta aparte.'}),
+    group('Camino privado o servidumbre','Completá estos datos solo si hay un tramo entre la vía de llegada y la entrada.',{openWhen:when('access',['private'])}),
+    number('private_length','Longitud de ese tramo privado (m)',{optional:true,when:when('access',['private'])}),
     select('private_surface','Superficie de ese tramo',['Asfalto / concreto','Lastre','Tierra','Mixto'],{optional:true,when:when('access',['private'])}),
-    select('legal_access','Respaldo del derecho de acceso',[['supplied','Documento disponible'],['unverified','No verificado']],{optional:true}),
+    select('legal_access','Documento sobre el derecho de paso',[['supplied','Tengo un documento para revisar'],['unverified','No se ha verificado']],{optional:true,when:when('access',['private']),help:'La existencia del camino no confirma el derecho legal de paso.'}),
+    group('Dentro de la propiedad'),
     select('driveway','¿Hay camino dentro de la propiedad?',[['yes','Sí'],['no','No']],{optional:true}),
     select('driveway_surface','Superficie del camino interno',['Asfalto / concreto','Lastre','Tierra','Mixto'],{optional:true,when:when('driveway',['yes'])}),
     group('Entorno'),
     select('volcano','Vista al volcán desde el suelo',['Completa','Parcial','No tiene'],{optional:true}),
     select('waterbody','Río, quebrada o naciente',['Dentro de la propiedad','Colindante','Cerca, fuera de la propiedad','No se reporta'],{optional:true}),
-    select('residential','Residencial o condominio',[['no','No'],['residential','Residencial privado'],['condo','Condominio']],{optional:true}),
-    text('fees','Cuota y moneda',{optional:true,when:when('residential',['residential','condo'])}),
+    select('residential','¿Está en un residencial o condominio?',[['no','No'],['residential','Residencial con vías públicas'],['condo','Condominio con áreas comunes privadas']],{optional:true,help:'Indicá el tipo de desarrollo según los documentos. La existencia de una aguja o portón se puede aclarar en las notas.'}),
+    text('fees','Cuota de mantenimiento o asociación y moneda',{optional:true,when:when('residential',['residential','condo'])}),
     note('land_notes','Acceso, lluvias o condiciones que conviene conocer')
   ]},
   {id:'services',short:'Servicios',title:'Un servicio, una respuesta clara.',lead:'No necesitás conseguir certificados para responder. Tus respuestas se registran como información del vendedor.',fields:[
-    group('Agua'),
+    group('Agua de red pública o comunitaria'),
     select('water','Estado del suministro público o comunitario',[['active','Conexión activa'],['inactive','Conexión existente, inactiva'],['documented','Carta de disponibilidad'],['nearby','Red cercana, disponibilidad sin confirmar'],['none','Sin suministro público o comunitario confirmado']],{required:true}),
-    source('water_source'),
+    {...source('water_source'),label:'¿En qué basás la respuesta sobre agua de red?'},
     text('water_provider','Proveedor',{optional:true,when:when('water',['active','inactive','documented','nearby'])}),
     text('water_date','Fecha de la carta',{type:'date',optional:true,when:when('water',['documented'])}),
+    group('Pozo o naciente'),
     select('well','¿Hay pozo?',[['yes','Sí'],['no','No']],{optional:true}),
     select('water_rights','Respaldo para usar agua de pozo o naciente',[['document','Tengo un documento para revisar'],['unverified','No se ha verificado'],['not_applicable','No aplica']],{optional:true,help:'La presencia de agua no confirma potabilidad ni derechos de uso.'}),
     note('water_notes','Aclaraciones sobre agua, pozo o naciente'),
     group('Electricidad'),
     select('electricity','Estado del servicio eléctrico',[['active','Medidor activo'],['inactive','Medidor inactivo'],['nearby','Red cercana, conexión sin confirmar'],['none','No se conoce red disponible']],{required:true}),
-    source('electricity_source'),
+    {...source('electricity_source'),label:'¿En qué basás la respuesta sobre electricidad?'},
     text('electric_provider','Proveedor',{optional:true,when:when('electricity',['active','inactive','nearby'])}),
-    group('Internet y señal celular · opcional'),
+    group('Internet y señal celular'),
     select('internet','Internet fijo',[['installed','Instalado'],['confirmed','Proveedor confirma disponibilidad'],['none','No se conoce servicio']],{optional:true}),
     select('internet_technology','Tecnología',['Fibra','Cable','Internet inalámbrico fijo','Satelital'],{optional:true,when:when('internet',['installed','confirmed'])}),
     select('mobile','Cobertura celular',[['tested','Probada en el sitio'],['reported','Reportada, sin probar'],['none','No se detectó cobertura']],{optional:true}),
     select('mobile_operator','Operador probado',['Kölbi','Claro','Liberty','Varios'],{optional:true,when:when('mobile',['tested'])}),
     select('mobile_network','Red observada',['4G','5G','4G y 5G'],{optional:true,when:when('mobile',['tested'])}),
-    group('Saneamiento y lluvia · opcional'),
+    group('Saneamiento y lluvia'),
     select('sewage','Aguas residuales',['Tanque séptico','Planta de tratamiento','Alcantarillado sanitario','No hay sistema instalado'],{optional:true}),
     select('rainwater','Drenaje observado',['Escurre por pendiente natural','Hay cunetas o drenajes','Se acumula en algunas zonas'],{optional:true}),
     note('services_notes','Limitaciones o detalles de los servicios')
@@ -142,6 +146,7 @@ export const activeGroups = values => [...photoGroups,...documentGroups].filter(
 export const validPoint = values => ['lat','lng'].every((key,i)=>typeof values[key]==='string'&&values[key].trim()!==''&&Number.isFinite(Number(values[key]))&&Math.abs(Number(values[key]))<=[90,180][i]);
 export const label = (field,value) => field.type==='checkbox' ? (value?'Sí':'Pendiente') : field.options?.find(o=>o[0]===value)?.[1] || value || 'Pendiente';
 export const reference = draft => draft.values.name?.trim() || 'Terreno · '+draft.id.slice(0,8).toUpperCase();
+export const buildingName = (building,index) => building.id==='legacy-building'&&building.name==='Construcción de la ficha anterior'?'Construcción '+(index+1):building.name||'Construcción '+(index+1);
 export const pricePerArea = values => Number(values.price)>0&&Number(values.documented_area)>0 ? Number(values.price)/Number(values.documented_area) : null;
 export function areaDifference(values){
   const declared=Number(values.area),documented=Number(values.documented_area);
@@ -171,6 +176,7 @@ export function normalizeDraft(input,id) {
     v.services_notes=v.services_notes||v.services_evidence||'';
     if(!d.buildings.length&&v.buildings==='yes')d.buildings=[{id:'legacy-building',kind:'other',name:'Construcción de la ficha anterior',area:v.built_area||'',bedrooms:v.bedrooms||'',bathrooms:v.bathrooms||'',notes:v.condition||''}];
   }
+  if(d.buildings[0]?.id==='legacy-building'&&d.buildings[0].name==='Construcción de la ficha anterior')d.buildings[0].name='';
   const categories={overview:'land',flat:'land',entrance:'access',view:'surroundings',nature:'surroundings',aerial:'land',services:'technical',exterior:'buildings',living:'buildings',kitchen:'buildings',bedrooms:'buildings',bathrooms:'buildings',amenities:'buildings',interior:'buildings'};
   d.files=(input.files||[]).map(f=>({...f,category:categories[f.category]||f.category,shot:f.shot||(f.category==='entrance'?'entrance':f.category==='exterior'?'exterior':'general'),perspective:f.perspective||(f.category==='aerial'?'drone':'ground'),buildingId:f.buildingId||(['exterior','living','kitchen','bedrooms','bathrooms','amenities','interior'].includes(f.category)?d.buildings[0]?.id||'':'')}));
   d.step=Math.max(0,Math.min(7,Number.isInteger(d.step)?d.step:0));
@@ -195,7 +201,7 @@ export function photoIssues(draft) {
   if(images.filter(f=>f.category==='land').length<2)issues.push('Dos fotos del terreno');
   if(!images.some(f=>f.category==='access'&&f.shot==='entrance'))issues.push('Una foto de la entrada');
   if(!images.some(f=>f.category==='access'&&f.shot==='road'))issues.push('Una foto de la vía de llegada');
-  if(hasBuildings(draft.values))for(const b of draft.buildings)if(!images.some(f=>f.category==='buildings'&&f.buildingId===b.id&&f.shot==='exterior'))issues.push('Foto exterior: '+(b.name||'construcción'));
+  if(hasBuildings(draft.values))for(const [index,b] of draft.buildings.entries())if(!images.some(f=>f.category==='buildings'&&f.buildingId===b.id&&f.shot==='exterior'))issues.push('Foto exterior: '+buildingName(b,index));
   return issues;
 }
 export function pending(draft,{publication=false,review={}}={}) {
@@ -207,7 +213,7 @@ export function pending(draft,{publication=false,review={}}={}) {
   if(!draft.files.some(f=>f.category==='plan_file'))issues.push({label:'Copia del plano catastrado',step:6});
   if(hasBuildings(v)) {
     if(!draft.buildings.length)issues.push({label:'Agregar las construcciones incluidas',step:4});
-    for(const b of draft.buildings){if(!b.kind||b.kind==='unknown')issues.push({label:'Tipo de cada construcción',step:4});for(const f of buildingFields)if(fieldIssues(f,b[f.id]))issues.push({label:f.label+' · '+(b.name||'construcción'),step:4});}
+    for(const [index,b] of draft.buildings.entries()){if(!b.kind||b.kind==='unknown')issues.push({label:'Tipo de cada construcción',step:4});for(const f of buildingFields)if(fieldIssues(f,b[f.id]))issues.push({label:f.label+' · '+buildingName(b,index),step:4});}
   }
   if(!v.photo_exception?.trim()||(publication&&!review.photo_exception_accepted))for(const title of photoIssues(draft))issues.push({label:title,step:5});
   const gallery=photoGroups.filter(g=>!g.building||hasBuildings(v)).map(g=>g.id);
@@ -256,7 +262,7 @@ export function photoCaption(file,draft) {
   const group=[...photoGroups,...documentGroups].find(g=>g.id===file.category)?.title||'Archivo';
   const index=draft.buildings.findIndex(b=>b.id===file.buildingId),building=draft.buildings[index];
   const shot={entrance:'Entrada',road:'Vía de llegada',exterior:'Exterior',interior:'Interior'}[file.shot];
-  return [group,building?.name|| (building?'Construcción '+(index+1):''),shot,file.type.startsWith('image/')?(file.perspective==='drone'?'Dron':'Desde el suelo'):''].filter(Boolean).join(' · ');
+  return [group,building?buildingName(building,index):'',shot,file.type.startsWith('image/')?(file.perspective==='drone'?'Dron':'Desde el suelo'):''].filter(Boolean).join(' · ');
 }
 export function photoTour(draft) {
   const rank={road:0,entrance:1,exterior:0,interior:1,general:2};
@@ -264,7 +270,7 @@ export function photoTour(draft) {
   return photoGroups.filter(g=>!g.building||hasBuildings(draft.values)).flatMap(group=>{
     const images=draft.files.filter(f=>f.category===group.id&&f.type.startsWith('image/'));
     if(!group.building)return images.length?[{id:group.id,title:group.title,files:ordered(images)}]:[];
-    return [...draft.buildings.map((building,index)=>({id:group.id+'-'+building.id,title:group.title+' · '+(building.name||'Construcción '+(index+1)),files:ordered(images.filter(f=>f.buildingId===building.id))})),
+    return [...draft.buildings.map((building,index)=>({id:group.id+'-'+building.id,title:group.title+' · '+buildingName(building,index),files:ordered(images.filter(f=>f.buildingId===building.id))})),
       {id:'buildings-unassigned',title:'Construcciones · por asignar',files:ordered(images.filter(f=>!draft.buildings.some(b=>b.id===f.buildingId)))}].filter(section=>section.files.length);
   });
 }
@@ -276,15 +282,17 @@ export function buyerCopy(draft,review={}) {
   const answer=id=>label(field(id),v[id]);
   const source=id=>v[id+'_source']==='observed'?'observación indicada por el vendedor':v[id+'_source']==='document'?'documentación indicada por el vendedor':'información del vendedor';
   const documented=number(review.documented_area)||number(v.documented_area),area=documented||number(v.area);
-  const parts=[(area?'Terreno de '+format(area)+' m²':'Terreno con área por confirmar')+(hasBuildings(v)?' con '+draft.buildings.length+' construcción(es).':v.buildings==='no'?' sin construcciones.':'. Construcciones por confirmar.')];
+  const parts=[];
+  if(v.listing_title?.trim())parts.push(v.listing_title.trim());
+  parts.push((area?'Terreno de '+format(area)+' m²':'Terreno con área por confirmar')+(hasBuildings(v)?' con '+draft.buildings.length+' construcción(es).':v.buildings==='no'?' sin construcciones.':'. Construcciones por confirmar.'));
   if(area)parts.push(documented?'Área indicada del plano'+(review.plan_matches?' revisado.':' (pendiente de revisión).'):'Área declarada por el vendedor.');
   if(known('current_use'))parts.push('Uso actual: '+answer('current_use')+' (información del vendedor). Los usos permitidos se revisan por separado.');
   parts.push('Topografía: '+(known('terrain')?answer('terrain').toLowerCase()+' (información del vendedor).':'por confirmar.'));
   if(number(v.usable))parts.push('Área relativamente plana reportada: '+format(v.usable)+' m². No equivale a superficie edificable autorizada.');
   const road=known('road')?answer('road').toLowerCase():'superficie por confirmar';
   parts.push('Llegada: '+road+(v.access==='private'?', seguida de acceso privado'+(known('private_surface')?' de '+answer('private_surface').toLowerCase():' con superficie por confirmar'):v.access==='direct'?', con entrada directa':'; tipo de acceso por confirmar')+' (información del vendedor).');
-  if(number(v.private_length))parts.push('Tramo privado o sin pavimentar indicado: '+format(v.private_length)+' m.');
-  if(v.access==='private'||known('legal_access'))parts.push(v.legal_access==='supplied'?'Derecho de acceso: el vendedor indica que tiene un documento para revisar.':'Derecho de acceso: no verificado.');
+  if(v.access==='private'&&number(v.private_length))parts.push('Tramo privado indicado: '+format(v.private_length)+' m.');
+  if(v.access==='private')parts.push(v.legal_access==='supplied'?'Derecho de acceso: el vendedor indica que tiene un documento para revisar.':'Derecho de acceso: no verificado.');
   if(v.driveway==='yes')parts.push('Camino interno'+(known('driveway_surface')?' de '+answer('driveway_surface').toLowerCase():'')+' reportado por el vendedor.');
   parts.push('Agua: '+(known('water')?answer('water').toLowerCase()+' ('+source('water')+').':'por confirmar.'));
   if(known('water_provider')&&['active','inactive','documented','nearby'].includes(v.water))parts.push('Proveedor de agua indicado: '+v.water_provider+'.');
@@ -297,9 +305,9 @@ export function buyerCopy(draft,review={}) {
   if(known('internet'))parts.push('Internet fijo: '+answer('internet').toLowerCase()+(['installed','confirmed'].includes(v.internet)&&known('internet_technology')?' · '+answer('internet_technology'):'')+' (información del vendedor).');
   if(known('mobile'))parts.push('Cobertura celular: '+answer('mobile').toLowerCase()+(v.mobile==='tested'?[v.mobile_operator,v.mobile_network].filter(x=>x&&x!=='unknown').map(x=>' · '+x).join(''):'')+' (información del vendedor).');
   for(const [id,title] of [['sewage','Aguas residuales'],['rainwater','Drenaje'],['volcano','Vista al volcán desde el suelo']])if(known(id))parts.push(title+': '+answer(id)+' (información del vendedor).');
-  if(known('residential')&&v.residential!=='no')parts.push(answer('residential')+(v.fees?' · cuota indicada: '+v.fees:'')+' (información del vendedor).');
+  if(known('residential')&&v.residential!=='no')parts.push(answer('residential')+(v.fees?' · cuota indicada: '+v.fees:'')+' (información del vendedor; régimen pendiente de revisión).');
   if(hasBuildings(v))for(const [index,b] of draft.buildings.entries()){
-    const details=[b.name||'Construcción '+(index+1),label(buildingFields.find(f=>f.id==='kind'),b.kind)];
+    const details=[buildingName(b,index),label(buildingFields.find(f=>f.id==='kind'),b.kind)];
     if(number(b.area))details.push(format(b.area)+' m²'+(b.area_source&&b.area_source!=='unknown'?' · '+b.area_source:' · medida reportada'));
     for(const [key,title] of [['bedrooms','habitaciones'],['bathrooms','baños']])if(b[key]!==undefined&&b[key]!==''&&Number.isFinite(Number(b[key])))details.push(b[key]+' '+title);
     if(b.condition&&b.condition!=='unknown')details.push(b.condition);

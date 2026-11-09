@@ -20,11 +20,12 @@ export function renderFields(items,values={},prefix=''){
   for(const item of items){if(item.type==='group'){if(current.fields.length)sections.push(current);current={...item,fields:[]};}else current.fields.push(item);}
   if(current.fields.length)sections.push(current);
   const grid=fields=>'<div class="form-grid">'+fields.map(f=>renderField(f,values,prefix)).join('')+'</div>';
-  const details=(fields,title,help='')=>'<details class="optional-section"'+(fields.some(f=>visible(f,values)&&values[f.id]!==undefined&&values[f.id]!=='')?' open':'')+'><summary>'+escapeHTML(title.replace(/ · opcional$/i,''))+' <span>Opcional</span></summary>'+(help?'<p class="optional-help">'+escapeHTML(help)+'</p>':'')+grid(fields)+'</details>';
+  const details=(fields,title,help='',openWhen)=>'<details class="optional-section"'+(openWhen?' data-conditional-group="'+escapeHTML(openWhen.key)+'"':'')+(fields.some(f=>visible(f,values)&&values[f.id]!==undefined&&values[f.id]!=='')||openWhen?.values.includes(values[openWhen.key])?' open':'')+'><summary>'+escapeHTML(title.replace(/ · opcional$/i,''))+' <span>Opcional</span></summary>'+(help?'<p class="optional-help">'+escapeHTML(help)+'</p>':'')+grid(fields)+'</details>';
   return sections.map(section=>{
     const primary=section.fields.filter(f=>f.required||!f.optional||f.prominent),secondary=section.fields.filter(f=>!primary.includes(f));
-    if(!primary.length)return details(secondary,section.label||'Detalles adicionales',section.help);
-    return (section.label?'<header class="form-section-title"><h2>'+escapeHTML(section.label)+'</h2>'+(section.help?'<p>'+escapeHTML(section.help)+'</p>':'')+'</header>':'')+grid(primary)+(secondary.length?details(secondary,'Agregar más detalles'): '');
+    const heading=section.label?'<header class="form-section-title"><h2>'+escapeHTML(section.label)+'</h2>'+(section.help?'<p>'+escapeHTML(section.help)+'</p>':'')+'</header>':'';
+    if(!primary.length)return heading+details(secondary,'Agregar detalles','',section.openWhen);
+    return heading+grid(primary)+(secondary.length?details(secondary,'Agregar más detalles'): '');
   }).join('');
 }
 export function renderPhotoTour(draft,urlFor=file=>file.url){
