@@ -51,15 +51,19 @@ Las fotos actuales son ilustraciones. El formulario de consulta permite preparar
 
 ## Captación y revisión de propiedades
 
-`https://arenalindex.com/newlisting` es el formulario de captación. `/requisitos.html` redirige a la nueva ruta y conserva el borrador anterior en IndexedDB. La página no aparece en el catálogo y usa `noindex,nofollow`. El pin representa siempre la **entrada**.
+`https://arenalindex.com/newlisting` es el formulario de captación. `/requisitos` y `/requisitos.html` redirigen a la nueva ruta y conservan el borrador anterior en IndexedDB. La página no aparece en el catálogo y usa `noindex,nofollow`. El pin representa siempre la **entrada**.
 
 El vendedor puede guardar un borrador incompleto. Para enviar se requieren contacto, autorización, entrada confirmada, precio y moneda, área declarada, plano catastrado, respuestas básicas (se admite «No confirmado») y fotos o una excepción que el revisor deberá aceptar. Cada construcción tiene un registro independiente; su área es opcional. Los documentos permanecen privados y no convierten las declaraciones del vendedor en hechos verificados.
+
+La primera vista de cada paso prioriza las preguntas necesarias. Los detalles opcionales se despliegan por tema y se abren al retomar respuestas guardadas. Una diferencia entre el área declarada y la del plano avisa al vendedor sin impedir el envío; debe resolverse antes de aprobar. El texto para compradores conserva las fuentes declaradas, las condiciones conocidas y la diferencia entre uso actual y usos permitidos. El recorrido muestra la portada y agrupa las fotos por tema y construcción, con pies automáticos en español y la distinción entre suelo y dron.
 
 Se admiten JPG/PNG/WebP/PDF, hasta 12 MB por archivo y 60 MB en total. El navegador guarda respuestas y adjuntos localmente; un respaldo JSON permite trasladarlos. El respaldo no contiene los tokens de acceso ni reemplaza una ficha enviada: se restaura como un borrador nuevo. El mismo perfil de navegador puede abrir su borrador y borrar los datos del navegador elimina esa copia.
 
 Al enviar, `prepare` crea una nueva versión, se cargan los adjuntos directamente al almacenamiento privado y `submit` comprueba tamaños, tipos y firmas de archivos. La ficha pasa a **Lista para revisión de publicación** y Resend envía el aviso a `felipehangen@gmail.com`. Si el correo falla, la ficha permanece recibida y se puede reintentar el aviso. Una respuesta de red perdida se recupera consultando el estado.
 
 El correo abre `/newlisting/review/` con un enlace privado que vence en siete días. Abrirlo no aprueba ni publica. El revisor confirma plano y área, resuelve discrepancias, acepta excepciones de fotos cuando corresponda y revisa el texto, los permisos y las condiciones conocidas. Puede aprobar una versión o solicitar cambios. Reabrir la ficha invalida la revisión anterior antes de permitir cambios.
+
+La revisión incluye una lista opcional de condiciones de acceso, agua, terreno, instalaciones y construcciones. Distingue lo reportado de lo observado por ArenalIndex, conserva las observaciones al solicitar cambios e incorpora los hallazgos al texto del comprador. «Sin revisar» y «No se reporta» no se presentan como ausencia verificada. No se exige una visita profesional. Cambiar los datos que alimentan el texto obliga a confirmar nuevamente su revisión.
 
 **Aprobar registra la autorización para preparar la publicación; no inserta automáticamente un anuncio en el catálogo.** El catálogo actual usa USD; cualquier ficha en CRC requiere tratar la moneda correctamente antes de cargarla allí. La revisión editorial no es un servicio de verificación profesional.
 

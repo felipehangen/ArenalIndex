@@ -2,10 +2,11 @@ import * as M from './model.mjs';
 import {openStore,createSaver} from './local.mjs';
 import {createAPI,randomToken,submitDraft} from './api.mjs';
 import {mountMap} from './map.mjs';
+import {renderFields,renderPhotoTour,areaNotice} from './view.mjs';
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const api=createAPI();
-let draft=M.newDraft(),storage,save,ready=false,busy=false,map,urls=[],saveTimer,noticeTimer;
+let draft=M.newDraft(),storage,save,ready=false,busy=false,map,urls=new Map(),saveTimer,noticeTimer;
 const status=text=>$('#save-status').textContent=text;
 const locked=()=>!!draft.submission&&draft.submission.status!=='draft';
 function notify(text){$('#notice').textContent=text;$('#notice').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('#notice').hidden=true,8000);}
@@ -14,27 +15,13 @@ try {storage=await openStore();const previous=await storage.read();if(previous)d
 catch {status('Sin guardado automático. Descargá una copia antes de salir.');}
 save=createSaver(async snapshot=>{if(!storage)throw Error('Sin almacenamiento');await storage.write(snapshot);},()=>structuredClone(draft),status);
 function changed(){draft.updated=new Date().toISOString();clearTimeout(saveTimer);saveTimer=setTimeout(()=>save(),300);}
-function release(){map?.remove();map=null;urls.forEach(url=>URL.revokeObjectURL(url));urls=[];}
-function objectURL(blob){const url=URL.createObjectURL(blob);urls.push(url);return url;}
-function field(f,values=draft.values,prefix=''){
-  if(f.type==='group')return '<header class="form-section-title"><h2>'+esc(f.label)+'</h2><p>'+esc(f.help)+'</p></header>';
-  const value=values[f.id]??'',key=prefix+f.id,id='field-'+key,attrs=' id="'+id+'" data-key="'+f.id+'"'+(prefix?' data-building="'+prefix.slice(0,-1)+'"':'');
-  if(f.type==='checkbox')return '<div class="field wide checkbox-field"><label><input type="checkbox"'+attrs+(value?' checked':'')+'>'+esc(f.label)+'</label></div>';
-  let control;
-  if(f.options)control='<select'+attrs+'>'+f.options.map(([v,l])=>'<option value="'+esc(v)+'"'+(v===value?' selected':'')+'>'+esc(l)+'</option>').join('')+'</select>';
-  else if(f.type==='textarea')control='<textarea'+attrs+' maxlength="'+f.maxLength+'" placeholder="Opcional">'+esc(value)+'</textarea>';
-  else control='<input'+attrs+' type="'+f.type+'" value="'+esc(value)+'"'+(f.maxLength?' maxlength="'+f.maxLength+'"':'')+(f.type==='number'?' min="'+f.min+'" max="'+f.max+'" step="'+f.step+'" inputmode="decimal"':'')+' placeholder="'+esc(f.placeholder||'')+'">';
-  return '<div class="field'+(f.wide?' wide':'')+'" data-visible="'+f.id+'"'+(!M.visible(f,values)?' hidden':'')+'><label for="'+id+'">'+esc(f.label)+(f.optional?' <span class="optional">Opcional</span>':'')+'</label>'+control+(f.help?'<small>'+esc(f.help)+'</small>':'')+'</div>';
-}
-const fields=items=>'<div class="form-grid">'+items.map(f=>field(f)).join('')+'</div>';
+function release(){map?.remove();map=null;urls.forEach(url=>URL.revokeObjectURL(url));urls.clear();}
+function objectURL(blob){if(!urls.has(blob))urls.set(blob,URL.createObjectURL(blob));return urls.get(blob);}
+const fields=items=>renderFields(items,draft.values);
 function buildings(){
-  return draft.buildings.map((b,i)=>'<section class="field-section"><h2>Construcción '+(i+1)+'</h2><div class="form-grid">'+M.buildingFields.map(f=>field(f,b,b.id+':')).join('')+'</div><button type="button" class="text-button" data-remove-building="'+b.id+'">Quitar esta construcción</button></section>').join('')+'<button type="button" class="secondary" data-action="add-building">+ Agregar construcción</button>';
+  return draft.buildings.map((b,i)=>'<section class="field-section"><h2>Construcción '+(i+1)+'</h2>'+renderFields(M.buildingFields,b,b.id+':')+'<button type="button" class="text-button" data-remove-building="'+b.id+'">Quitar esta construcción</button></section>').join('')+'<button type="button" class="secondary" data-action="add-building">+ Agregar construcción</button>';
 }
-function imageCaption(file){
-  const group=[...M.photoGroups,...M.documentGroups].find(g=>g.id===file.category)?.title||'Archivo';
-  const building=draft.buildings.find(b=>b.id===file.buildingId);
-  return [group,building?.name,{entrance:'Entrada',road:'Vía de llegada',exterior:'Exterior',interior:'Interior'}[file.shot],file.perspective==='drone'?'Toma aérea':''].filter(Boolean).join(' · ');
-}
+const imageCaption=file=>M.photoCaption(file,draft);
 function attachment(file){
   const image=file.type.startsWith('image/'),url=objectURL(file.blob),groups=M.activeGroups(draft.values);
   const current=groups.find(g=>g.id===file.category);
@@ -60,9 +47,11 @@ function review(){
   return '<section id="review-summary"><div class="section-divider"><h2>'+ (issues.length?'Antes de enviar':'Tu propuesta está lista para enviar')+'</h2><p>'+draft.files.length+' archivo(s) · '+issues.length+' dato(s) pendiente(s)</p></div>'+
     '<div class="review-list">'+issues.map(i=>'<div class="review-item"><span>'+esc(i.label)+'</span><button type="button" data-step="'+i.step+'">Completar →</button></div>').join('')+'</div>'+
     (exception.length&&draft.values.photo_exception?'<p class="note">Se enviará una excepción de fotografías para revisión: '+esc(draft.values.photo_exception)+'</p>':'')+
+    (areaNotice(draft.values)?'<p class="note area-note">'+esc(areaNotice(draft.values))+'</p>':'')+
     '<h2>Vista previa del anuncio</h2><p class="map-note">Texto preparado con tus respuestas. ArenalIndex lo revisará antes de publicar.</p><div class="buyer-preview">'+esc(M.buyerCopy(draft))+'</div>'+
-    (M.knownConcerns(draft).length?'<details class="review-detail" open><summary>Condiciones que revisaremos contigo</summary><ul>'+M.knownConcerns(draft).map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul></details>':'')+
-    '<details class="review-detail"><summary>Revisar todas las respuestas</summary>'+M.steps.map(s=>'<h3>'+esc(s.short)+'</h3><dl>'+s.fields.filter(f=>f.id&&M.visible(f,draft.values)).map(f=>'<dt>'+esc(f.label)+'</dt><dd>'+esc(M.label(f,draft.values[f.id]))+'</dd>').join('')+'</dl>').join('')+'</details>'+
+    (M.knownConcerns(draft).length?'<details class="review-detail" data-review-section="concerns" open><summary>Condiciones que revisaremos contigo</summary><ul>'+M.knownConcerns(draft).map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul></details>':'')+
+    (M.photoTour(draft).length?'<details class="review-detail" data-review-section="photos"><summary>Ver el recorrido de fotos</summary>'+renderPhotoTour(draft,file=>objectURL(file.blob))+'</details>':'')+
+    '<details class="review-detail" data-review-section="answers"><summary>Revisar todas las respuestas</summary>'+M.steps.map(s=>'<h3>'+esc(s.short)+'</h3><dl>'+s.fields.filter(f=>f.id&&M.visible(f,draft.values)).map(f=>'<dt>'+esc(f.label)+'</dt><dd>'+esc(M.label(f,draft.values[f.id]))+'</dd>').join('')+'</dl>').join('')+'</details>'+
     '<p class="note">Al enviar, tus respuestas y archivos se compartirán de forma privada con ArenalIndex. La ficha quedará como <strong>Lista para revisión de publicación</strong>. Los documentos no aparecerán en el anuncio.</p>'+
     (!ready?'<p class="service-status" role="status">El envío todavía no está habilitado. Podés preparar tu ficha y guardar una copia; tus datos permanecen en este navegador.</p>':'')+
     '<div class="actions"><button class="secondary" type="button" data-action="backup">Guardar copia completa</button><button class="secondary" type="button" data-action="summary">Resumen de texto</button></div></section>';
@@ -73,19 +62,30 @@ function submissionState(){
   $('#submission-state').innerHTML='<section class="submission-banner"><strong>'+esc(M.STATES[s.status]||s.status)+'</strong><p>Versión '+s.version+'. '+(s.status==='approved'?'Aprobada para preparar la publicación.':s.status==='draft'?'La versión anterior se retiró de revisión. Enviá los cambios cuando estén listos.':'La ficha enviada se conserva como una versión para revisión.')+'</p>'+(s.feedback?'<p>'+esc(s.feedback)+'</p>':'')+(s.status==='ready_for_review'&&!s.notificationSent?'<p>Tu ficha está recibida, pero el correo de aviso sigue pendiente.</p><button class="secondary" data-action="retry-email">Reintentar aviso</button>':'')+(locked()?'<button class="secondary" data-action="edit">Editar y volver a enviar</button>':'')+' <button class="quiet" data-action="refresh">Actualizar estado</button></section>';
 }
 function updateReview(){
-  if(draft.step===7&&$('#review-summary'))$('#review-summary').outerHTML=review();
+  if(draft.step===7&&$('#review-summary')){
+    const disclosureState=new Map([...document.querySelectorAll('[data-review-section]')].map(el=>[el.dataset.reviewSection,el.open]));
+    $('#review-summary').outerHTML=review();
+    for(const el of document.querySelectorAll('[data-review-section]'))if(disclosureState.has(el.dataset.reviewSection))el.open=disclosureState.get(el.dataset.reviewSection);
+  }
+  const notice=$('#area-notice');if(notice){notice.textContent=areaNotice(draft.values);notice.hidden=!notice.textContent;}
+  const issues=M.pending(draft);
+  for(const button of document.querySelectorAll('.nav-step')){
+    const complete=!issues.some(issue=>issue.step===Number(button.dataset.step));
+    button.querySelector('.step-complete').hidden=!complete;
+  }
   $('#draft-reference').textContent=M.reference(draft);
-  $('#next').disabled=busy||(draft.step===7&&!locked()&&(!ready||M.pending(draft).length>0));
+  $('#next').disabled=busy||(draft.step===7&&!locked()&&(!ready||issues.length>0));
 }
 function render(focus=true){
   release();const s=M.steps[draft.step],active=M.activeSteps(draft);
-  $('#steps').innerHTML=active.map((i,n)=>'<button class="nav-step" data-step="'+i+'"'+(i===draft.step?' aria-current="step"':'')+'><span class="step-number">'+(n+1)+'</span>'+esc(M.steps[i].short)+'</button>').join('');
+  $('#steps').innerHTML=active.map((i,n)=>'<button class="nav-step" data-step="'+i+'"'+(i===draft.step?' aria-current="step"':'')+'><span class="step-number">'+(n+1)+'</span>'+esc(M.steps[i].short)+'<span class="step-complete" aria-label="Completado" hidden>✓</span></button>').join('');
   $('#step-select').innerHTML=active.map((i,n)=>'<option value="'+i+'"'+(i===draft.step?' selected':'')+'>'+(n+1)+' · '+esc(M.steps[i].short)+'</option>').join('');
   $('#step-count').textContent='PASO '+(active.indexOf(draft.step)+1)+' / '+active.length;$('#progress').max=active.length;$('#progress').value=active.indexOf(draft.step)+1;
   let content=fields(s.fields);
   if(s.id==='location')content='<div id="entry-map" class="map"></div><p id="map-status" class="map-note" role="status"></p><button type="button" class="secondary" data-action="gps">Estoy en la entrada · usar GPS</button><details class="coordinate-entry"><summary>Ingresar coordenadas</summary>'+fields(s.fields.filter(f=>['lat','lng'].includes(f.id)))+'</details>'+fields(s.fields.filter(f=>!['lat','lng'].includes(f.id)))+'<p class="map-note">La ubicación del teléfono no constituye un levantamiento de linderos.</p>';
   if(s.id==='buildings')content=buildings();
   if(s.id==='photos')content=attachments(true)+content;
+  if(['land','documents'].includes(s.id))content+='<p id="area-notice" class="note area-note" role="status" hidden></p>';
   if(s.id==='documents')content=content+attachments(false);
   $('#step-body').innerHTML='<p class="eyebrow">'+esc(s.short)+'</p><h1>'+esc(s.title)+'</h1><p class="lead">'+esc(s.lead)+'</p><fieldset class="form-shell"'+(locked()||busy?' disabled':'')+'>'+content+'</fieldset>'+(s.id==='review'?review():'');
   if(s.id==='location')map=mountMap($('#entry-map'),draft.values,(lng,lat,method)=>{

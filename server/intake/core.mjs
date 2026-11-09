@@ -1,4 +1,4 @@
-import {validateDraft,pending,buyerCopy,knownConcerns,validSignature,reference} from '../../site/newlisting/model.mjs';
+import {validateDraft,pending,buyerCopy,knownConcerns,validSignature,reference,normalizeReview} from '../../site/newlisting/model.mjs';
 export const digest=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),b=>b.toString(16).padStart(2,'0')).join('');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const summary=row=>({status:row.status,version:row.version,feedback:row.feedback||'',notificationSent:row.notification_sent===true});
@@ -78,18 +78,19 @@ export function createHandler({repository,mailer,config,now=()=>new Date()}){
       }
       if(action==='review'){
         const files=await Promise.all(row.payload.files.map(async file=>({...file,url:await repository.downloadURL(id+'/'+row.version+'/'+file.id)})));
-        return respond({...summary(row),id,draft:{...row.payload,files},review:row.review,copy:buyerCopy(row.payload,row.review),concerns:knownConcerns(row.payload)});
+        return respond({...summary(row),id,draft:{...row.payload,files},review:row.review,copy:buyerCopy(row.payload,row.review),concerns:knownConcerns(row.payload,row.review)});
       }
       if(['approve','request_changes'].includes(action)){
         if(body.version!==row.version||row.status!=='ready_for_review')fail(409,'Esta versión ya cambió o fue revisada. Abrí la ficha actual.');
         const feedback=typeof body.feedback==='string'?body.feedback.trim().slice(0,3000):'';
+        const review=normalizeReview(body.review);
         if(action==='request_changes'){
           if(!feedback)fail(422,'Indicá los cambios necesarios.');
-          const updated=await repository.update(id,{version:row.version,status:'ready_for_review',review_token_hash:tokenHash},{status:'changes_requested',feedback,reviewed_at:now().toISOString(),reviewed_by:config.reviewEmail});
+          const updated=await repository.update(id,{version:row.version,status:'ready_for_review',review_token_hash:tokenHash},{status:'changes_requested',review,feedback,reviewed_at:now().toISOString(),reviewed_by:config.reviewEmail});
           if(!updated)fail(409,'La ficha cambió durante la revisión.');
           return respond(summary(updated));
         }
-        const r=body.review||{},review={plan_number:typeof r.plan_number==='string'?r.plan_number.trim().slice(0,40):'',documented_area:Number(r.documented_area),plan_matches:r.plan_matches===true,discrepancy_resolved:r.discrepancy_resolved===true,photo_exception_accepted:r.photo_exception_accepted===true,copy_checked:r.copy_checked===true};
+
         const issues=pending(row.payload,{publication:true,review});
         if(issues.length)fail(422,'Antes de aprobar: '+issues.map(i=>i.label).join(', '));
         const updated=await repository.update(id,{version:row.version,status:'ready_for_review',review_token_hash:tokenHash},{status:'approved',review,feedback,reviewed_at:now().toISOString(),reviewed_by:config.reviewEmail,updated_at:now().toISOString()});

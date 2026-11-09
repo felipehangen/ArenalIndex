@@ -77,3 +77,17 @@ test('GET links and unapproved origins cannot change workflow state',async()=>{
   assert.equal((await e.handler(new Request('https://backend.example/intake'))).status,405);
   assert.equal((await e.handler(new Request('https://backend.example/intake',{method:'POST',headers:{Origin:'https://attacker.example'},body:'{}'}))).status,403);
 });
+test('review conditions survive either decision and appear in the same saved version',async()=>{
+  for(const action of ['approve','request_changes']){
+    const e=environment(),{d,version,reviewToken}=await submit(e);
+    const review={plan_number:'A-123',documented_area:1000,plan_matches:true,copy_checked:true,inspection:{rain_access:{state:'reported',note:' Se necesita un vehículo alto en lluvia. '},erosion:{state:'not_reported'}}};
+    const decision=await e.call(action,{id:d.id,version,review,feedback:'Confirmar el acceso en lluvia.'},reviewToken,true);
+    assert.equal(decision.status,200);
+    assert.equal(decision.body.status,action==='approve'?'approved':'changes_requested');
+    const preview=await e.call('review',{id:d.id},reviewToken,true);
+    assert.equal(preview.body.review.inspection.rain_access.note,'Se necesita un vehículo alto en lluvia.');
+    assert.match(preview.body.copy,/Dificultades de acceso en lluvia \(reportado por el vendedor\)/);
+    assert.equal(preview.body.concerns.length,1);assert.doesNotMatch(preview.body.copy,/Erosión/);
+    assert.equal(e.emails.length,1);
+  }
+});

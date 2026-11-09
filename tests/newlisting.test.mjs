@@ -69,6 +69,7 @@ test('new route uses absolute asset paths and old URL redirects without losing l
   const html=fs.readFileSync(new URL('../site/newlisting/index.html',import.meta.url),'utf8');
   assert.match(html,/src="\/newlisting\/app.mjs"/);
   assert.match(fs.readFileSync(new URL('../site/requisitos.html',import.meta.url),'utf8'),/location.replace\('\/newlisting\/'/);
+  assert.match(fs.readFileSync(new URL('../site/requisitos/index.html',import.meta.url),'utf8'),/location.replace\('\/newlisting\/'\+location.search\+location.hash/);
   assert.match(fs.readFileSync(new URL('../site/newlisting/local.mjs',import.meta.url),'utf8'),/arenalindex-intake-v1/);
 });
 
