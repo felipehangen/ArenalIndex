@@ -6,9 +6,10 @@ Este repositorio contiene el diseño aprobado del explorador de terrenos: mapa, 
 
 ## Desarrollo y publicación
 
-Requiere Node.js 22 o superior y Python 3 para el servidor local. No requiere instalar paquetes.
+Requiere Node.js 22 o superior y Python 3 para el servidor local. Instalar las dependencias con `npm ci`.
 
 ```sh
+npm ci
 npm test
 npm run build
 npm run preview
@@ -46,17 +47,39 @@ Los límites de precio/área y las localidades se ajustan a los datos publicados
 
 Las migraciones en `supabase/migrations/` crean la tabla y cargan los **100 anuncios ficticios del prototipo**, con `is_demo = true`. Se aplicaron en SmallPages el 29 de octubre de 2026. La primera migración se ejecuta una sola vez; la segunda no reemplaza filas existentes. `demo-properties.json` documenta el inventario inicial y no se sirve como catálogo alternativo.
 
-Las fotos actuales son ilustraciones. El formulario de consulta permite preparar y copiar un mensaje; todavía no hay contacto de corredor ni envío de consultas. No se ha añadido un panel administrador, autenticación de visitantes ni almacenamiento de información privada. Para empezar a operar con anuncios reales, registrar los datos y fotos verificados y asignar el canal de contacto.
+Las fotos actuales son ilustraciones. El formulario de consulta permite preparar y copiar un mensaje; todavía no hay contacto de corredor ni envío de consultas. El catálogo no tiene un panel administrador; el flujo privado de captación se describe abajo. Para empezar a operar con anuncios reales, registrar los datos y fotos verificados y asignar el canal de contacto.
 
-## Guía de captación de propiedades
+## Captación y revisión de propiedades
 
-`/requisitos.html` es un recorrido de ocho pasos, sin enlace en el catálogo y con `noindex,nofollow`. Incluye ubicación exacta, información del terreno, servicios, construcciones, guía visual de fotografías, documentos y revisión de pendientes. La ubicación exacta se solicita como condición para preparar el anuncio; la guía no publica propiedades.
+`https://arenalindex.com/newlisting` es el formulario de captación. `/requisitos.html` redirige a la nueva ruta y conserva el borrador anterior en IndexedDB. La página no aparece en el catálogo y usa `noindex,nofollow`. El pin representa siempre la **entrada**.
 
-El borrador y los adjuntos se guardan en IndexedDB, en este navegador y origen. No se envían a Supabase ni a otro backend. La guía no está protegida por autenticación y el guardado local no es una bóveda cifrada: quien use el mismo perfil del navegador puede abrir el borrador. Borrar datos del navegador elimina la copia local. Se puede exportar una copia JSON con respuestas y archivos, restaurarla en otro dispositivo y descargar un resumen de texto o imprimirlo como PDF. El mapa usa MapLibre y teselas públicas de OpenStreetMap.
+El vendedor puede guardar un borrador incompleto. Para enviar se requieren contacto, autorización, entrada confirmada, precio y moneda, área declarada, plano catastrado, respuestas básicas (se admite «No confirmado») y fotos o una excepción que el revisor deberá aceptar. Cada construcción tiene un registro independiente; su área es opcional. Los documentos permanecen privados y no convierten las declaraciones del vendedor en hechos verificados.
 
-Se admite un borrador a la vez, con fotos JPG/PNG/WebP y documentos PDF: 12 MB por archivo, 60 MB en total. No hay recepción central de expedientes ni publicación automática. Las pruebas de `requisitos.test.mjs` cubren pendientes, coordenadas, formularios condicionales y validación de las copias importadas.
+Se admiten JPG/PNG/WebP/PDF, hasta 12 MB por archivo y 60 MB en total. El navegador guarda respuestas y adjuntos localmente; un respaldo JSON permite trasladarlos. El respaldo no contiene los tokens de acceso ni reemplaza una ficha enviada: se restaura como un borrador nuevo. El mismo perfil de navegador puede abrir su borrador y borrar los datos del navegador elimina esa copia.
 
-El recorrido usa descripciones de lo que se vende, una referencia opcional de hasta 60 caracteres y bloques independientes para cada servicio. El pin reemplaza la captura repetida de provincia, cantón y distrito; no se realiza geocodificación inversa y los nombres administrativos se revisan con el plano. Las fotos se organizan por espacios, con guía de tomas, notas y selección de portada sobre una foto existente. Las pruebas técnicas están separadas de la galería. Las copias versión 2 conservan los pies de foto y admiten migración desde la versión 1 sin eliminar adjuntos ni respuestas anteriores.
+Al enviar, `prepare` crea una nueva versión, se cargan los adjuntos directamente al almacenamiento privado y `submit` comprueba tamaños, tipos y firmas de archivos. La ficha pasa a **Lista para revisión de publicación** y Resend envía el aviso a `felipehangen@gmail.com`. Si el correo falla, la ficha permanece recibida y se puede reintentar el aviso. Una respuesta de red perdida se recupera consultando el estado.
+
+El correo abre `/newlisting/review/` con un enlace privado que vence en siete días. Abrirlo no aprueba ni publica. El revisor confirma plano y área, resuelve discrepancias, acepta excepciones de fotos cuando corresponda y revisa el texto, los permisos y las condiciones conocidas. Puede aprobar una versión o solicitar cambios. Reabrir la ficha invalida la revisión anterior antes de permitir cambios.
+
+**Aprobar registra la autorización para preparar la publicación; no inserta automáticamente un anuncio en el catálogo.** El catálogo actual usa USD; cualquier ficha en CRC requiere tratar la moneda correctamente antes de cargarla allí. La revisión editorial no es un servicio de verificación profesional.
+
+### Servicio en Vercel
+
+Proyecto `arenalindex-intake`, endpoint `https://arenalindex-intake.vercel.app/api/intake`. GitHub Pages sigue sirviendo el sitio público y Supabase sigue sirviendo su catálogo. La recepción de fichas usa Vercel Blob privado (`arenalindex-intake-private`) y Resend; no requiere credenciales administrativas de Supabase.
+
+Variables de Production y Preview:
+
+- `BLOB_READ_WRITE_TOKEN`: proporcionada por la conexión al almacén privado.
+- `RESEND_API_KEY`: proporcionada por la integración gratuita de Resend.
+- `INTAKE_REVIEW_EMAIL`: destinatario de los avisos de revisión.
+- `INTAKE_EMAIL_FROM`: remitente autorizado por Resend.
+- `INTAKE_REVIEW_SECRET`: secreto aleatorio de al menos 32 caracteres para los enlaces privados.
+
+El dominio de producción de la API debe ser accesible sin inicio de sesión en Vercel; los tokens privados de la aplicación controlan los expedientes y decisiones. Los documentos se sirven por enlaces firmados de diez minutos. Las URLs de carga solo permiten un archivo, tamaño y tipo concretos, sin sobrescribirlo. Los registros usan lecturas consistentes y escrituras condicionales por ETag para evitar que una solicitud obsoleta reemplace una decisión. Los contadores horarios caducan automáticamente; los expedientes enviados se conservan para la revisión.
+
+El remitente de arranque es `ArenalIndex <onboarding@resend.dev>`, válido únicamente para notificaciones a la cuenta de Resend. Para usar `@arenalindex.com`, completar la verificación DNS de Resend en GoDaddy y cambiar `INTAKE_EMAIL_FROM`. No guardar secretos en `site/config.js`, Git ni registros de ejecución. El archivo local `.env.intake-production`, si existe para pruebas autorizadas, está ignorado por Git.
+
+Publicar el servicio desde este directorio con `vercel deploy --prod`; cambios de variables requieren una nueva publicación. Publicar el formulario con un push a `main`; GitHub Actions instala dependencias, ejecuta pruebas y publica `dist/`. El endpoint `health` informa si están presentes las variables necesarias y responde el almacén; la recepción real del correo debe comprobarse con una prueba explícita de entrega.
 
 ## Recuperación de la versión anterior
 

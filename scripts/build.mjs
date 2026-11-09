@@ -1,8 +1,15 @@
 import {cp,mkdir,readdir,readFile,rm} from 'node:fs/promises';
 import vm from 'node:vm';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 const root=new URL('../',import.meta.url),source=new URL('site/',root),output=new URL('dist/',root);
-for(const file of await readdir(source)){
-  if(file.endsWith('.js'))new vm.Script(await readFile(new URL(file,source),'utf8'),{filename:file});
+for(const file of await readdir(source,{recursive:true})){
+  if(file.endsWith('.mjs'))execFileSync(process.execPath,['--check',fileURLToPath(new URL(file,source))],{stdio:'pipe'});
+  else if(file.endsWith('.js'))new vm.Script(await readFile(new URL(file,source),'utf8'),{filename:file});
+  if(file.endsWith('.html')){
+    const document=await readFile(new URL(file,source),'utf8');
+    for(const match of document.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(match[1].trim())new vm.Script(match[1],{filename:file});
+  }
 }
 const html=await readFile(new URL('index.html',source),'utf8');
 for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(match[1]);

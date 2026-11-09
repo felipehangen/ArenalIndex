@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/intake.mjs": {
+      "maxDuration": 60,
+      "includeFiles": "{server/intake/**,site/newlisting/model.mjs}"
+    }
+  },
+  "headers": [
+    {
+      "source": "/newlisting/review/(.*)",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store"},
+        {"key": "Referrer-Policy", "value": "no-referrer"},
+        {"key": "X-Robots-Tag", "value": "noindex, nofollow"}
+      ]
+    }
+  ]
+}

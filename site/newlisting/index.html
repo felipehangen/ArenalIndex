@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#284f3d">
+  <link rel="canonical" href="https://arenalindex.com/newlisting/">
+  <title>Prepará tu anuncio · Arenal Index</title>
+  <meta name="description" content="Prepará la información y las fotos de tu terreno. ArenalIndex revisará tu propuesta antes de publicarla.">
+  <link rel="stylesheet" href="/newlisting/style.css?v=3">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
+  <script src="/config.js"></script>
+  <script type="module" src="/newlisting/app.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#content">Ir al paso actual</a>
+  <header class="topbar"><a class="brand" href="/" aria-label="Arenal Index, ir al catálogo">arenal <span>INDEX</span></a><span class="header-label">PREPARÁ TU ANUNCIO</span><button class="quiet" id="backup" disabled>Guardar copia</button></header>
+  <div class="workspace">
+    <aside class="sidebar">
+      <p class="eyebrow">DE LA FINCA A LA FICHA</p><h2>Tu terreno.<br>Una ficha clara.</h2>
+      <p class="muted">Lo que sabés hoy, con espacio para completar después.</p>
+      <nav id="steps" aria-label="Pasos de la ficha"></nav>
+      <div class="save-card"><span class="save-dot"></span><p id="save-status" role="status">Preparando el borrador…</p></div>
+      <p class="privacy-note">El borrador se guarda en este navegador. Al enviarlo, compartís tus respuestas y archivos de forma privada con ArenalIndex para revisión. Los documentos no se publican.</p>
+      <button class="text-button" id="restore" disabled>Restaurar una copia</button><input id="restore-file" type="file" accept=".json,application/json" hidden>
+      <button class="text-button" id="new-draft" disabled>Nueva propiedad</button>
+    </aside>
+    <main id="content" tabindex="-1">
+      <div class="mobile-progress"><label for="step-select">Tu recorrido</label><select id="step-select" aria-label="Ir a un paso" disabled></select></div>
+      <div class="progress-row"><span id="step-count"></span><span id="draft-reference"></span></div><progress id="progress" max="8" value="1" aria-label="Posición en el recorrido"></progress>
+      <div id="submission-state"></div>
+      <div id="step-body"><p>Abriendo tu borrador…</p></div>
+      <footer class="step-footer"><button id="previous" class="secondary" disabled>← Anterior</button><span class="footer-note">Podés guardar datos pendientes.</span><button id="next" class="primary" disabled>Continuar →</button></footer>
+    </main>
+  </div>
+  <div id="notice" role="status" hidden></div>
+  <dialog id="confirm-dialog"><h2 id="confirm-title"></h2><p id="confirm-copy"></p><div class="actions"><button class="secondary" id="confirm-cancel">Cancelar</button><button class="primary" id="confirm-ok">Continuar</button></div></dialog>
+  <noscript><p>Esta guía necesita JavaScript para guardar y completar la ficha.</p></noscript>
+</body>
+</html>

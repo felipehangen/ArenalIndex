@@ -1,0 +1,48 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {BlobPreconditionFailedError} from '@vercel/blob';
+import {createRepository} from '../server/intake/blob.mjs';
+function setup(){
+  const rows=new Map(),calls=[];let sequence=0;
+  const sdk={
+    async get(path,options){
+      assert.equal(options.access,'private');assert.equal(options.useCache,false);
+      const data=rows.get(path);if(!data)return null;
+      return {stream:new Blob([data.text]).stream(),blob:{etag:data.etag,size:Buffer.byteLength(data.text),contentType:data.type}};
+    },
+    async put(path,text,options){
+      assert.equal(options.access,'private');assert.equal(options.addRandomSuffix,false);
+      const previous=rows.get(path);
+      if(options.ifMatch&&previous?.etag!==options.ifMatch)throw new BlobPreconditionFailedError();
+      if(previous&&!options.allowOverwrite)throw Error('Blob already exists');
+      rows.set(path,{text,etag:String(++sequence),type:options.contentType});
+    },
+    async issueSignedToken(options){calls.push(options);return {delegationToken:'private'};},
+    async presignUrl(token,options){calls.push(options);return {presignedUrl:'https://files.example/signed'};}
+  };
+  return {repository:createRepository({sdk,now:()=>100000}),rows,calls};
+}
+test('simultaneous updates cannot overwrite each other and stale approval filters fail',async()=>{
+  const {repository}=setup();await repository.create({id:'submission-1',version:1,status:'ready_for_review'});
+  const results=await Promise.all(['approved','draft'].map(status=>repository.update('submission-1',{version:1,status:'ready_for_review'},{status})));
+  assert.equal(results.filter(Boolean).length,1);
+  assert.equal(await repository.update('submission-1',{version:1,status:'ready_for_review'},{status:'approved'}),null);
+  assert.equal(await repository.create({id:'submission-1',status:'draft'}),null);
+});
+test('parallel rate-limit requests cannot exceed the limit',async()=>{
+  const {repository,rows}=setup();
+  const results=await Promise.all(Array.from({length:5},()=>repository.allow('private-token-value',2)));
+  assert.equal(results.filter(Boolean).length,2);assert.ok([...rows.keys()].every(k=>!k.includes('private-token-value')));
+});
+test('upload capabilities are private, immutable and restricted to one path, content type and size',async()=>{
+  const {repository,calls}=setup();await repository.uploadURL('submission-1/1/file-1',{size:1200,type:'image/png'});
+  assert.equal(calls[0].pathname,'files/submission-1/1/file-1');assert.deepEqual(calls[0].operations,['put']);
+  for(const call of calls){assert.equal(call.maximumSizeInBytes,1200);assert.deepEqual(call.allowedContentTypes,['image/png']);}
+  assert.equal(calls[1].allowOverwrite,false);assert.equal(calls[1].access,'private');
+});
+test('file inspection checks actual MIME and size and reads only the needed signature',async()=>{
+  const {repository,rows}=setup();rows.set('files/a/1/b',{text:'%PDF-1.4 example',etag:'1',type:'application/pdf'});
+  const result=await repository.inspectFile('a/1/b',{size:17,type:'application/pdf'});assert.equal(result,null);
+  const valid=await repository.inspectFile('a/1/b',{size:16,type:'application/pdf'});assert.equal(new TextDecoder().decode(valid.bytes),'%PDF-1.4 example');
+  assert.equal(await repository.inspectFile('a/1/b',{size:16,type:'image/png'}),null);
+});
