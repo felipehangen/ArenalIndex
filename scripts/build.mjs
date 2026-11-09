@@ -1,4 +1,5 @@
-import {cp,mkdir,readdir,readFile,rm} from 'node:fs/promises';
+import {cp,mkdir,readdir,readFile,rm,writeFile} from 'node:fs/promises';
+import {validateSnapshot} from './lib/exchange-rate.mjs';
 import vm from 'node:vm';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
@@ -18,4 +19,6 @@ const config=await readFile(new URL('config.js',source),'utf8');
 if(!config.includes('sb_publishable_') || config.includes('sb_secret_') || config.includes('service_role'))throw new Error('Only the public Supabase key belongs in the website');
 await rm(output,{recursive:true,force:true});await mkdir(output,{recursive:true});
 await cp(source,output,{recursive:true});
+const rate=validateSnapshot(JSON.parse(await readFile(new URL('exchange-rate.json',source),'utf8')));
+await writeFile(new URL('exchange-rate.js',output),'/* Daily BCCR snapshot. */\nwindow.ArenalExchangeRate=Object.freeze('+JSON.stringify(rate)+');\n');
 console.log('Built dist/ with the public Supabase catalog configuration.');

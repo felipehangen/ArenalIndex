@@ -22,3 +22,7 @@ html,body{height:100%;margin:0}body:has(#arenal-index-dos:is([data-screen="home"
 #arenal-index-dos .currency-picker{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:13px;margin:14px 0 8px}#arenal-index-dos .currency-picker select{border:1px solid #dbe3d4;border-radius:9px;padding:10px 14px;color:#29452c;background:#fff;font:inherit;min-height:44px}#arenal-index-dos #currency-note{line-height:1.6}
 
 #arenal-index-dos .listing-description{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+#arenal-index-dos .currency-source{font-size:12px;margin:0 0 14px;color:#647066}
+#arenal-index-dos .currency-source a{color:inherit;text-underline-offset:3px}
+#arenal-index-dos .currency-status{font-size:12px;line-height:1.5;padding:10px 0;color:#7d542a}

@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # 06:17 Costa Rica; 09:17 retries an unsuccessful morning rate update.
+    # A successful same-day snapshot is reused without contacting BCCR again.
+    - cron: '17 12,15 * * *'
 permissions:
   contents: read
 concurrency:
@@ -17,6 +21,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci
+      - run: npm run update:exchange-rate
       - run: npm test
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
