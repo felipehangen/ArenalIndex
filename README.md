@@ -43,6 +43,8 @@ El catálogo se consulta al abrir la página. RLS permite leer únicamente filas
 
 Los límites de precio/área y las localidades se ajustan a los datos publicados. No hay catálogo de respaldo que vuelva a mostrar anuncios retirados si Supabase falla: se muestra un error con opción de reintentar.
 
+La portada reserva el espacio del mapa y los resultados desde el primer render. Muestra tarjetas provisionales mientras carga el catálogo y un indicador independiente para el mapa. Las dos fuentes de anuncios se consultan en paralelo; solo se muestra el catálogo completo. Si la espera supera ocho segundos se ofrece reintentar, y un fallo del mapa permite seguir explorando la lista. Las animaciones respetan la preferencia de movimiento reducido.
+
 ## Datos iniciales y alcance
 
 Las migraciones en `supabase/migrations/` crean la tabla y cargan los **100 anuncios ficticios del prototipo**, con `is_demo = true`. Se aplicaron en SmallPages el 29 de octubre de 2026. La primera migración se ejecuta una sola vez; la segunda no reemplaza filas existentes. `demo-properties.json` documenta el inventario inicial y no se sirve como catálogo alternativo.

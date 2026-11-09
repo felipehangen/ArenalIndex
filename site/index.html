@@ -9,7 +9,7 @@
 <meta name="description" content="Explora terrenos en La Fortuna: mapa, precios, áreas y características con Arenal Index.">
 <link rel="canonical" href="https://arenalindex.com/">
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.css"><script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script><style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.css"><script defer src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script><style>
 #arenal-index-dos{color-scheme:light dark;--m-paper:light-dark(#ffffff,#1c2821);--m-text:light-dark(#24362b,#edf3ee);--m-muted:light-dark(#67776b,#b0c0b4);--m-green:light-dark(#285a3d,#b1dabf);--m-on:light-dark(#ffffff,#193722);--m-soft:light-dark(#f0f5ee,#2a3c30);--m-line:light-dark(#dce5dc,#405346);--m-map:light-dark(#e8efdf,#283c2d);--m-forest:light-dark(#d3e1c4,#354e38);--m-water:light-dark(#adcfd4,#497581);--m-road:light-dark(#ffffff,#889886);--m-edge:light-dark(#d4cfb7,#56684f);font:14px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--m-text);max-width:410px;width:100%;margin:0 auto;background:var(--m-paper);border:1px solid var(--m-line);border-radius:26px;overflow:hidden;box-shadow:0 12px 40px light-dark(#24402b12,#0003)}
 #arenal-index-dos *{box-sizing:border-box}#arenal-index-dos [hidden]{display:none!important}#arenal-index-dos button,#arenal-index-dos input,#arenal-index-dos select{font:inherit;color:inherit}#arenal-index-dos button{min-height:44px;border:1px solid var(--m-line);background:var(--m-paper);border-radius:14px;padding:9px 12px}#arenal-index-dos button svg{width:17px;height:17px;flex-shrink:0}#arenal-index-dos button{touch-action:manipulation}#arenal-index-dos header{display:flex;align-items:center;justify-content:space-between;padding:22px 20px 16px;gap:14px}#arenal-index-dos .brand{display:flex;gap:8px;align-items:center;color:var(--m-green);font-size:25px;font-weight:500;letter-spacing:-1px}#arenal-index-dos .brand>svg{width:30px;height:30px}#arenal-index-dos .brand small{display:block;font-size:9px;letter-spacing:1.25px;color:var(--m-muted);font-weight:400}#arenal-index-dos .icon-button{display:flex;gap:5px;align-items:center;justify-content:center;min-width:44px}#arenal-index-dos #index-saved{border:0;background:var(--m-soft);border-radius:50%;font-size:11px}#arenal-index-dos #index-saved[aria-pressed=true]{background:var(--m-green);color:var(--m-on)}
 #arenal-index-dos .location{padding:0 20px 16px}#arenal-index-dos h2{font-size:21px;font-weight:500;letter-spacing:-.6px;line-height:1.25;margin:0}#arenal-index-dos p{margin:5px 0 0}#arenal-index-dos .location p{font-size:12px;color:var(--m-muted)}#arenal-index-dos .quick-filters{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:8px;padding:0 16px 14px}#arenal-index-dos .quick-filters button{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;padding:9px 7px}#arenal-index-dos #index-filter-count{font-size:11px}#arenal-index-dos #index-chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px}#arenal-index-dos #index-chips:empty{display:none}#arenal-index-dos #index-chips button{font-size:11px;min-height:34px;padding:6px 9px;background:var(--m-soft);border:0;border-radius:20px;display:flex;gap:6px;align-items:center}#arenal-index-dos #index-chips svg{width:12px;height:12px}
@@ -70,23 +70,23 @@
 #arenal-index-dos .landmark>svg,#arenal-index-dos .landmark>i{display:block;flex-shrink:0;width:36px;height:36px;padding:7px;border-radius:50%;border:1px solid var(--m-green);background:var(--m-paper);color:var(--m-green);box-shadow:0 1px 5px light-dark(#214b2820,#0004)}
 #arenal-index-dos .landmark .landmark-name{position:absolute;transform:translate(-50%,-50%);background:var(--m-map);color:var(--m-green);font-size:11px;line-height:18px;font-weight:500;white-space:nowrap;padding:2px 5px;border-radius:4px;pointer-events:none}
 
-</style><link rel="stylesheet" href="real-map.css?v=5-clean-filters"><link rel="stylesheet" href="results-layout.css?v=9-currency"><link rel="stylesheet" href="property-detail.css?v=7-public-listing"><link rel="stylesheet" href="ui-theme.css?v=10-scroll-hit-area"><link rel="stylesheet" href="public-listing.css?v=1"><script src="config.js?v=3-public-listings"></script><script src="catalog.js?v=2"></script><script src="property-content.js?v=1"></script><script src="ui-format.js?v=2"></script><script src="results-scroll.js?v=4-native-scroll"></script><script src="map-markers.js?v=1"></script><script src="panel-motion.js?v=1"></script></head>
+</style><link rel="stylesheet" href="real-map.css?v=5-clean-filters"><link rel="stylesheet" href="results-layout.css?v=9-currency"><link rel="stylesheet" href="property-detail.css?v=7-public-listing"><link rel="stylesheet" href="ui-theme.css?v=10-scroll-hit-area"><link rel="stylesheet" href="public-listing.css?v=1"><link rel="stylesheet" href="home-loading.css?v=1"><script src="config.js?v=3-public-listings"></script><script src="catalog.js?v=3-parallel"></script><script src="property-content.js?v=1"></script><script src="ui-format.js?v=2"></script><script src="results-scroll.js?v=4-native-scroll"></script><script src="map-markers.js?v=1"></script><script src="panel-motion.js?v=1"></script></head>
 <body>
 
-<div class="local-app"><div id="arenal-index-dos" aria-label="Arenal Index · exploración móvil de terrenos">
- <div id="index-home" aria-busy="true">
- <header class="explore-header"><div class="brand" aria-label="Arenal Index"><div class="index-wordmark"><span class="index-arenal">arenal</span><span class="index-index">INDEX</span></div><small>LA FORTUNA · COSTA RICA</small></div><div class="search-row"><button class="search-pill" data-panel="all"><i data-lucide="search" aria-hidden="true"></i><span><strong id="search-location">La Fortuna y alrededores</strong><small id="search-summary">Terrenos · con o sin construcciones</small></span></button><button class="filter-icon" data-panel="all" aria-label="Abrir filtros"><i data-lucide="sliders-horizontal" aria-hidden="true"></i><span id="index-filter-count" hidden></span></button></div></header>
+<div class="local-app"><div id="arenal-index-dos" data-screen="home" data-catalog="loading" aria-label="Arenal Index · exploración móvil de terrenos">
+ <div id="index-home">
+ <header class="explore-header"><div class="brand" aria-label="Arenal Index"><div class="index-wordmark"><span class="index-arenal">arenal</span><span class="index-index">INDEX</span></div><small>LA FORTUNA · COSTA RICA</small></div><div class="search-row" data-loading-controls inert><button class="search-pill" data-panel="all"><i data-lucide="search" aria-hidden="true"></i><span><strong id="search-location">La Fortuna y alrededores</strong><small id="search-summary">Terrenos · con o sin construcciones</small></span></button><button class="filter-icon" data-panel="all" aria-label="Abrir filtros"><i data-lucide="sliders-horizontal" aria-hidden="true"></i><span id="index-filter-count" hidden></span></button></div></header>
  <div id="index-chips" aria-label="Filtros aplicados"></div>
  <section id="index-map-view" aria-label="Mapa y resultados de terrenos">
  <div id="index-map-stage"><div id="index-map" aria-label="Mapa interactivo real"></div></div>
- <div class="map-price-switch"><button data-unit="total" aria-pressed="true">Precio total</button><button data-unit="unit" aria-pressed="false">Precio /m²</button></div>
- <div class="map-navigation"><button id="index-group-back" hidden aria-label="Volver al nivel anterior">←</button><button id="index-group-reset">Toda la zona</button></div>
- <div id="index-map-hint" hidden></div>
+ <div class="map-price-switch" data-loading-controls inert><button data-unit="total" aria-pressed="true">Precio total</button><button data-unit="unit" aria-pressed="false">Precio /m²</button></div>
+ <div class="map-navigation" data-loading-controls inert><button id="index-group-back" hidden aria-label="Volver al nivel anterior">←</button><button id="index-group-reset">Toda la zona</button></div>
+ <div id="map-loading" role="status"><div class="map-loading-card"><span class="loading-dot" aria-hidden="true"></span><span id="map-loading-message">Cargando mapa…</span><button id="map-loading-retry" type="button" hidden>Reintentar mapa</button></div></div>
  <section id="index-preview" class="results-sheet" aria-label="Resultados de propiedades">
- <div id="results-scroll"><div class="results-map-space" aria-hidden="true"></div><div class="results-sheet-header"><button id="results-handle" aria-label="Ajustar altura de resultados; arrastra o usa las flechas" aria-controls="results-scroll" aria-expanded="false"><span></span></button><div class="results-heading"><h2 id="index-count" aria-live="polite">Cargando terrenos…</h2><button id="results-return" aria-label="Ver todos los resultados" hidden>Ver todos</button><button id="results-expand" aria-controls="results-scroll" aria-expanded="false">Ver lista</button></div></div>
- <div class="results-body"><div id="selection-context" hidden></div><div id="index-list"></div><p id="results-empty" hidden></p><button id="results-more">Ver 20 más</button><p id="results-progress"></p></div></div>
+ <div id="results-scroll"><div class="results-map-space" aria-hidden="true"></div><div class="results-sheet-header"><button data-loading-controls inert id="results-handle" aria-label="Ajustar altura de resultados; arrastra o usa las flechas" aria-controls="results-scroll" aria-expanded="false"><span></span></button><div class="results-heading"><h2 id="index-count" aria-live="polite">Cargando terrenos…</h2><button id="results-return" aria-label="Ver todos los resultados" hidden>Ver todos</button><button data-loading-controls inert id="results-expand" aria-controls="results-scroll" aria-expanded="false">Ver lista</button></div></div>
+ <div class="results-body"><div id="selection-context" hidden></div><p id="catalog-wait" role="status" hidden>Está tardando un poco más de lo habitual.</p><button id="catalog-retry" type="button" hidden>Reintentar</button><div id="catalog-skeleton" aria-hidden="true"><div class="skeleton-card"><div class="skeleton-photo skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line short skeleton-block"></div></div><div class="skeleton-card"><div class="skeleton-photo skeleton-block"></div><div class="skeleton-line skeleton-block"></div></div></div><div id="index-list" aria-busy="true"></div><p id="results-empty" hidden></p><button id="results-more" hidden>Ver 20 más</button><p id="results-progress"></p></div></div>
  </section></section>
- <nav class="bottom-navigation" aria-label="Navegación principal"><button id="nav-explore" aria-pressed="true"><i data-lucide="search" aria-hidden="true"></i><span>Explorar</span></button><button id="index-saved" aria-pressed="false"><i data-lucide="heart" aria-hidden="true"></i><span>Guardados <b id="index-saved-count">0</b></span></button></nav>
+ <nav data-loading-controls inert class="bottom-navigation" aria-label="Navegación principal"><button id="nav-explore" aria-pressed="true"><i data-lucide="search" aria-hidden="true"></i><span>Explorar</span></button><button id="index-saved" aria-pressed="false"><i data-lucide="heart" aria-hidden="true"></i><span>Guardados <b id="index-saved-count">0</b></span></button></nav>
  </div>
  <dialog id="index-filter-page" hidden aria-labelledby="index-panel-title">
   <div class="panel-header"><button id="index-cancel" class="icon-button cursor-interaction" aria-label="Cerrar filtros sin aplicar"><i data-lucide="x" aria-hidden="true"></i></button><h2 id="index-panel-title">Filtros</h2><span class="panel-header-spacer" aria-hidden="true"></span></div>
@@ -110,11 +110,11 @@
 
 
 
+<script src="home-loading.js?v=1"></script>
 <script>
 
 window.arenalReady=(async()=>{
- const items=await ArenalData.load();
- document.querySelector('#index-home').setAttribute('aria-busy','false');
+ const [items]=await Promise.all([ArenalData.load(),new Promise(resolve=>document.addEventListener('DOMContentLoaded',resolve,{once:true}))]);
  const initialCurrency=new Set(items.map(d=>d.currency)).size>1?'all':items[0]?.currency||'USD';
  const caps={price:Math.max(300000,Math.ceil(Math.max(0,...items.map(d=>d.price))/5000)*5000),unit:Math.max(500,Math.ceil(Math.max(0,...items.map(d=>d.price/d.area)))),area:Math.max(6000,Math.ceil(Math.max(0,...items.map(d=>d.area))/100)*100)};
 
@@ -124,7 +124,7 @@ const controllers=[];
  const landmarks=[{name:'Centro de La Fortuna',icon:'map-pin',coordinates:[-84.644436,10.4716839],offset:-92},{name:'Volcán Arenal',icon:'mountain',coordinates:[-84.7034096,10.4620845],offset:0},{name:'Aeropuerto de La Fortuna',icon:'plane',coordinates:[-84.5791667,10.4691667],offset:0}];
  const currencyCaps=currency=>{const list=items.filter(d=>currency==='all'||d.currency===currency);return {...caps,price:Math.max(currency==='CRC'?150000000:300000,Math.ceil(Math.max(0,...list.map(d=>d.price))/5000)*5000),unit:Math.max(currency==='CRC'?250000:500,Math.ceil(Math.max(0,...list.map(d=>d.price/d.area))))};};
  const defaults=(currency=initialCurrency)=>({currency,price:[0,currencyCaps(currency).price],unit:[0,currencyCaps(currency).unit],area:[0,caps.area],volcano:false,river:false,water:false,electricity:false,well:false,privateResidential:false,house:'any',zone:'all'});
- let galleryPositions=new Map(),cameraJob=0;let headerCompact=false;let visibleLimit=20;let resultsController=null,sheetExpanded=false,unitOpen=false,houseOpen=false,zoneOpen=false,selectionAnchor=null,filterOpen=false; let map,ready=false,lastData="",markerStore=null,reference=null; let scope=null,camera=null,history=[],selectedGroup=null,page=0;
+ let galleryPositions=new Map(),cameraJob=0;let headerCompact=false;let visibleLimit=20;let resultsController=null,sheetExpanded=false,unitOpen=false,houseOpen=false,zoneOpen=false,selectionAnchor=null,filterOpen=false; let map,mapUnavailable=false,ready=false,lastData="",markerStore=null,reference=null; let scope=null,camera=null,history=[],selectedGroup=null,page=0;
  let filters=defaults(),draft=defaults(),view='map',unit='total',selected=null,saved=new Set(),onlySaved=false,panel='all';
  const {number:formatNumber,money,number,compactMoney}=window.ArenalFormat,clone=v=>JSON.parse(JSON.stringify(v));
  const icons=()=>{if(globalThis.lucide)lucide.createIcons({attrs:{width:16,height:16}})};
@@ -156,13 +156,16 @@ const controllers=[];
  function fitItems(group,all=false){if(all){fitGeneralView(400);return}if(!map||!group.length)return;const bounds=new maplibregl.LngLatBounds();group.forEach(d=>bounds.extend(d.coordinates));const rect=q('#index-map').getBoundingClientRect(),sheet=q('.results-sheet-header').getBoundingClientRect();map.stop();map.fitBounds(bounds,{padding:{top:110,bottom:rect.bottom-sheet.top+48,left:36,right:36},maxZoom:18,duration:450,retainPadding:false,bearing:0,pitch:0});}
  function fitSelectedGroup(group){const job=++cameraJob;setTimeout(()=>{if(job!==cameraJob||filterOpen||!selectedGroup)return;map.resize();fitItems(group)},280);}
  function listingGeoJSON(list){const byCoordinate=new Map();for(const d of list){const key=d.coordinates.join(',');if(!byCoordinate.has(key))byCoordinate.set(key,[]);byCoordinate.get(key).push(d);}return {type:'FeatureCollection',features:[...byCoordinate.values()].map(group=>({type:'Feature',geometry:{type:'Point',coordinates:group[0].coordinates},properties:{id:group[0].id,listingIds:JSON.stringify(group.map(d=>d.id)),listingCount:group.length}}))};}
- function drawMap(){if(view!=='map'||q('#index-home').hidden)return;
+ function drawMap(){if(view!=='map'||q('#index-home').hidden||mapUnavailable)return;
   if(!map){
+   ArenalHomeLoading.mapStarted();
+   try{
    map=new maplibregl.Map({container:q('#index-map'),bounds:generalBounds().toArray(),fitBoundsOptions:{padding:generalPadding(),maxZoom:12,retainPadding:false},maxZoom:20,attributionControl:false,style:{version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'osm',type:'raster',source:'osm'}]}});
+   }catch(error){mapUnavailable=true;ArenalHomeLoading.mapFailed();console.error('Map unavailable',error.message);return;}
    map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
    map.addControl(new maplibregl.AttributionControl({compact:false}),'bottom-right');
-   map.on('error',e=>{console.error('Map error',e.error?.message);q('#index-map-hint').textContent='No se pudo cargar parte del mapa. Revisa la conexión.'});
-   map.on('load',()=>{ready=true;map.addSource('listings',{type:'geojson',data:{type:'FeatureCollection',features:[]},cluster:true,clusterRadius:26,clusterMinPoints:3,clusterProperties:{adCount:['+', ['get','listingCount']]},clusterMaxZoom:22,maxzoom:24});map.addLayer({id:'listings-hit',type:'circle',source:'listings',paint:{'circle-radius':1,'circle-opacity':0}});landmarks.forEach((d,i)=>{const el=button('',()=>{if(d.overlaps?.length){selectReferenceOverlaps(d);return;}selectionAnchor=d.coordinates;reference=d;selected=null;selectedGroup=null;setResultsExpanded(false);render();revealSelection(d.coordinates)});el.className='real-landmark';const icon=document.createElement('img');icon.src=['icons/center.svg','icons/volcano.svg','icons/airport.svg'][i];icon.alt='';icon.width=22;icon.height=22;const body=document.createElement('span');body.className='reference-body';body.append(icon);const tip=document.createElement('span');tip.className='reference-tip';tip.setAttribute('aria-hidden','true');el.append(body,tip);el.setAttribute('aria-label',d.name);new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(d.coordinates).addTo(map);d.el=el;});map.on('idle',drawMarkers);map.on('move',drawMarkers);drawMap();fitGeneralView(0);});
+   map.on('error',e=>{console.error('Map error',e.error?.message);ArenalHomeLoading.mapFailed();});
+   map.on('load',()=>{ready=true;ArenalHomeLoading.mapReady();map.addSource('listings',{type:'geojson',data:{type:'FeatureCollection',features:[]},cluster:true,clusterRadius:26,clusterMinPoints:3,clusterProperties:{adCount:['+', ['get','listingCount']]},clusterMaxZoom:22,maxzoom:24});map.addLayer({id:'listings-hit',type:'circle',source:'listings',paint:{'circle-radius':1,'circle-opacity':0}});landmarks.forEach((d,i)=>{const el=button('',()=>{if(d.overlaps?.length){selectReferenceOverlaps(d);return;}selectionAnchor=d.coordinates;reference=d;selected=null;selectedGroup=null;setResultsExpanded(false);render();revealSelection(d.coordinates)});el.className='real-landmark';const icon=document.createElement('img');icon.src=['icons/center.svg','icons/volcano.svg','icons/airport.svg'][i];icon.alt='';icon.width=22;icon.height=22;const body=document.createElement('span');body.className='reference-body';body.append(icon);const tip=document.createElement('span');tip.className='reference-tip';tip.setAttribute('aria-hidden','true');el.append(body,tip);el.setAttribute('aria-label',d.name);new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(d.coordinates).addTo(map);d.el=el;});map.on('idle',drawMarkers);map.on('move',drawMarkers);drawMap();fitGeneralView(0);});
   }
   map.resize();if(!ready)return;const list=results(),key=list.map(d=>d.id).join(',');if(key!==lastData){lastData=key;map.getSource('listings').setData(listingGeoJSON(list));}drawMarkers();
  }
@@ -237,18 +240,13 @@ const controllers=[];
 
  const zone=q('#index-zone');zone.replaceChildren(new Option('Todas las zonas','all'));[...new Set(items.map(d=>d.place))].sort().forEach(place=>zone.add(new Option(place,place)));
  try{const stored=JSON.parse(localStorage.getItem('arenalindex.saved')||'[]');if(Array.isArray(stored))saved=new Set(stored.filter(id=>items.some(d=>d.id===id)))}catch{}
- Object.keys(configs).forEach(makeRange);render();new ResizeObserver(drawMap).observe(q('#index-map-stage'));
+ Object.keys(configs).forEach(makeRange);render();ArenalHomeLoading.catalogReady();new ResizeObserver(drawMap).observe(q('#index-map-stage'));
  if(globalThis.Tweak){const design={photos:true};const tweak=new Tweak({container:root,onChange:()=>{root.style.setProperty('--mobile-photos',design.photos?'flex':'none');qa('.photo-space').forEach(e=>e.style.display=design.photos?'flex':'none')}});tweak.addToggle(design,'photos',{label:'Espacio para fotos en la lista'});}
 })();
 
 })().catch(error=>{
  console.error('No se pudo cargar el catálogo',error.message);
- document.querySelector('#index-count').textContent='Catálogo no disponible';
- const node=document.querySelector('#results-empty');node.hidden=false;node.setAttribute('role','alert');node.textContent='No pudimos cargar las propiedades. Revisá tu conexión e intentá de nuevo.';
- const retry=document.createElement('button');retry.textContent='Reintentar';retry.onclick=()=>location.reload();node.append(retry);
- document.querySelector('#results-more').hidden=true;
- document.querySelector('#results-expand').hidden=true;
- document.querySelector('#index-home').setAttribute('aria-busy','false');
+ ArenalHomeLoading.catalogFailed();
 });
 
 </script>

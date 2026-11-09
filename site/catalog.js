@@ -37,25 +37,33 @@
   async function load() {
     const {supabaseUrl,publishableKey,listingsUrl}=window.ArenalConfig||{};
     if (!supabaseUrl || !publishableKey) throw new Error('Missing public catalog configuration');
-    const rows=[],size=1000;
-    for(let offset=0;;offset+=size){
-      const query=new URLSearchParams({select:'id,name,description,place,price,area,lng,lat,house,volcano,river,water,electricity,well,private_residential,approximate,images,is_demo',status:'eq.published',order:'sort_order.asc,id.asc',limit:String(size),offset:String(offset)});
-      const response=await fetch(`${supabaseUrl}/rest/v1/arenalindex_properties?${query}`,{
-        headers:{apikey:publishableKey},signal:AbortSignal.timeout(15000),cache:'no-store'
-      });
-      if(!response.ok)throw new Error(`Catalog request failed (${response.status})`);
-      const page=await response.json();
-      if(!Array.isArray(page))throw new Error('Invalid catalog response');
-      rows.push(...page.map(normalize));
-      if(page.length<size)break;
-    }
-    if(listingsUrl){
+    const loadDatabase=async()=>{
+      const rows=[],size=1000;
+      for(let offset=0;;offset+=size){
+        const query=new URLSearchParams({select:'id,name,description,place,price,area,lng,lat,house,volcano,river,water,electricity,well,private_residential,approximate,images,is_demo',status:'eq.published',order:'sort_order.asc,id.asc',limit:String(size),offset:String(offset)});
+        const response=await fetch(`${supabaseUrl}/rest/v1/arenalindex_properties?${query}`,{
+          headers:{apikey:publishableKey},signal:AbortSignal.timeout(15000),cache:'no-store'
+        });
+        if(!response.ok)throw new Error(`Catalog request failed (${response.status})`);
+        const page=await response.json();
+        if(!Array.isArray(page))throw new Error('Invalid catalog response');
+        rows.push(...page.map(normalize));
+        if(page.length<size)break;
+      }
+      return rows;
+    };
+    const loadPublished=async()=>{
+      if(!listingsUrl)return [];
       const response=await fetch(listingsUrl,{signal:AbortSignal.timeout(20000),cache:'no-store'});
       if(!response.ok)throw new Error('Published listings unavailable');
-      const published=await response.json();if(!Array.isArray(published))throw new Error('Invalid published listings');
-      const ids=new Set(rows.map(row=>row.id));
-      for(const row of published){const item=normalize(row);if(ids.has(item.id))throw new Error('Duplicate public listing');ids.add(item.id);rows.unshift(item);}
-    }
+      const published=await response.json();
+      if(!Array.isArray(published))throw new Error('Invalid published listings');
+      return published.map(normalize);
+    };
+    // Start independent sources together, but never show an incomplete catalog.
+    const [rows,published]=await Promise.all([loadDatabase(),loadPublished()]);
+    const ids=new Set(rows.map(row=>row.id));
+    for(const item of published){if(ids.has(item.id))throw new Error('Duplicate public listing');ids.add(item.id);rows.unshift(item);}
     return rows;
   }
   window.ArenalData=Object.freeze({load,normalize});

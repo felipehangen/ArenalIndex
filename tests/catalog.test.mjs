@@ -46,3 +46,14 @@ test('a failed publication feed cannot silently present a partial catalog',async
  const api=setup(async url=>url.includes('/published')?{ok:false}:{ok:true,json:async()=>seed.slice(0,1)},{listingsUrl:'https://example.test/published'});
  await assert.rejects(api.load(),/Published listings unavailable/);
 });
+test('both sources start before either responds and the catalog waits for both',async()=>{
+ const requests=[];let completed=false;
+ const api=setup(url=>new Promise(resolve=>requests.push({url,resolve})),{listingsUrl:'https://example.test/published'});
+ const loading=api.load().then(rows=>{completed=true;return rows;});
+ assert.equal(requests.length,2);
+ const database=requests.find(r=>r.url.includes('/rest/')),published=requests.find(r=>r.url.includes('/published'));
+ database.resolve({ok:true,json:async()=>seed.slice(0,1)});
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(completed,false);
+ published.resolve({ok:true,json:async()=>[{...seed[1],id:'new-publication'}]});
+ const rows=await loading;assert.equal(rows.length,2);assert.equal(rows[0].id,'new-publication');
+});
