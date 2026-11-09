@@ -1,0 +1,9 @@
+import {createRepository} from '../server/intake/blob.mjs';
+import {createPublicHandler} from '../server/intake/public.mjs';
+
+export default async function handler(req,res){
+  const repository=createRepository({storeId:process.env.BLOB_STORE_ID,token:process.env.BLOB_READ_WRITE_TOKEN});
+  const response=await createPublicHandler(repository)(new Request('https://arenalindex.com'+req.url,{method:req.method}));
+  res.statusCode=response.status;response.headers.forEach((value,key)=>res.setHeader(key,value));
+  res.end(req.method==='HEAD'?'':await response.text());
+}

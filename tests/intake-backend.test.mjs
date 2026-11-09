@@ -6,6 +6,7 @@ const seller='a'.repeat(64),other='b'.repeat(64);
 function environment({emailFails=false,invalidFile=false}={}){
   const rows=new Map(),emails=[];
   const repository={
+    async ensurePublishedIndex(){},
     async health(){return true;},async allow(){return true;},
     async get(id){return structuredClone(rows.get(id)||null);},
     async create(row){if(rows.has(row.id))return null;rows.set(row.id,structuredClone(row));return structuredClone(row);},
@@ -18,7 +19,7 @@ function environment({emailFails=false,invalidFile=false}={}){
     async inspectFile(path,file){return {size:file.size,bytes:invalidFile?new Uint8Array([0,0]):file.type==='application/pdf'?pdf:png};}
   };
   const mailer={async send(message){emails.push(message);if(emailFails)throw Error('Email unavailable');}};
-  const handler=createHandler({repository,mailer,config:{emailReady:true,reviewEmail:'reviewer@example.com',reviewSecret:'server-secret-with-enough-randomness',rateSalt:'salt',siteURL:'https://arenalindex.com'},now:()=>new Date('2026-11-09T12:00:00Z')});
+  const handler=createHandler({repository,mailer,config:{emailReady:true,publicAPIURL:'https://backend.example/api/listings',reviewEmail:'reviewer@example.com',reviewSecret:'server-secret-with-enough-randomness',rateSalt:'salt',siteURL:'https://arenalindex.com'},now:()=>new Date('2026-11-09T12:00:00Z')});
   async function call(action,body={},token=seller,review=false){
     const response=await handler(new Request('https://backend.example/intake',{method:'POST',headers:{Origin:'https://arenalindex.com','Content-Type':'application/json',[review?'X-Review-Token':'X-Intake-Token']:token},body:JSON.stringify({action,...body})}));
     return {status:response.status,body:await response.json()};
@@ -90,4 +91,24 @@ test('review conditions survive either decision and appear in the same saved ver
     assert.equal(preview.body.concerns.length,1);assert.doesNotMatch(preview.body.copy,/Erosión/);
     assert.equal(e.emails.length,1);
   }
+});
+test('publication is a separate reviewer action, rejects stale edits, and keeps the last public version during seller edits',async()=>{
+  const e=environment(),{d,version,reviewToken}=await submit(e),editorial={title:'Un terreno junto al bosque',place:'La Fortuna'};
+  const body={id:d.id,version,publicationRevision:0,editorial,confirmed:true};
+  assert.equal((await e.call('publish',body,reviewToken,true)).status,422);
+  assert.equal((await e.call('publish',body,seller,true)).status,403);
+  await e.call('approve',{id:d.id,version,review:{plan_number:'A-123',documented_area:1000,plan_matches:true,copy_checked:true}},reviewToken,true);
+  assert.equal(e.rows.get(d.id).publication,undefined);
+  const preview=await e.call('preview_publication',body,reviewToken,true);
+  assert.equal(preview.status,200);assert.match(preview.body.listing.images[0],/storage.example\/private/);assert.equal(e.rows.get(d.id).publication,undefined);
+  assert.equal((await e.call('publish',{...body,confirmed:false},reviewToken,true)).status,422);
+  const published=await e.call('publish',body,reviewToken,true);
+  assert.equal(published.status,200);assert.equal(published.body.publishedVersion,version);assert.equal(published.body.publicationRevision,1);
+  assert.equal((await e.call('unpublish',body,reviewToken,true)).status,409);
+  assert.equal((await e.call('publish',body,reviewToken,true)).status,409);
+  const removed=await e.call('unpublish',{...body,publicationRevision:1},reviewToken,true);assert.equal(removed.body.publishedVersion,null);
+  await e.call('publish',{...body,publicationRevision:2},reviewToken,true);
+  await e.call('reopen',{id:d.id,version});
+  assert.equal(e.rows.get(d.id).publication.version,version);
+  assert.equal((await e.call('publish',{...body,publicationRevision:3},reviewToken,true)).status,403);
 });

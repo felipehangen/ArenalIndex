@@ -69,3 +69,6 @@
 .review-detail>summary::-webkit-details-marker{display:none}
 @media(max-width:700px){.optional-section{padding:0 14px}.optional-section>summary{font-size:14px}.tour-cover img{max-height:270px}.tour-section h3{font-size:16px}}
 @media(max-width:380px){.review-photo-grid{grid-template-columns:1fr}.review-photo-grid img{height:190px}}
+
+/* Public editorial fields follow the same rhythm as the review form. */
+.publication-panel{border-top:1px solid var(--line);padding-top:28px}.publication-panel>label{display:block;font-size:13px;font-weight:550;margin:22px 0 8px}.publication-panel>.approval-checks{margin-top:24px}.publication-panel>p{font-size:14px;line-height:1.7}.publication-panel>p.map-note{font-size:12px}.publication-panel .form-grid{margin-top:24px}

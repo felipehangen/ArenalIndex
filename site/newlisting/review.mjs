@@ -42,6 +42,7 @@ function render(){
   $('#review-form').onsubmit=e=>{e.preventDefault();decide('approve');};
   $('#request-changes').onclick=()=>decide('request_changes');
   if(editable)updateChecks();
+  renderPublishing();
 }
 function updateChecks(event){
   if(event?.target.matches('[data-copy-source],#plan-matches'))$('#copy-checked').checked=false;
@@ -61,6 +62,31 @@ async function decide(action){
   }catch(error){$('#review-message').textContent=error.message;}
   finally{busy=false;if(record.status==='ready_for_review'){$('#review-form fieldset').disabled=false;updateChecks();$('#request-changes').disabled=false;}}
 }
+
+function editorial(){return {title:$('#public-title').value,place:$('#public-place').value,description:$('#public-description').value,whatsapp:$('#public-whatsapp').value};}
+function renderPublishing(){
+  if(record.status!=='approved'&&!record.publishedVersion)return;
+  const data=record.editorial||{},node=document.createElement('section');node.className='field-section publication-panel';
+  node.innerHTML='<h2>'+ (record.publishedVersion?'Publicación del anuncio':'Preparar la ficha pública')+'</h2><p>Elegí el título definitivo y revisá la presentación completa antes de publicarla.</p><div class="form-grid"><div class="field"><label for="public-title">Título público · máximo 45 caracteres</label><input id="public-title" maxlength="45" value="'+esc(data.title||record.draft.values.listing_title||'')+'"><p class="map-note">Un rasgo concreto y comprobable. Sin datos personales, dirección exacta, precio, emojis ni mayúsculas sostenidas.</p></div><div class="field"><label for="public-place">Localidad pública</label><input id="public-place" maxlength="100" placeholder="Por ejemplo, El Castillo · La Fortuna" value="'+esc(data.place||'')+'"></div></div><label for="public-description">Introducción del anuncio · opcional</label><textarea id="public-description" maxlength="1200" placeholder="Describí brevemente lo que hace especial a la propiedad.">'+esc(data.description||'')+'</textarea><label for="public-whatsapp">WhatsApp público de consultas · opcional</label><input id="public-whatsapp" type="tel" maxlength="25" placeholder="506…" value="'+esc(data.whatsapp||'')+'"><p class="map-note">Se mostrará como contacto de venta. El contacto privado del vendedor no se copia automáticamente.</p><div class="approval-checks"><label><input id="public-confirm" type="checkbox">Revisé la vista previa y autorizo este título, la ubicación de entrada, el contacto público y las fotos seleccionadas para el anuncio.</label></div><div class="actions"><button type="button" class="secondary" id="public-preview">Ver como comprador</button><button type="button" class="primary" id="public-publish" disabled>'+ (record.publishedVersion?'Actualizar anuncio público':'Publicar en ArenalIndex')+'</button>'+ (record.publishedVersion?'<button type="button" class="secondary" id="public-unpublish">Retirar del catálogo</button>':'')+'</div><p class="map-note">Los documentos adjuntos, la referencia privada y los comentarios internos no se publican. Una nueva edición de la ficha conserva la última versión publicada hasta que se actualice o retire.</p><p id="public-message" role="status"></p>';
+  $('#review-content').append(node);
+  node.oninput=e=>{if(e.target.id!=='public-confirm')$('#public-confirm').checked=false;$('#public-publish').disabled=busy||!$('#public-confirm').checked||record.status!=='approved';};
+  $('#public-preview').disabled=record.status!=='approved';
+  $('#public-preview').onclick=()=>publishAction('preview_publication');$('#public-publish').onclick=()=>publishAction('publish');
+  if($('#public-unpublish'))$('#public-unpublish').onclick=()=>publishAction('unpublish');
+}
+async function publishAction(action){
+  if(busy)return;
+  const preview=action==='preview_publication'?window.open('about:blank','_blank'):null;
+  if(action==='preview_publication'&&!preview){$('#public-message').textContent='Permití abrir la vista previa en una pestaña nueva e intentá de nuevo.';return;}
+  busy=true;document.querySelectorAll('.publication-panel button').forEach(b=>b.disabled=true);
+  try{
+    const result=await request(action,{version:record.version,publicationRevision:record.publicationRevision||0,editorial:editorial(),confirmed:$('#public-confirm').checked});
+    if(preview){preview.sessionStorage.setItem('arenalindex.public-preview',JSON.stringify(result.listing));preview.opener=null;preview.location.replace('/newlisting/preview/');$('#public-message').textContent='Vista previa abierta. Volvé aquí para publicar.';}
+    else {record={...record,...result};render();$('#public-message').textContent=action==='unpublish'?'El anuncio fue retirado del catálogo.':'El anuncio está publicado.';if(result.url){const a=document.createElement('a');a.href=result.url;a.target='_blank';a.rel='noopener';a.textContent=' Abrir anuncio';$('#public-message').append(a);}}
+  }catch(error){preview?.close();$('#public-message').textContent=error.message;}
+  finally{busy=false;document.querySelectorAll('.publication-panel button').forEach(b=>b.disabled=false);if($('#public-publish'))$('#public-publish').disabled=!$('#public-confirm').checked||record.status!=='approved';if($('#public-preview'))$('#public-preview').disabled=record.status!=='approved';}
+}
+
 try{
   if(!id||!/^[a-f0-9]{64}$/.test(token||''))throw Error('Abrí el enlace privado que recibiste en el correo de revisión.');
   record=await request('review');render();

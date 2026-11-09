@@ -8,7 +8,9 @@
   const page = document.createElement('dialog');
   page.className = 'pd-page'; page.hidden = true; page.setAttribute('aria-label', 'Detalle de propiedad');
   root.append(page);
-  const {number, money} = window.ArenalFormat;
+  const {number} = window.ArenalFormat;
+  const content = window.ArenalListing;
+  const money = value => content.price(value,current?.currency||'USD');
   const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const paths = {
     back:'<path d="m14 6-6 6 6 6"/>', next:'<path d="m10 6 6 6-6 6"/>', close:'<path d="m6 6 12 12M6 18 18 6"/>',
@@ -38,24 +40,19 @@
     detailMap?.remove(); detailMap = null;
     current = d;
     const title = d.name;
-    photos = [0,1,2].map((i)=>({src:d.images[i]||d.images[0],label:['Vista general','Terreno y vegetación','Paisaje'][i]}));
-    const reference = 'AI-' + d.id.replace('lot-', '').padStart(3, '0');
-    page.innerHTML = `<div class="pd-bar">${iconButton('back','Cerrar propiedad y volver a los resultados','close')}<div class="pd-brand">arenal <small>INDEX</small></div><div class="pd-bar-actions">${iconButton('share','Compartir propiedad','share')}${iconButton('save','Guardar propiedad','heart')}</div></div>
-      <div class="pd-scroll"><button class="pd-hero" data-action="photos" aria-label="Ver recorrido fotográfico"><div class="pd-photo-grid">${photos.map(p=>`<img src="${escape(p.src)}" alt="${p.label}${current.isDemo?' · imagen ilustrativa IA':''}">`).join('')}</div>${d.isDemo?'<span class="pd-photo-label">Demo · Fotos ilustrativas IA</span>':''}<span class="pd-photo-count">${icon('grid')} Ver fotos</span></button>
-      <div class="pd-content"><main><p class="pd-kicker">Propiedad en venta · ${reference}</p><h1 tabindex="-1">${escape(title)}</h1><p class="pd-location"><a href="#pd-location">${escape(d.place)}, La Fortuna</a> · San Carlos, Costa Rica</p>
-      <div class="pd-facts"><span>${icon('land')}<strong>${number(d.area)} m²</strong> de terreno</span><span>${icon(d.house?'house':'land')}${d.house?'Incluye casa':'Solo terreno'}</span>${d.river&&d.volcano?`<span>${icon('river')}Colinda con río</span>`:''}</div>
-      ${(d.water||d.electricity||d.well||d.privateResidential)?`<section class="pd-section"><h2>Características</h2><ul class="pd-service-list">${d.water?'<li>'+icon('water')+'Disponibilidad de agua</li>':''}${d.electricity?'<li>'+icon('electricity')+'Electricidad</li>':''}${d.well?'<li>'+icon('well')+'Pozo</li>':''}${d.privateResidential?'<li>'+icon('fence')+'En residencial privado</li>':''}</ul></section>`:''}
-      <section class="pd-section pd-information"><h2>Detalles de la propiedad</h2>
-      ${d.house?'<details class="pd-disclosure"><summary><span>La casa<small>Área construida y distribución</small></span><span class="pd-disclosure-status">Por confirmar</span></summary><p>Falta indicar el área construida, las habitaciones, los baños y el estado de la casa.</p></details>':''}
-      <details class="pd-disclosure"><summary><span>Acceso y servicios<small>Entrada y detalles de las conexiones</small></span><span class="pd-disclosure-status">Por confirmar</span></summary><p>Falta detallar el tipo de acceso, el frente a calle y las condiciones de las conexiones. Las características indicadas arriba corresponden al anuncio.</p></details>
-      <details class="pd-disclosure"><summary><span>Documentación<small>Plano catastrado y uso de suelo</small></span><span class="pd-disclosure-status">Por confirmar</span></summary><p>El propietario todavía no ha aportado el plano catastrado, el uso de suelo ni las condiciones de venta.</p></details>
-      <button class="pd-text" data-action="specs">Ver ficha técnica ${icon('next')}</button></section>
-      <section class="pd-section" id="pd-location"><h2>Ubicación</h2><div class="pd-map" aria-label="Mapa de ubicación"></div><p class="pd-muted">${d.isDemo?'Ubicación de demostración':d.approximate?'Ubicación aproximada':'Ubicación indicada en el anuncio'}. El punto no representa los linderos de la propiedad.</p><button class="pd-outline" data-action="map">Ver en el mapa de terrenos</button></section>
-      <div class="pd-contact-note">Contacto del anuncio <span>Por asignar</span></div>
-      ${d.isDemo?'<p class="pd-demo">Anuncio ficticio. Las imágenes son ilustrativas y no documentan esta propiedad.</p>':''}</main>
-      <aside class="pd-aside"><p>Precio de venta</p><strong>${money(d.price)} <small>USD</small></strong><p>${money(d.price/d.area)} USD/m²</p><button class="pd-primary" data-action="contact">Consultar propiedad</button><p>Información y visitas · contacto por asignar</p></aside></div></div>
-      <div class="pd-footer"><div><strong>${money(d.price)} <small>USD</small></strong><span class="pd-unit">${money(d.price/d.area)} USD/m²</span></div><button class="pd-primary" data-action="contact">Consultar propiedad</button></div>`;
+    const tour=content.groups(d),allPhotos=tour.flatMap(group=>group.images);
+    photos=d.images.filter((src,i,array)=>array.indexOf(src)===i).slice(0,5).map(src=>allPhotos.find(p=>p.src===src)||{src,label:d.name});
+    const count=allPhotos.length,hasContact=!!d.details?.contact?.whatsapp;
+    const currency=d.currency||'USD';
+    page.innerHTML = `<div class="pd-bar">${iconButton('back','Cerrar propiedad y volver a los resultados','back')}<a class="pd-brand" href="#" aria-label="Arenal Index">arenal <small>INDEX</small></a><div class="pd-bar-actions">${iconButton('share','Compartir propiedad','share')}${iconButton('save','Guardar propiedad','heart')}</div></div>
+      <div class="pd-scroll"><header class="pd-heading"><p class="pd-kicker">${window.ArenalPreview?'Vista previa privada':d.isDemo?'Un ejemplo de lo que podés encontrar':'Propiedad en venta'}</p><h1 tabindex="-1">${escape(title)}</h1><p class="pd-location"><a href="#pd-location">${icon('pin')}${escape(d.place)} · Costa Rica</a>${d.isDemo?'<span class="pd-sample">Demostración</span>':''}</p></header>
+      <button class="pd-hero" data-action="photos" aria-label="Ver ${count} fotografías" ${!count?'disabled':''}><div class="pd-photo-grid pd-grid-${photos.length}">${photos.map(p=>`<img src="${escape(p.src)}" alt="${escape(p.label)}${current.isDemo?' · imagen ilustrativa IA':''}">`).join('')}</div>${d.isDemo?'<span class="pd-photo-label">Fotos ilustrativas</span>':''}<span class="pd-photo-count">${icon('grid')} ${count?'Ver las '+count+' fotos':'Fotos por incorporar'}</span></button>
+      <div class="pd-content"><main>${content.content(d)}
+      <section class="pd-section" id="pd-location"><h2>La ubicación</h2><p>${escape(d.place)} · Costa Rica</p><div class="pd-map" aria-label="Mapa de ubicación"></div><p class="pd-muted">${d.isDemo?'Ubicación de demostración':d.details?.entrance?'El pin señala la entrada de la propiedad':d.approximate?'Ubicación aproximada':'Ubicación indicada en el anuncio'}. El punto no representa los linderos.</p><button class="pd-outline" data-action="map">Explorar esta zona en el mapa</button></section>
+      </main><aside class="pd-aside"><p class="pd-price-label">Precio de venta</p><strong>${money(d.price)} <small>${currency}</small></strong><p>${money(d.price/d.area)} ${currency}/m² · ${d.details?'área del plano':'área indicada'}</p><div class="pd-price-rule"></div><p>¿Te imaginás aquí?<br>Consultá los detalles y coordiná una visita.</p><button class="pd-primary" data-action="contact">${hasContact?'Consultar por WhatsApp':'Preparar una consulta'} ${icon('next')}</button><small class="pd-contact-caption">${hasContact?'Con el contacto autorizado del anuncio':'El contacto de venta está por asignar'}</small></aside></div></div>
+      <div class="pd-footer"><div><strong>${money(d.price)} <small>${currency}</small></strong><span class="pd-unit">${money(d.price/d.area)} ${currency}/m²</span></div><button class="pd-primary" data-action="contact">${hasContact?'Consultar':'Preparar consulta'}</button></div>`;
     syncSave();
+    page.querySelector('.pd-brand').onclick=e=>{e.preventDefault();back();};
     page.querySelector('.pd-location a').onclick = e => { e.preventDefault(); page.querySelector('#pd-location').scrollIntoView({block:'start',behavior:'smooth'}); };
     const mapNode = page.querySelector('.pd-map');
     mapNode.innerHTML='<span style="display:block;padding:20px;font-size:12px">Mapa de ubicación</span>';
@@ -93,33 +90,34 @@
   }
   async function copy(text,status,field) {try{await navigator.clipboard.writeText(text);status.textContent='Copiado. Podés pegarlo donde prefirás.';}catch{field.focus();field.select();status.textContent='Seleccioná y copiá el texto con el teclado.';}}
   function contact() {
-    const node=dialog('Consultá sobre la propiedad',`<div class="pd-dialog-body"><p><strong>${escape(current.name)}</strong><br>${money(current.price)} USD · ${number(current.area)} m²</p><p>${current.isDemo?'Este anuncio es de demostración y todavía no tiene un contacto asignado.':'Este anuncio todavía no tiene un contacto asignado.'} Podés preparar tu consulta; no se enviará ningún mensaje.</p><label for="pd-message">Tu consulta</label><textarea id="pd-message" rows="5">${escape('Hola, me interesa '+current.name+' ('+money(current.price)+' USD). ¿Sigue disponible? Me gustaría recibir más información y coordinar una visita.')}</textarea><button class="pd-primary" id="pd-copy-message">Copiar consulta</button><p class="pd-dialog-status" role="status"></p></div>`);
+    if(current.details?.contact?.whatsapp){
+      const url=new URL('https://wa.me/'+current.details.contact.whatsapp);
+      url.searchParams.set('text','Hola, me interesa '+current.name+' ('+money(current.price)+' '+(current.currency||'USD')+'). '+location.href);
+      window.open(url.href,'_blank','noopener,noreferrer');return;
+    }
+    const node=dialog('Consultá sobre la propiedad',`<div class="pd-dialog-body"><p><strong>${escape(current.name)}</strong><br>${money(current.price)} ${current.currency||'USD'} · ${number(current.area)} m²</p><p>${current.isDemo?'Este anuncio es de demostración y todavía no tiene un contacto asignado.':'Este anuncio todavía no tiene un contacto asignado.'} Podés preparar tu consulta; no se enviará ningún mensaje.</p><label for="pd-message">Tu consulta</label><textarea id="pd-message" rows="5">${escape('Hola, me interesa '+current.name+' ('+money(current.price)+' '+(current.currency||'USD')+'). ¿Sigue disponible? Me gustaría recibir más información y coordinar una visita.')}</textarea><button class="pd-primary" id="pd-copy-message">Copiar consulta</button><p class="pd-dialog-status" role="status"></p></div>`);
     node.querySelector('#pd-copy-message').onclick=()=>copy(node.querySelector('textarea').value,node.querySelector('[role="status"]'),node.querySelector('textarea'));
   }
   function share(){const node=dialog('Compartir propiedad',`<div class="pd-dialog-body"><p>${escape(current.name)}</p><p>Compartí este enlace para abrir la propiedad en Arenal Index.</p><label for="pd-url">Enlace de la propiedad</label><input id="pd-url" readonly value="${escape(location.href)}"><button class="pd-primary">Copiar enlace</button><p class="pd-dialog-status" role="status"></p></div>`);node.querySelector('.pd-primary').onclick=()=>copy(location.href,node.querySelector('[role="status"]'),node.querySelector('input'));}
   function gallery() {
-    // Reuse the illustrative assets to preview sections containing multiple photos.
-    const groups = current.isDemo ? [
-      {label:photos[0].label, images:[photos[0],photos[1],photos[2]]},
-      {label:photos[1].label, images:[photos[1],photos[0]]},
-      {label:photos[2].label, images:[photos[2],photos[1]]}
-    ] : [{label:'Fotografías de la propiedad',images:current.images.map((src,i)=>({src,label:'Foto '+(i+1)}))}];
+    const groups = content.groups(current);
+    if(!groups.length)return;
     let offset=0;
     groups.forEach(group=>{group.start=offset;offset+=group.images.length;});
-    const tourPhotos=groups.flatMap(group=>group.images.map((photo,i)=>({...photo,caption:group.label+' · Foto '+(i+1)+' de '+group.images.length})));
+    const tourPhotos=groups.flatMap(group=>group.images.map((photo,i)=>({...photo,caption:photo.caption||group.label+' · Foto '+(i+1)+' de '+group.images.length})));
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const node = dialog('Recorrido fotográfico', `
       <div class="pd-tour-overview">
-        <nav class="pd-tour-nav" aria-label="Bloques de fotos">${groups.map((p,i)=>`<button class="pd-tour-link" data-block="${i}" aria-controls="pd-photo-block-${i}" ${i===0?'aria-current="true"':''}><img src="${escape(p.images[0].src)}" alt=""><span>${p.label}<small>${p.images.length} fotos</small></span></button>`).join('')}</nav>
+        <nav class="pd-tour-nav" aria-label="Bloques de fotos">${groups.map((p,i)=>`<button class="pd-tour-link" data-block="${i}" aria-controls="pd-photo-block-${i}" ${i===0?'aria-current="true"':''}><img src="${escape(p.images[0].src)}" alt=""><span>${escape(p.label)}<small>${p.images.length} fotos</small></span></button>`).join('')}</nav>
         <div class="pd-tour-scroll" tabindex="0" aria-label="Recorrido por las fotos">
-          <p class="pd-tour-note">${tourPhotos.length} fotos${current.isDemo?' de muestra · imágenes IA reutilizadas':''}</p>
-          ${groups.map((group,i)=>`<section class="pd-tour-block" id="pd-photo-block-${i}" aria-labelledby="pd-photo-title-${i}"><div class="pd-tour-heading"><h3 id="pd-photo-title-${i}">${group.label}</h3><span>${group.images.length} fotos</span></div><div class="pd-tour-grid ${group.images.length%2?'has-lead':''}">${group.images.map((p,j)=>`<button class="pd-tour-photo" data-photo="${group.start+j}" aria-label="Ampliar: ${group.label}, foto ${j+1}"><img src="${escape(p.src)}" alt="${p.label}${current.isDemo?' · imagen ilustrativa IA':''}" loading="lazy"><span>${icon('grid')}<span class="pd-enlarge-label"> Ampliar</span></span></button>`).join('')}</div></section>`).join('')}
+          <p class="pd-tour-note">${tourPhotos.length} fotos${current.isDemo?' de muestra · imágenes ilustrativas IA':''}</p>
+          ${groups.map((group,i)=>`<section class="pd-tour-block" id="pd-photo-block-${i}" aria-labelledby="pd-photo-title-${i}"><div class="pd-tour-heading"><h3 id="pd-photo-title-${i}">${escape(group.label)}</h3><span>${group.images.length} fotos</span></div><div class="pd-tour-grid ${group.images.length%2?'has-lead':''}">${group.images.map((p,j)=>`<button class="pd-tour-photo" data-photo="${group.start+j}" aria-label="Ampliar: ${escape(group.label)}, foto ${j+1}"><img src="${escape(p.src)}" alt="${escape(p.label)}${current.isDemo?' · imagen ilustrativa IA':''}" loading="lazy"><span>${icon('grid')}<span class="pd-enlarge-label"> Ampliar</span></span></button>`).join('')}</div></section>`).join('')}
           <p class="pd-tour-end">Fin del recorrido</p>
         </div>
       </div>
       <div class="pd-photo-view" hidden>
         <div class="pd-photo-toolbar"><button class="pd-tour-return">${icon('back')} Volver al recorrido</button><span class="pd-photo-position" role="status" aria-live="polite"></span></div>
-        <div class="pd-photo-track" tabindex="0" aria-label="Fotos ampliadas. Deslizá o usá las flechas">${tourPhotos.map(p=>`<div class="pd-photo-slide"><img src="${escape(p.src)}" alt="${p.label}${current.isDemo?' · imagen ilustrativa IA':''}" draggable="false"></div>`).join('')}</div>
+        <div class="pd-photo-track" tabindex="0" aria-label="Fotos ampliadas. Deslizá o usá las flechas">${tourPhotos.map(p=>`<div class="pd-photo-slide"><img src="${escape(p.src)}" alt="${escape(p.label)}${current.isDemo?' · imagen ilustrativa IA':''}" draggable="false"></div>`).join('')}</div>
         <div class="pd-photo-controls">${iconButton('previous','Foto anterior','back')}<span class="pd-photo-caption"></span>${iconButton('next','Foto siguiente','next')}</div>
       </div>`, 'pd-tour');
     const overview=node.querySelector('.pd-tour-overview'), scroller=node.querySelector('.pd-tour-scroll');
@@ -144,13 +142,13 @@
     const resize=new ResizeObserver(()=>{if(!viewer.hidden)track.scrollTo({left:photoIndex*track.clientWidth,behavior:'instant'});});resize.observe(track);
     node.addEventListener('close',()=>{resize.disconnect();cancelAnimationFrame(scrollFrame);},{once:true});
   }
-  function specs(){const d=current;dialog('Ficha de la propiedad',`<div class="pd-dialog-body"><dl class="pd-attributes">${attr('Referencia',escape(d.name))}${attr('Precio de venta',money(d.price)+' USD')}${attr('Área del terreno',number(d.area)+' m²')}${attr('Precio por m²',money(d.price/d.area)+' USD')}${attr('Tipo',d.house?'Terreno con casa':'Solo terreno')}${attr('Ubicación',escape(d.place))}${attr('Vista al volcán',d.volcano?'Indicada en el anuncio':'No indicada')}${attr('Colinda con río',d.river?'Indicado en el anuncio':'No indicado')}${attr('Frente / fondo','Por confirmar')}${attr('Topografía','Por confirmar')}${attr('Disponibilidad de agua',d.water?'Indicada':'No indicada')}${attr('Electricidad',d.electricity?'Indicada':'No indicada')}${attr('Pozo',d.well?'Indicado':'No indicado')}${attr('Residencial privado',d.privateResidential?'Indicado':'No indicado')}${attr('Acceso','Por confirmar')}${attr('Plano / uso de suelo','Por confirmar')}</dl><p style="margin-top:18px">${d.isDemo?'Datos de demostración. ':''}La información pendiente se completará con el propietario.</p></div>`);}
-  page.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(!action)return;if(action==='back')back();if(action==='photos')gallery();if(action==='contact')contact();if(action==='share')share();if(action==='specs')specs();if(action==='save'){app.toggleSaved(current.id);syncSave();}if(action==='map'){pendingMap=current.id;back();}});
+  function specs(){dialog('Ficha de la propiedad',`<div class="pd-dialog-body">${content.content(current)}</div>`);}
+  page.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(!action)return;if(action==='back')back();if(action==='photos')gallery();if(action==='contact')contact();if(action==='share')share();if(action==='specs')specs();if(action==='save'){app.toggleSaved(current.id);syncSave();}if(action==='map'){if(window.ArenalPreview)app.focusProperty(current.id);else{pendingMap=current.id;back();}}});
   page.addEventListener('keydown',e=>{if(e.key==='Escape'&&!openDialog){e.preventDefault();back();}});
   // Preserve horizontal card swipes; a deliberate photo tap opens the listing.
   const list=document.getElementById('index-list');let pointer=null;
-  list.addEventListener('pointerdown',e=>{pointer={x:e.clientX,y:e.clientY,scroll:e.target.closest('.gallery-track')?.scrollLeft};},{capture:true,passive:true});
-  list.addEventListener('click',e=>{const link=e.target.closest('.listing-title-link,.listing-total');if(link){if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();open(link.closest('[data-id]').dataset.id);return;}const track=e.target.closest('.gallery-track');if(track&&e.target.tagName==='IMG'&&pointer&&Math.abs(e.clientX-pointer.x)<8&&Math.abs(e.clientY-pointer.y)<8&&Math.abs(track.scrollLeft-pointer.scroll)<8){open(track.closest('[data-id]').dataset.id);}});
+  list?.addEventListener('pointerdown',e=>{pointer={x:e.clientX,y:e.clientY,scroll:e.target.closest('.gallery-track')?.scrollLeft};},{capture:true,passive:true});
+  list?.addEventListener('click',e=>{const link=e.target.closest('.listing-title-link,.listing-total');if(link){if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();open(link.closest('[data-id]').dataset.id);return;}const track=e.target.closest('.gallery-track');if(track&&e.target.tagName==='IMG'&&pointer&&Math.abs(e.clientX-pointer.x)<8&&Math.abs(e.clientY-pointer.y)<8&&Math.abs(track.scrollLeft-pointer.scroll)<8){open(track.closest('[data-id]').dataset.id);}});
   window.addEventListener('popstate',route);window.addEventListener('hashchange',route);
   window.arenalDetail={open};route();
 })();

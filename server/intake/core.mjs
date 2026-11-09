@@ -1,7 +1,8 @@
 import {validateDraft,pending,buyerCopy,knownConcerns,validSignature,reference,normalizeReview} from '../../site/newlisting/model.mjs';
+import {createPublication} from './publication.mjs';
 export const digest=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),b=>b.toString(16).padStart(2,'0')).join('');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
-const summary=row=>({status:row.status,version:row.version,feedback:row.feedback||'',notificationSent:row.notification_sent===true});
+const summary=row=>({status:row.status,version:row.version,feedback:row.feedback||'',notificationSent:row.notification_sent===true,publishedVersion:row.publication?.version||null,publicationRevision:row.publication_revision||0});
 export function createHandler({repository,mailer,config,now=()=>new Date()}){
   const origins=new Set(config.origins||['https://arenalindex.com','https://www.arenalindex.com']);
   return async request=>{
@@ -16,7 +17,7 @@ export function createHandler({repository,mailer,config,now=()=>new Date()}){
       const raw=await request.text();if(raw.length>250000)fail(413,'La ficha es demasiado grande.');
       const body=JSON.parse(raw),action=body.action;
       if(action==='health')return respond({ready:!!config.emailReady&&await repository.health()});
-      const reviewAction=['review','approve','request_changes'].includes(action);
+      const reviewAction=['review','approve','request_changes','publish','unpublish','preview_publication'].includes(action);
       const token=request.headers.get(reviewAction?'X-Review-Token':'X-Intake-Token')||'';
       if(!/^[a-f0-9]{64}$/.test(token))fail(401,'El enlace o la autorización no son válidos.');
       const tokenHash=await digest(token);
@@ -78,7 +79,28 @@ export function createHandler({repository,mailer,config,now=()=>new Date()}){
       }
       if(action==='review'){
         const files=await Promise.all(row.payload.files.map(async file=>({...file,url:await repository.downloadURL(id+'/'+row.version+'/'+file.id)})));
-        return respond({...summary(row),id,draft:{...row.payload,files},review:row.review,copy:buyerCopy(row.payload,row.review),concerns:knownConcerns(row.payload,row.review)});
+        return respond({...summary(row),id,draft:{...row.payload,files},review:row.review,editorial:row.editorial||{},copy:buyerCopy(row.payload,row.review),concerns:knownConcerns(row.payload,row.review)});
+      }
+      if(['publish','unpublish','preview_publication'].includes(action)){
+        if(body.version!==row.version)fail(409,'La versión cambió. Recargá la revisión.');
+        if(action!=='preview_publication'&&body.publicationRevision!==(row.publication_revision||0))fail(409,'La publicación cambió. Recargá la revisión.');
+        let publication=null;
+        if(action!=='unpublish'){
+          if(action==='publish'&&body.confirmed!==true)fail(422,'Confirmá los datos públicos y las fotografías antes de publicar.');
+          try{publication=createPublication(row,body.editorial||{},{apiURL:config.publicAPIURL,date:now().toISOString()});}catch(error){fail(422,error.message);}
+          if(action==='preview_publication'){
+            const images=new Map();
+            for(const group of publication.listing.details.photoGroups)for(const photo of group.photos){const url=await repository.downloadURL(publication.media[photo.id].path);images.set(photo.src,url);photo.src=url;}
+            publication.listing.images=publication.listing.images.map(src=>images.get(src));
+            return respond({listing:publication.listing});
+          }
+          // The discovery entry is harmless until the atomic record update succeeds.
+          await repository.ensurePublishedIndex(id);
+        }
+        const editorial=publication?{title:publication.listing.name,place:publication.listing.place,description:publication.listing.description,whatsapp:publication.listing.details.contact?.whatsapp||''}:row.editorial||{};
+        const updated=await repository.update(id,{version:row.version,status:row.status,review_token_hash:tokenHash,publication_revision:row.publication_revision},{publication,editorial,publication_revision:(row.publication_revision||0)+1});
+        if(!updated)fail(409,'La ficha cambió. Recargá la revisión antes de publicar.');
+        return respond({...summary(updated),editorial,url:publication?config.siteURL+'/#propiedad/'+publication.listing.id:null});
       }
       if(['approve','request_changes'].includes(action)){
         if(body.version!==row.version||row.status!=='ready_for_review')fail(409,'Esta versión ya cambió o fue revisada. Abrí la ficha actual.');

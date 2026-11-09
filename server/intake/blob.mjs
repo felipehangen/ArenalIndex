@@ -28,6 +28,25 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
     return (await sdk.presignUrl(delegation,{access:'private',pathname:path,operation,validUntil,...constraints,...(file?{allowOverwrite:false,addRandomSuffix:false}:{useCache:false})})).presignedUrl;
   }
   return {
+    async ensurePublishedIndex(id){
+      const path='published/'+id+'.json';
+      if(await read(path))return;
+      await write(path,{id});
+    },
+    async published(){
+      const ids=[];let cursor;
+      do{
+        const page=await sdk.list({...auth,prefix:'published/',limit:1000,...(cursor?{cursor}:{})});
+        for(const item of page.blobs){const id=item.pathname.match(/^published\/([a-zA-Z0-9-]{8,80})\.json$/)?.[1];if(id)ids.push(id);}
+        cursor=page.hasMore?page.cursor:null;
+      }while(cursor);
+      const listings=[];
+      for(let offset=0;offset<ids.length;offset+=12){
+        const batch=await Promise.all(ids.slice(offset,offset+12).map(async id=>(await read('records/'+id+'.json'))?.row.publication?.listing));
+        listings.push(...batch.filter(Boolean));
+      }
+      return listings;
+    },
     async health(){try{await read('health.json');return true;}catch{return false;}},
     async get(id){return (await read('records/'+id+'.json'))?.row||null;},
     async create(row){return write('records/'+row.id+'.json',row);},

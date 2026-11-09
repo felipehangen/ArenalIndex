@@ -47,7 +47,7 @@ Los límites de precio/área y las localidades se ajustan a los datos publicados
 
 Las migraciones en `supabase/migrations/` crean la tabla y cargan los **100 anuncios ficticios del prototipo**, con `is_demo = true`. Se aplicaron en SmallPages el 29 de octubre de 2026. La primera migración se ejecuta una sola vez; la segunda no reemplaza filas existentes. `demo-properties.json` documenta el inventario inicial y no se sirve como catálogo alternativo.
 
-Las fotos actuales son ilustraciones. El formulario de consulta permite preparar y copiar un mensaje; todavía no hay contacto de corredor ni envío de consultas. El catálogo no tiene un panel administrador; el flujo privado de captación se describe abajo. Para empezar a operar con anuncios reales, registrar los datos y fotos verificados y asignar el canal de contacto.
+Las fotos actuales son ilustraciones. El formulario de consulta permite preparar y copiar un mensaje; todavía no hay contacto de corredor ni envío de consultas. Las fichas del catálogo antiguo se administran en Supabase. Los nuevos anuncios se preparan y publican desde su revisión privada, como se describe abajo. Para empezar a operar con anuncios reales, registrar los datos y fotos verificados y asignar el canal de contacto.
 
 ## Captación y revisión de propiedades
 
@@ -67,11 +67,13 @@ El correo abre `/newlisting/review/` con un enlace privado que vence en siete d�
 
 La revisión incluye una lista opcional de condiciones de acceso, agua, terreno, instalaciones y construcciones. Distingue lo reportado de lo observado por ArenalIndex, conserva las observaciones al solicitar cambios e incorpora los hallazgos al texto del comprador. «Sin revisar» y «No se reporta» no se presentan como ausencia verificada. No se exige una visita profesional. Cambiar los datos que alimentan el texto obliga a confirmar nuevamente su revisión.
 
-**Aprobar registra la autorización para preparar la publicación; no inserta automáticamente un anuncio en el catálogo.** El catálogo actual usa USD; cualquier ficha en CRC requiere tratar la moneda correctamente antes de cargarla allí. La revisión editorial no es un servicio de verificación profesional.
+**Aprobar autoriza una versión; publicar sigue siendo una acción separada.** Una vez aprobada, el revisor elige el título público definitivo (hasta 45 caracteres), la localidad, una introducción opcional y, si corresponde, un WhatsApp público explícito. «Ver como comprador» abre la misma ficha que verá el visitante, con enlaces privados temporales a las fotos. Después de confirmar la presentación, «Publicar en ArenalIndex» incorpora el anuncio. También puede actualizarlo o retirarlo desde esa revisión. Los enlaces de revisión mantienen su vencimiento de siete días; un enlace vencido no permite publicar ni retirar.
+
+La ficha pública incluye área documentada, área declarada cuando difiere, llegada y acceso, servicios y sus fuentes, residencial/condominio, cada construcción, condiciones conocidas y un recorrido de fotos por tema y construcción. Los importes se muestran en USD o CRC sin conversión implícita. Cuando hay ambas monedas, se ven ambos tipos de anuncio; los filtros de precio requieren elegir una moneda. Los filtros y las tarjetas conservan su tamaño compacto. La revisión editorial no es un servicio de verificación profesional.
 
 ### Servicio en Vercel
 
-Proyecto `arenalindex-intake`, endpoint `https://arenalindex-intake.vercel.app/api/intake`. GitHub Pages sigue sirviendo el sitio público y Supabase sigue sirviendo su catálogo. La recepción de fichas usa Vercel Blob privado (`arenalindex-intake-private`) y Resend; no requiere credenciales administrativas de Supabase.
+Proyecto `arenalindex-intake`, endpoint `https://arenalindex-intake.vercel.app/api/intake`. GitHub Pages sigue sirviendo el sitio público y Supabase conserva el catálogo anterior. Los anuncios nuevos publicados se leen desde `GET /api/listings` en este mismo servicio. La recepción de fichas usa Vercel Blob privado (`arenalindex-intake-private`) y Resend; no requiere credenciales administrativas de Supabase.
 
 Variables de Production y Preview:
 
@@ -101,3 +103,16 @@ El historial no se reescribe. Para volver a la publicación anterior, selecciona
 `npm test` comprueba la adaptación de datos, valores inválidos, fotos faltantes, paginación, catálogo vacío y fallos de red. `npm run build` valida sintaxis y rechaza configuración con claves secretas. Se comprueba además la carga del catálogo real y la política de solo lectura.
 
 Mapa: MapLibre GL JS y OpenStreetMap, con atribución visible. Librerías externas fijadas a sus versiones actuales del prototipo; las teselas requieren conexión a internet.
+
+
+## Publicación y presentación del anuncio
+
+`server/intake/publication.mjs` construye una proyección explícita de una versión aprobada. Excluye el contacto privado, referencia privada, números y archivos documentales, tokens y comentarios internos. Las condiciones reportadas u observadas, revisadas para compradores, sí se incluyen. Las fotos deben pertenecer a los grupos públicos activos; se conserva la portada, el tema, la construcción y el pie desde suelo/dron.
+
+Los expedientes y sus fotos continúan en Blob privado. `publication` en el expediente es la versión pública vigente. El índice privado `published/` solo descubre expedientes candidatos: la API vuelve a leer el expediente y devuelve exclusivamente su proyección pública vigente. Se escribe ese índice antes de cambiar atómicamente el expediente, evitando publicar un expediente si su versión, estado, autorización o revisión de publicación cambió. Reabrir un borrador conserva la última publicación hasta una actualización o retiro explícito.
+
+Las fotos públicas pasan por `/api/listings?id=…&photo=…&version=…`, que comprueba que la foto pertenece a la publicación vigente y redirige a una URL firmada de diez minutos para esa foto solamente. Esto evita enviar archivos de hasta 12 MB a través de la respuesta de una función. Retirar el anuncio impide emitir nuevos enlaces; uno emitido anteriormente puede funcionar hasta vencer. Los documentos y las fotos internas nunca se incluyen en esta ruta.
+
+No hacen falta nuevas variables ni una migración de Supabase. Publicar primero el servicio Vercel y comprobar `GET /api/listings`, después publicar la web. El catálogo combina la fuente anterior con las nuevas publicaciones; si una fuente falla, muestra un error recuperable en lugar de ocultar silenciosamente anuncios reales.
+
+Para inspeccionar la presentación con datos ficticios completos, ejecutar `node scripts/preview-listing.mjs` y abrir la URL local que imprime. El servidor escucha únicamente en `127.0.0.1:8767`; los ejemplos USD/CRC viven en memoria y no se envían al servicio ni al catálogo. El archivo `tests/publication-fixture.mjs` no forma parte del sitio publicado. Las imágenes de demostración existentes se reutilizan y se identifican como ilustrativas.

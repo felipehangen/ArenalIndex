@@ -5,6 +5,7 @@ import {createRepository} from '../server/intake/blob.mjs';
 function setup(){
   const rows=new Map(),calls=[];let sequence=0;
   const sdk={
+    async list({prefix}){return {blobs:[...rows.keys()].filter(path=>path.startsWith(prefix)).map(path=>({pathname:path})),hasMore:false};},
     async get(path,options){
       assert.equal(options.access,'private');assert.equal(options.useCache,false);
       const data=rows.get(path);if(!data)return null;
@@ -56,4 +57,14 @@ test('file inspection checks actual MIME and size and reads only the needed sign
   const result=await repository.inspectFile('a/1/b',{size:17,type:'application/pdf'});assert.equal(result,null);
   const valid=await repository.inspectFile('a/1/b',{size:16,type:'application/pdf'});assert.equal(new TextDecoder().decode(valid.bytes),'%PDF-1.4 example');
   assert.equal(await repository.inspectFile('a/1/b',{size:16,type:'image/png'}),null);
+});
+test('the discovery index exposes only committed public snapshots and withdrawal is immediately reflected',async()=>{
+  const {repository}=setup();
+  await repository.create({id:'listing-private',status:'approved',version:1,payload:{private:'secret'}});
+  await repository.ensurePublishedIndex('listing-private');
+  assert.deepEqual(await repository.published(),[]);
+  await repository.update('listing-private',{version:1},{publication:{listing:{id:'public-1',name:'Approved title'}}});
+  assert.deepEqual(await repository.published(),[{id:'public-1',name:'Approved title'}]);
+  await repository.update('listing-private',{version:1},{publication:null});
+  assert.deepEqual(await repository.published(),[]);
 });
