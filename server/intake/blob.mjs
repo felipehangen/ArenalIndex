@@ -7,8 +7,11 @@ const conflict=error=>error instanceof blob.BlobPreconditionFailedError||/alread
 export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
   const auth={...(storeId?{storeId}:{}),...(token?{token}:{})};
   const options=()=>({...auth,access:'private',abortSignal:AbortSignal.timeout(20000)});
+  // Compression weakens ETags and removes the original Content-Length. Both are
+  // required for conditional writes and for checking the actual uploaded size.
+  const readOptions=()=>({...options(),useCache:false,headers:{'Accept-Encoding':'identity'}});
   async function read(path){
-    const result=await sdk.get(path,{...options(),useCache:false});
+    const result=await sdk.get(path,readOptions());
     if(!result)return null;
     return {row:await new Response(result.stream).json(),etag:result.blob.etag};
   }
@@ -45,7 +48,7 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
     uploadURL(path,file){return signed('files/'+path,'put',file);},
     downloadURL(path){return signed('files/'+path,'get');},
     async inspectFile(path,file){
-      const result=await sdk.get('files/'+path,{...options(),useCache:false});
+      const result=await sdk.get('files/'+path,readOptions());
       if(!result)return null;
       if(result.blob.size!==file.size||result.blob.contentType.split(';')[0]!==file.type){await result.stream.cancel();return null;}
       const reader=result.stream.getReader(),bytes=new Uint8Array(32);let length=0;

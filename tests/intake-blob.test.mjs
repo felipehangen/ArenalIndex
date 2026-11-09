@@ -8,7 +8,8 @@ function setup(){
     async get(path,options){
       assert.equal(options.access,'private');assert.equal(options.useCache,false);
       const data=rows.get(path);if(!data)return null;
-      return {stream:new Blob([data.text]).stream(),blob:{etag:data.etag,size:Buffer.byteLength(data.text),contentType:data.type}};
+      const compressed=data.text.length>1024&&options.headers?.['Accept-Encoding']!=='identity';
+      return {stream:new Blob([data.text]).stream(),blob:{etag:compressed?'W/'+data.etag:data.etag,size:compressed?0:Buffer.byteLength(data.text),contentType:data.type}};
     },
     async put(path,text,options){
       assert.equal(options.access,'private');assert.equal(options.addRandomSuffix,false);
@@ -33,6 +34,16 @@ test('parallel rate-limit requests cannot exceed the limit',async()=>{
   const {repository,rows}=setup();
   const results=await Promise.all(Array.from({length:5},()=>repository.allow('private-token-value',2)));
   assert.equal(results.filter(Boolean).length,2);assert.ok([...rows.keys()].every(k=>!k.includes('private-token-value')));
+});
+test('compressible records retain strong validators and files retain their original size',async()=>{
+  const {repository,rows}=setup();
+  await repository.create({id:'large-record',version:0,status:'draft',notes:'seller information '.repeat(200)});
+  const updated=await repository.update('large-record',{version:0,status:'draft'},{version:1});
+  assert.equal(updated?.version,1);
+  const text='%PDF-1.4 '+'.'.repeat(4096);
+  rows.set('files/large-record/1/plan',{text,etag:'document',type:'application/pdf'});
+  const file=await repository.inspectFile('large-record/1/plan',{size:Buffer.byteLength(text),type:'application/pdf'});
+  assert.equal(file?.size,Buffer.byteLength(text));assert.equal(file.bytes.length,32);
 });
 test('upload capabilities are private, immutable and restricted to one path, content type and size',async()=>{
   const {repository,calls}=setup();await repository.uploadURL('submission-1/1/file-1',{size:1200,type:'image/png'});
