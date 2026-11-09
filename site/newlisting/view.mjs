@@ -3,13 +3,16 @@ import {visible,photoTour,photoCaption,areaDifference} from './model.mjs';
 export const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function renderField(f,values={},prefix=''){
   const e=escapeHTML,value=values[f.id]??'',id='field-'+prefix+f.id;
-  const attrs=' id="'+e(id)+'" data-key="'+f.id+'"'+(prefix?' data-building="'+e(prefix.slice(0,-1))+'"':'')+(f.required?' aria-required="true"':'');
-  if(f.type==='checkbox')return '<div class="field wide checkbox-field"><label><input type="checkbox"'+attrs+(value?' checked':'')+'>'+e(f.label)+'</label></div>';
+  // These requirements are checked together by pending(), outside field validation.
+  const required=f.required||['lat','lng','exact','authorization','location_consent','photo_permission'].includes(f.id)||(!!prefix&&f.id==='kind');
+  const requirement=required?' <span class="required-label">Necesario</span>':['phone','email'].includes(f.id)?' <span class="required-label">Uno de los dos</span>':f.optional?' <span class="optional">Opcional</span>':'';
+  const attrs=' id="'+e(id)+'" data-key="'+f.id+'"'+(prefix?' data-building="'+e(prefix.slice(0,-1))+'"':'')+(required?' aria-required="true"':'');
+  if(f.type==='checkbox')return '<div class="field wide checkbox-field"><label><input type="checkbox"'+attrs+(value?' checked':'')+'><span>'+e(f.label)+requirement+'</span></label></div>';
   let control;
   if(f.options)control='<select'+attrs+'>'+f.options.filter(([v])=>!f.known||v!=='unknown'||value==='unknown').map(([v,l])=>'<option value="'+e(v)+'"'+(v===value?' selected':'')+'>'+e(l)+'</option>').join('')+'</select>';
   else if(f.type==='textarea')control='<textarea'+attrs+' maxlength="'+f.maxLength+'" placeholder="Opcional">'+e(value)+'</textarea>';
   else control='<input'+attrs+' type="'+f.type+'" value="'+e(value)+'"'+(f.maxLength?' maxlength="'+f.maxLength+'"':'')+(f.type==='number'?' min="'+f.min+'" max="'+f.max+'" step="'+f.step+'" inputmode="decimal"':'')+' placeholder="'+e(f.placeholder||'')+'">';
-  return '<div class="field'+(f.wide?' wide':'')+'" data-visible="'+f.id+'"'+(!visible(f,values)?' hidden':'')+'><label for="'+e(id)+'">'+e(f.label)+(f.required?' <span class="required-label">Necesario</span>':f.optional?' <span class="optional">Opcional</span>':'')+'</label>'+control+(f.help?'<small>'+e(f.help)+'</small>':'')+'</div>';
+  return '<div class="field'+(f.wide?' wide':'')+'" data-visible="'+f.id+'"'+(!visible(f,values)?' hidden':'')+'><label for="'+e(id)+'">'+e(f.label)+requirement+'</label>'+control+(f.help?'<small>'+e(f.help)+'</small>':'')+'</div>';
 }
 export function areaNotice(values){
   const difference=areaDifference(values),format=value=>new Intl.NumberFormat('es-CR',{maximumFractionDigits:2}).format(value);
