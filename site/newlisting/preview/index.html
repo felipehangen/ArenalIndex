@@ -4,14 +4,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.css">
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
 <link rel="stylesheet" href="/property-detail.css?v=7-public-listing"><link rel="stylesheet" href="/ui-theme.css?v=10-scroll-hit-area"><link rel="stylesheet" href="/public-listing.css?v=1"><style>body{margin:0;font-family:Manrope,system-ui,sans-serif;background:#f7f8f4}*{box-sizing:border-box}[hidden]{display:none!important}button{font-family:inherit}svg{width:20px;height:20px}#index-home{padding:30px}dialog::backdrop{background:#243a2920}</style>
-<script src="/ui-format.js?v=2"></script><script src="/catalog.js?v=2"></script><script src="/property-content.js?v=1"></script><script src="/panel-motion.js"></script></head>
-<body><div id="arenal-index-dos"><div id="index-home"><p>Vista previa privada. Volvé a la revisión para publicar.</p><button onclick="window.close()">Cerrar vista previa</button></div></div>
-<script>
-try{
- const raw=JSON.parse(sessionStorage.getItem('arenalindex.public-preview')||'null');
- if(!raw)throw Error('Abrí esta vista desde la revisión del anuncio.');
- window.ArenalPreview=true;const item=ArenalData.normalize(raw),saved=[];
- window.arenalDemo={items:[item],state:{saved},toggleSaved(id){const index=saved.indexOf(id);if(index<0)saved.push(id);else saved.splice(index,1);},focusProperty(){window.open('https://www.openstreetmap.org/?mlat='+item.coordinates[1]+'&mlon='+item.coordinates[0]+'#map=15/'+item.coordinates[1]+'/'+item.coordinates[0],'_blank','noopener,noreferrer');}};
- history.replaceState(null,'','#propiedad/'+item.id);window.arenalReady=Promise.resolve();
-}catch(error){document.querySelector('#index-home p').textContent=error.message;window.arenalReady=Promise.resolve();}
-</script><script src="/property-detail.js?v=9-public-listing"></script></body></html>
+<script src="/ui-format.js?v=2"></script><script src="/catalog.js?v=2"></script><script src="/property-content.js?v=2-draft-preview"></script><script src="/panel-motion.js"></script></head>
+<body><div id="arenal-index-dos"><div id="index-home"><p>Abriendo la vista previa privada…</p><button onclick="window.close()">Cerrar vista previa</button><p><a href="/newlisting/">Volver a la ficha</a></p></div></div>
+<script type="module" src="/newlisting/preview.mjs?v=1"></script></body></html>

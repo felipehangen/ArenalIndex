@@ -63,6 +63,8 @@ La primera vista de cada paso prioriza las preguntas necesarias. Los detalles op
 
 El resumen detalla cada pendiente y su sección. Para fotos, distingue archivos faltantes de tomas sin identificar y explica cómo resolverlo. «Completar» abre el grupo de archivos correspondiente o enfoca el campo pendiente.
 
+«Ver como comprador» abre una vista privada del borrador con el mismo diseño de la ficha pública: portada, recorrido de fotos, características y mapa. Lee el borrador guardado en este navegador; las fotos permanecen locales y no se envía ni publica la ficha. Los datos incompletos, el título no propuesto y la localidad editorial se muestran por definir. Las medidas declaradas no se presentan como revisadas. Documentos, contacto privado y tokens quedan fuera de esta vista. La revisión aprobada conserva su vista previa de publicación con los datos editoriales definitivos.
+
 Se admiten JPG/PNG/WebP/PDF, hasta 12 MB por archivo y 60 MB en total. El navegador guarda respuestas y adjuntos localmente; un respaldo JSON permite trasladarlos. El respaldo no contiene los tokens de acceso ni reemplaza una ficha enviada: se restaura como un borrador nuevo. El mismo perfil de navegador puede abrir su borrador y borrar los datos del navegador elimina esa copia.
 
 Al enviar, `prepare` crea una nueva versión, se cargan los adjuntos directamente al almacenamiento privado y `submit` comprueba tamaños, tipos y firmas de archivos. La ficha pasa a **Lista para revisión de publicación** y Resend envía el aviso a `felipehangen@gmail.com`. Si el correo falla, la ficha permanece recibida y se puede reintentar el aviso. Una respuesta de red perdida se recupera consultando el estado.

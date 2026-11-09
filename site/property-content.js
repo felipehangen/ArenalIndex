@@ -2,7 +2,7 @@
 (() => {
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const number=value=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(value);
-  const price=(value,currency='USD')=>(currency==='CRC'?'₡':'$')+number(value);
+  const price=(value,currency='USD')=>value===null||!Number.isFinite(value)||!['USD','CRC'].includes(currency)?'Por definir':(currency==='CRC'?'₡':'$')+number(value);
   const rowsHTML=rows=>'<dl class="pd-detail-rows">'+rows.map(row=>'<div><dt>'+esc(row.label)+'</dt><dd>'+esc(row.value)+(row.source?'<small>'+esc(row.source)+'</small>':'')+'</dd></div>').join('')+'</dl>';
   function groups(d){
     if(d.details?.photoGroups?.length)return d.details.photoGroups.map(group=>({label:group.title,images:group.photos.map(p=>({src:p.src,label:p.caption,caption:p.caption}))})).filter(g=>g.images.length);
@@ -26,17 +26,17 @@
   }
   function content(d){
     const detail=d.details,buildings=detail?.buildings||[],all=sections(d),conditions=detail?.conditions||[];
-    const buildingCount=detail?buildings.length:d.house?null:0;
-    const facts=[{value:number(d.area)+' m²',label:detail?.areaSource||'Área indicada'},
-      {value:buildingCount===null?'Con casa':buildingCount===0?'Solo terreno':buildingCount+' '+(buildingCount===1?'construcción':'construcciones'),label:'Incluido en la venta'},
-      {value:price(d.price/d.area,d.currency),label:(d.currency||'USD')+'/m² de terreno'}];
+    const buildingCount=d.draftPreview&&!d.buildingsKnown?null:detail?buildings.length:d.house?null:0;
+    const facts=[{value:d.area>0?number(d.area)+' m²':'Por completar',label:detail?.areaSource||'Área indicada'},
+      {value:buildingCount===null?(d.draftPreview?'Por confirmar':'Con casa'):buildingCount===0?'Solo terreno':buildingCount+' '+(buildingCount===1?'construcción':'construcciones'),label:'Incluido en la venta'},
+      {value:price(d.price!==null&&d.area>0?d.price/d.area:null,d.currency),label:(d.currency?d.currency+'/m²':'Precio por m²')+' de terreno'}];
     let html='<div class="pd-essentials">'+facts.map(f=>'<div><strong>'+esc(f.value)+'</strong><span>'+esc(f.label)+'</span></div>').join('')+'</div>';
     if(d.description)html+='<section class="pd-section pd-about"><h2>Un lugar para tu próximo proyecto</h2><p>'+esc(d.description)+'</p></section>';
-    html+='<section class="pd-section pd-information"><div class="pd-section-heading"><h2>Conocé la propiedad</h2><p>Los detalles que ayudan a decidir.</p></div>'+all.filter(s=>s.rows.length||s.note).map(section=>'<details class="pd-disclosure"><summary><span><strong>'+esc(section.title)+'</strong><small>'+esc(summary(section))+'</small></span></summary><div class="pd-disclosure-body">'+(section.rows.length?rowsHTML(section.rows):'<p>'+esc(section.note||'Información por confirmar.')+'</p>')+(section.id==='land'&&detail?.declaredArea!==detail?.documentedArea?'<p class="pd-muted">El vendedor declaró '+number(detail.declaredArea)+' m². Los importes por m² usan el área del plano revisado.</p>':'')+'</div></details>').join('')+'</section>';
+    html+='<section class="pd-section pd-information"><div class="pd-section-heading"><h2>Conocé la propiedad</h2><p>Los detalles que ayudan a decidir.</p></div>'+all.filter(s=>s.rows.length||s.note).map(section=>'<details class="pd-disclosure"><summary><span><strong>'+esc(section.title)+'</strong><small>'+esc(summary(section))+'</small></span></summary><div class="pd-disclosure-body">'+(section.rows.length?rowsHTML(section.rows):'<p>'+esc(section.note||'Información por confirmar.')+'</p>')+(section.id==='land'&&detail?.declaredArea>0&&detail?.documentedArea>0&&detail.declaredArea!==detail.documentedArea?'<p class="pd-muted">El vendedor declaró '+number(detail.declaredArea)+' m². Los importes por m² usan '+(d.draftPreview?'el área indicada del plano, pendiente de revisión.':'el área del plano revisado.')+'</p>':'')+'</div></details>').join('')+'</section>';
     if(buildings.length)html+='<section class="pd-section"><div class="pd-section-heading"><h2>Las construcciones</h2><p>Cada espacio, con sus propios detalles.</p></div><div class="pd-buildings">'+buildings.map((b,i)=>'<details class="pd-building"><summary><span class="pd-building-number">'+String(i+1).padStart(2,'0')+'</span><span><strong>'+esc(b.name)+'</strong><small>'+esc(b.rows.filter(r=>['Tipo de construcción','Área construida (m²)'].includes(r.label)).map(r=>r.value).join(' · '))+'</small></span></summary>'+rowsHTML(b.rows)+'</details>').join('')+'</div></section>';
     else if(d.house)html+='<section class="pd-section"><h2>La construcción</h2><p>Este anuncio indica una casa. Su área, distribución y estado están por confirmar.</p></section>';
     if(conditions.length)html+='<section class="pd-section"><div class="pd-conditions"><h2>Para tener en cuenta</h2><ul>'+conditions.map(c=>'<li>'+esc(c)+'</li>').join('')+'</ul></div></section>';
-    html+='<p class="pd-source-note">'+(d.isDemo?'Anuncio de demostración · imágenes ilustrativas.':detail?'La información se atribuye al vendedor salvo donde se indique otra fuente. La revisión editorial no sustituye una verificación técnica o legal.':'Información del anuncio. Confirmá los detalles con el responsable de la venta.')+'</p>';
+    html+='<p class="pd-source-note">'+(d.draftPreview?'Vista previa privada de tu borrador. La información, el título y la localidad están pendientes de revisión; el anuncio todavía no se ha publicado.':d.isDemo?'Anuncio de demostración · imágenes ilustrativas.':detail?'La información se atribuye al vendedor salvo donde se indique otra fuente. La revisión editorial no sustituye una verificación técnica o legal.':'Información del anuncio. Confirmá los detalles con el responsable de la venta.')+'</p>';
     return html;
   }
   window.ArenalListing=Object.freeze({esc,price,number,rowsHTML,groups,sections,content});

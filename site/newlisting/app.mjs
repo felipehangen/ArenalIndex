@@ -51,7 +51,7 @@ function review(){
     renderPendingItems(issues)+
     (exception.length&&draft.values.photo_exception?'<p class="note">Se enviará una excepción de fotografías para revisión: '+esc(draft.values.photo_exception)+'</p>':'')+
     (areaNotice(draft.values)?'<p class="note area-note">'+esc(areaNotice(draft.values))+'</p>':'')+
-    '<h2>Vista previa del anuncio</h2><p class="map-note">Texto preparado con tus respuestas. El nombre corto es una sugerencia; ArenalIndex decide el título definitivo durante la revisión.</p><div class="buyer-preview">'+esc(M.buyerCopy(draft))+'</div>'+
+    '<h2>Vista previa del anuncio</h2><p class="map-note">Abrí el anuncio con tus fotos, datos y el diseño que verá el comprador. Esta vista es privada; el título y la localidad definitivos se preparan durante la revisión.</p><button class="secondary" type="button" data-action="buyer-preview"'+(busy?' disabled':'')+'>Ver como comprador</button><details class="review-detail" data-review-section="copy"><summary>Leer el texto preparado</summary><div class="buyer-preview">'+esc(M.buyerCopy(draft))+'</div></details>'+
     (M.knownConcerns(draft).length?'<details class="review-detail" data-review-section="concerns" open><summary>Condiciones que revisaremos contigo</summary><ul>'+M.knownConcerns(draft).map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul></details>':'')+
     (M.photoTour(draft).length?'<details class="review-detail" data-review-section="photos"><summary>Ver el recorrido de fotos</summary>'+renderPhotoTour(draft,file=>objectURL(file.blob))+'</details>':'')+
     '<details class="review-detail" data-review-section="answers"><summary>Revisar todas las respuestas</summary>'+M.steps.map(s=>'<h3>'+esc(s.short)+'</h3><dl>'+s.fields.filter(f=>f.id&&M.visible(f,draft.values)).map(f=>'<dt>'+esc(f.label)+'</dt><dd>'+esc(M.label(f,draft.values[f.id]))+'</dd>').join('')+'</dl>').join('')+'</details>'+
@@ -159,6 +159,15 @@ function summary(){
   content+='\n\nPENDIENTES\n'+M.pending(draft).map(i=>i.label).join('\n')+'\n\nARCHIVOS\n'+draft.files.map(f=>imageCaption(f)+': '+f.name).join('\n');
   download(new Blob([content],{type:'text/plain;charset=utf-8'}),'arenalindex-'+draft.id.slice(0,8)+'-resumen.txt');
 }
+async function buyerPreview(){
+  if(busy)return;
+  const preview=window.open('about:blank','_blank');
+  if(!preview)return notify('Permití abrir una pestaña nueva para ver el anuncio.');
+  try{
+    if(!await save())throw Error('No pudimos guardar la ficha para abrir la vista previa. Intentá de nuevo.');
+    preview.opener=null;preview.location.replace('/newlisting/preview/?draft=1');
+  }catch(error){preview.close();notify(error.message);}
+}
 async function restore(file){
   if(!file||busy)return;if(file.size>90*1024*1024)return notify('La copia supera 90 MB.');
   busy=true;render(false);
@@ -233,6 +242,7 @@ document.addEventListener('click',async event=>{
   if(button.dataset.removeFile&&!locked()&&await confirm('¿Quitar este archivo?','El original en tu dispositivo no cambia.')){draft.files=draft.files.filter(f=>f.id!==button.dataset.removeFile);if(draft.values.cover_id===button.dataset.removeFile)delete draft.values.cover_id;changed();render(false);}
   if(button.dataset.removeBuilding&&!locked()&&await confirm('¿Quitar esta construcción?','Sus fotos se conservan para que podás reasignarlas o quitarlas.')){draft.buildings=draft.buildings.filter(b=>b.id!==button.dataset.removeBuilding);changed();render(false);}
   const action=button.dataset.action;
+  if(action==='buyer-preview')buyerPreview();
   if(action==='authorizations')$('#review-authorizations')?.scrollIntoView({behavior:'smooth',block:'start'});
   if(action==='add-building'&&!locked()){if(draft.buildings.length>=30)return notify('Se admite un máximo de 30 construcciones.');draft.buildings.push({id:crypto.randomUUID(),kind:'',name:''});changed();render(false);}
   if(action==='backup')backup();if(action==='summary')summary();if(action==='refresh')refresh();if(action==='edit')edit();if(action==='retry-email')retryEmail();
