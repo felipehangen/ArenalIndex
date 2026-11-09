@@ -61,6 +61,8 @@ La primera vista de cada paso prioriza las preguntas necesarias. Los detalles op
 
 «Venta y contacto» reúne el precio, las condiciones y la persona responsable. «Resumen y envío» es el paso siguiente, con la vista previa, los pendientes, las autorizaciones y el envío privado para revisión. En «Fotos», una lista indica qué falta: dos fotos del terreno, entrada y vía de llegada identificadas, un exterior por construcción y una portada. Cada grupo y el paso muestran su check al completarse, también en el menú móvil. Una excepción explicada permite enviar las tomas faltantes a revisión, pero no reemplaza la portada ni la aceptación del revisor.
 
+El resumen detalla cada pendiente y su sección. Para fotos, distingue archivos faltantes de tomas sin identificar y explica cómo resolverlo. «Completar» abre el grupo de archivos correspondiente o enfoca el campo pendiente.
+
 Se admiten JPG/PNG/WebP/PDF, hasta 12 MB por archivo y 60 MB en total. El navegador guarda respuestas y adjuntos localmente; un respaldo JSON permite trasladarlos. El respaldo no contiene los tokens de acceso ni reemplaza una ficha enviada: se restaura como un borrador nuevo. El mismo perfil de navegador puede abrir su borrador y borrar los datos del navegador elimina esa copia.
 
 Al enviar, `prepare` crea una nueva versión, se cargan los adjuntos directamente al almacenamiento privado y `submit` comprueba tamaños, tipos y firmas de archivos. La ficha pasa a **Lista para revisión de publicación** y Resend envía el aviso a `felipehangen@gmail.com`. Si el correo falla, la ficha permanece recibida y se puede reintentar el aviso. Una respuesta de red perdida se recupera consultando el estado.

@@ -1,8 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as M from '../site/newlisting/model.mjs';
-import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,areaNotice} from '../site/newlisting/view.mjs';
+import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,renderPendingItems,areaNotice} from '../site/newlisting/view.mjs';
 import {completeDraft} from './intake-fixtures.mjs';
+
+test('review names missing photos and offers the precise group or field to complete',()=>{
+  const d=completeDraft();
+  d.files.find(f=>f.id==='entry-1').shot='general';delete d.values.cover_id;delete d.values.price;
+  let html=renderPendingItems(M.pending(d));
+  assert.match(html,/Ya hay fotos.*ninguna identificada como entrada/);
+  assert.match(html,/elegí «Entrada» en «Qué muestra»/);
+  assert.match(html,/data-step="5" data-pending-group="access"/);
+  assert.match(html,/data-pending-group="cover"/);
+  assert.match(html,/data-step="7" data-pending-field="price"/);
+  assert.match(html,/<small>Fotos<\/small><strong>Una foto de la entrada/);
+  d.files.find(f=>f.id==='entry-1').shot='entrance';d.values.cover_id='land-1';d.values.price='100000';
+  html=renderPendingItems(M.pending(d));assert.doesNotMatch(html,/review-item/);
+});
 
 test('photo checklist exposes missing classification, completion, and per-building requirements',()=>{
   const d=completeDraft();

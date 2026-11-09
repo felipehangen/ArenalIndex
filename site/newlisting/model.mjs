@@ -201,30 +201,30 @@ function fieldIssues(field,value) {
 }
 export function photoRequirements(draft) {
   const images=draft.files.filter(f=>f.type?.startsWith('image/'));
+  const landCount=images.filter(f=>f.category==='land').length,accessCount=images.filter(f=>f.category==='access').length;
   const requirements=[
-    {group:'land',label:'Dos fotos del terreno',complete:images.filter(f=>f.category==='land').length>=2},
-    {group:'access',label:'Una foto de la entrada',complete:images.some(f=>f.category==='access'&&f.shot==='entrance')},
-    {group:'access',label:'Una foto de la vía de llegada',complete:images.some(f=>f.category==='access'&&f.shot==='road')}
+    {group:'land',label:'Dos fotos del terreno',complete:landCount>=2,detail:'Hay '+landCount+' de 2 fotos necesarias en «Terreno». Agregá las que faltan, con vistas distintas.'},
+    {group:'access',label:'Una foto de la entrada',complete:images.some(f=>f.category==='access'&&f.shot==='entrance'),detail:accessCount?'Ya hay fotos en «Llegada y acceso», pero ninguna identificada como entrada. En la foto correspondiente, elegí «Entrada» en «Qué muestra».':'Agregá una foto en «Llegada y acceso» y elegí «Entrada» en «Qué muestra».'},
+    {group:'access',label:'Una foto de la vía de llegada',complete:images.some(f=>f.category==='access'&&f.shot==='road'),detail:accessCount?'Ya hay fotos en «Llegada y acceso», pero ninguna identificada como vía de llegada. En la foto correspondiente, elegí «Vía de llegada» en «Qué muestra».':'Agregá una foto en «Llegada y acceso» y elegí «Vía de llegada» en «Qué muestra».'}
   ];
-  if(hasBuildings(draft.values))for(const [index,b] of draft.buildings.entries())requirements.push({group:'buildings',label:'Foto exterior: '+buildingName(b,index),complete:images.some(f=>f.category==='buildings'&&f.buildingId===b.id&&f.shot==='exterior')});
+  if(hasBuildings(draft.values))for(const [index,b] of draft.buildings.entries())requirements.push({group:'buildings',label:'Foto exterior: '+buildingName(b,index),complete:images.some(f=>f.category==='buildings'&&f.buildingId===b.id&&f.shot==='exterior'),detail:'En «Construcciones», agregá o identificá una foto de «'+buildingName(b,index)+'» y elegí la toma «Exterior».'});
   const gallery=photoGroups.filter(g=>!g.building||hasBuildings(draft.values)).map(g=>g.id);
-  requirements.push({group:'cover',label:'Elegir una foto de portada',complete:images.some(f=>f.id===draft.values.cover_id&&gallery.includes(f.category))});
+  requirements.push({group:'cover',label:'Elegir una foto de portada',complete:images.some(f=>f.id===draft.values.cover_id&&gallery.includes(f.category)),detail:'En la foto del recorrido que prefirás, pulsá «Usar de portada». Subir una foto no la selecciona automáticamente.'});
   return requirements;
 }
 export const photoIssues = draft => photoRequirements(draft).filter(item=>item.group!=='cover'&&!item.complete).map(item=>item.label);
 export function pending(draft,{publication=false,review={}}={}) {
   const v=draft.values,issues=[];
-  steps.forEach((s,step)=>s.fields.filter(f=>f.id&&visible(f,v)).forEach(f=>{if(fieldIssues(f,v[f.id]))issues.push({label:f.label,step});}));
+  steps.forEach((s,step)=>s.fields.filter(f=>f.id&&visible(f,v)).forEach(f=>{if(fieldIssues(f,v[f.id]))issues.push({label:f.label,step,field:f.id});}));
   if(!validPoint(v)||v.exact!==true)issues.push({label:'Entrada exacta confirmada en el mapa',step:1});
-  if(!v.phone?.trim()&&!v.email?.trim())issues.push({label:'Un teléfono o correo de contacto',step:stepIndex('sale')});
+  if(!v.phone?.trim()&&!v.email?.trim())issues.push({label:'Un teléfono o correo de contacto',step:stepIndex('sale'),field:'phone',detail:'Completá al menos uno de los dos medios de contacto: teléfono o correo.'});
   for(const [key,title] of [['authorization','Autorización de publicación'],['location_consent','Permiso para mostrar la entrada'],['photo_permission','Permiso de uso de fotografías']])if(v[key]!==true)issues.push({label:title,step:stepIndex('review')});
-  if(!draft.files.some(f=>f.category==='plan_file'))issues.push({label:'Copia del plano catastrado',step:6});
+  if(!draft.files.some(f=>f.category==='plan_file'))issues.push({label:'Copia del plano catastrado',step:6,photoGroup:'plan_file',detail:'Adjuntá una copia legible del plano en el grupo «Plano catastrado».'});
   if(hasBuildings(v)) {
     if(!draft.buildings.length)issues.push({label:'Agregar las construcciones incluidas',step:4});
     for(const [index,b] of draft.buildings.entries()){if(!b.kind||b.kind==='unknown')issues.push({label:'Tipo de cada construcción',step:4});for(const f of buildingFields)if(fieldIssues(f,b[f.id]))issues.push({label:f.label+' · '+buildingName(b,index),step:4});}
   }
-  if(!v.photo_exception?.trim()||(publication&&!review.photo_exception_accepted))for(const title of photoIssues(draft))issues.push({label:title,step:5});
-  if(!photoRequirements(draft).find(item=>item.group==='cover').complete)issues.push({label:'Elegir una foto de portada',step:5});
+  for(const item of photoRequirements(draft))if(!item.complete&&(item.group==='cover'||!v.photo_exception?.trim()||(publication&&!review.photo_exception_accepted)))issues.push({label:item.label,step:5,photoGroup:item.group,detail:item.detail});
   if(publication) {
     if(!review.plan_number?.trim())issues.push({label:'Confirmar el número del plano',step:6});
     if(!(Number(review.documented_area)>0&&Number(review.documented_area)<1e9))issues.push({label:'Confirmar el área documentada',step:6});

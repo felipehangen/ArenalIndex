@@ -1,8 +1,8 @@
-import * as M from './model.mjs?v=4-workflow';
+import * as M from './model.mjs?v=5-pending';
 import {openStore,createSaver} from './local.mjs';
 import {createAPI,randomToken,submitDraft} from './api.mjs';
 import {mountMap} from './map.mjs';
-import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,areaNotice} from './view.mjs?v=4-workflow';
+import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,renderPendingItems,areaNotice} from './view.mjs?v=5-pending';
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const api=createAPI();
@@ -47,8 +47,8 @@ function attachments(photo){
 }
 function review(){
   const issues=M.pending(draft),exception=M.photoIssues(draft);
-  return '<section id="review-summary"><div class="section-divider"><h2>'+ (issues.length?'Antes de enviar':'Tu propuesta está lista para enviar')+'</h2><p>'+draft.files.length+' archivo(s) · '+issues.length+' dato(s) pendiente(s)</p></div>'+
-    '<div class="review-list">'+issues.map(i=>'<div class="review-item"><span>'+esc(i.label)+'</span><button type="button" '+(i.step===M.stepIndex('review')?'data-action="authorizations"':'data-step="'+i.step+'"')+'>Completar →</button></div>').join('')+'</div>'+
+  return '<section id="review-summary"><div class="section-divider"><h2>'+ (issues.length?'Esto es lo que falta':'Tu propuesta está lista para enviar')+'</h2><p>'+draft.files.length+' archivo(s) · '+issues.length+' pendiente(s) para enviar</p></div>'+
+    renderPendingItems(issues)+
     (exception.length&&draft.values.photo_exception?'<p class="note">Se enviará una excepción de fotografías para revisión: '+esc(draft.values.photo_exception)+'</p>':'')+
     (areaNotice(draft.values)?'<p class="note area-note">'+esc(areaNotice(draft.values))+'</p>':'')+
     '<h2>Vista previa del anuncio</h2><p class="map-note">Texto preparado con tus respuestas. El nombre corto es una sugerencia; ArenalIndex decide el título definitivo durante la revisión.</p><div class="buyer-preview">'+esc(M.buyerCopy(draft))+'</div>'+
@@ -108,6 +108,11 @@ async function go(step){
   if(busy)return notify('Esperá a que termine la operación.');
   if(step===4&&!M.hasBuildings(draft.values))step=5;
   draft.step=Math.max(0,Math.min(M.steps.length-1,step));await save();render();
+}
+function showPhotoGroup(group){
+  const section=$('#photo-group-'+group);if(!section)return;
+  if(section.tagName==='DETAILS')section.open=true;
+  section.scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function verifyFile(file){
   if(!M.TYPES.includes(file.type)||file.size>M.MAX_FILE||file.size<1)throw Error('Usá JPG, PNG, WebP o PDF de hasta 12 MB.');
@@ -217,8 +222,13 @@ document.addEventListener('change',event=>{
 });
 document.addEventListener('click',async event=>{
   const button=event.target.closest('button');if(!button||button.disabled)return;
-  if(button.dataset.step)return go(Number(button.dataset.step));
-  if(button.dataset.photoGroup){const section=$('#photo-group-'+button.dataset.photoGroup);if(section){if(section.tagName==='DETAILS')section.open=true;section.scrollIntoView({behavior:'smooth',block:'start'});}return;}
+  if(button.dataset.step){
+    await go(Number(button.dataset.step));
+    if(button.dataset.pendingGroup)showPhotoGroup(button.dataset.pendingGroup);
+    if(button.dataset.pendingField){const field=$('#field-'+button.dataset.pendingField);if(field){const details=field.closest('details');if(details)details.open=true;field.focus();}}
+    return;
+  }
+  if(button.dataset.photoGroup){showPhotoGroup(button.dataset.photoGroup);return;}
   if(button.dataset.cover&&!locked()){draft.values.cover_id=button.dataset.cover;changed();render(false);}
   if(button.dataset.removeFile&&!locked()&&await confirm('¿Quitar este archivo?','El original en tu dispositivo no cambia.')){draft.files=draft.files.filter(f=>f.id!==button.dataset.removeFile);if(draft.values.cover_id===button.dataset.removeFile)delete draft.values.cover_id;changed();render(false);}
   if(button.dataset.removeBuilding&&!locked()&&await confirm('¿Quitar esta construcción?','Sus fotos se conservan para que podás reasignarlas o quitarlas.')){draft.buildings=draft.buildings.filter(b=>b.id!==button.dataset.removeBuilding);changed();render(false);}

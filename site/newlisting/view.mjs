@@ -1,4 +1,4 @@
-import {visible,photoTour,photoCaption,areaDifference,photoRequirements,pending,stepIndex} from './model.mjs?v=4-workflow';
+import {visible,photoTour,photoCaption,areaDifference,photoRequirements,pending,stepIndex,steps} from './model.mjs?v=5-pending';
 
 export const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function renderField(f,values={},prefix=''){
@@ -30,6 +30,12 @@ export function renderPhotoChecklist(draft){
     const waived=!item.complete&&item.group!=='cover'&&exception;
     return '<li><span>'+escapeHTML(item.label)+'</span>'+(item.complete?'<span class="complete-label">✓ Listo</span>':waived?'<span class="badge pending">Para revisión</span>':'<button type="button" class="photo-pending" data-photo-group="'+item.group+'">Completar →</button>')+'</li>';
   }).join('')+'</ul>'+(exception&&requirements.some(item=>item.group!=='cover'&&!item.complete)?'<p>La explicación de las fotos faltantes se enviará para revisión. ArenalIndex deberá aceptar la excepción antes de publicar.</p>':'')+'</section>';
+}
+export function renderPendingItems(issues){
+  return '<div class="review-list">'+issues.map(issue=>{
+    const target=issue.step===stepIndex('review')?'data-action="authorizations"':'data-step="'+issue.step+'"'+(issue.photoGroup?' data-pending-group="'+escapeHTML(issue.photoGroup)+'"':'')+(issue.field?' data-pending-field="'+escapeHTML(issue.field)+'"':'');
+    return '<div class="review-item"><div><small>'+escapeHTML(steps[issue.step].short)+'</small><strong>'+escapeHTML(issue.label)+'</strong>'+(issue.detail?'<p>'+escapeHTML(issue.detail)+'</p>':'')+'</div><button type="button" '+target+'>Completar →</button></div>';
+  }).join('')+'</div>';
 }
 export function renderFields(items,values={},prefix=''){
   const sections=[];let current={fields:[]};
