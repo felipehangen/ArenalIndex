@@ -87,12 +87,12 @@ test('the rate is fixed for the browsing session and null draft prices are never
  assert.equal(pricing.view(draft,'CRC').price,null);assert.equal(pricing.view(draft,'CRC').unit,null);
  assert.match(pricing.note(),/BCCR/);assert.match(pricing.note(),/2026/);
 });
-test('formatting and buyer essentials show the selected currency and approximation',()=>{
+test('formatting and buyer essentials show the selected currency without approximation symbols',()=>{
  const {pricing}=setup();
  assert.equal(window.ArenalFormat.money(95000000,'CRC'),'₡95,000,000');
  assert.equal(window.ArenalFormat.compactMoney(95000000,'CRC'),'₡95M');
  const item={...usd,images:[],house:false};
  const html=window.ArenalListing.content(item,pricing.view(item,'CRC'));
- assert.match(html,/≈ ₡25,000/);assert.match(html,/CRC\/m²/);
+ assert.match(html,/₡25,000/);assert.doesNotMatch(html,/≈/);assert.match(html,/CRC\/m²/);
  assert.doesNotMatch(html,/USD\/m²/);
 });

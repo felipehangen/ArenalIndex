@@ -45,11 +45,11 @@
     const count=allPhotos.length,hasContact=!!d.details?.contact?.whatsapp;
     const pricing=app.pricing||window.ArenalPricing?.create([d]);
     const display=pricing?.view(d,app.state.filters?.currency||'USD')||{price:d.price,unit:d.price!==null&&d.area>0?d.price/d.area:null,currency:d.currency};
-    const currency=display.currency||'',unitPrice=display.unit,prefix=display.approximate?'≈ ':'';
-    const displayedMoney=value=>prefix+content.price(value,currency);
+    const currency=display.currency||'',unitPrice=display.unit;
+    const displayedMoney=value=>content.price(value,currency);
     const other=pricing?.view(d,d.currency==='CRC'?'USD':'CRC');
     const originalPrice=money(d.price)+' '+(d.currency||'');
-    const priceDetails='<section class="pd-section pd-sale-price"><h2>El precio</h2><p><strong>Precio solicitado: '+escape(originalPrice)+'</strong></p>'+(other?.approximate?'<p>Equivalente: ≈ '+escape(content.price(other.price,other.currency)+' '+other.currency)+'</p>':'')+'<p class="pd-muted">'+escape(pricing?.note()||'')+'</p><p class="pd-muted">El precio y la moneda de pago se acuerdan con el propietario.</p></section>';
+    const priceDetails='<section class="pd-section pd-sale-price"><h2>El precio</h2><p><strong>Precio solicitado: '+escape(originalPrice)+'</strong></p>'+(other?.approximate?'<p>Equivalente estimado: '+escape(content.price(other.price,other.currency)+' '+other.currency)+'</p>':'')+'<p class="pd-muted">'+escape(pricing?.note()||'')+'</p><p class="pd-muted">El precio y la moneda de pago se acuerdan con el propietario.</p></section>';
     const areaBasis=d.draftPreview?(d.details.documentedArea?'área indicada del plano':'área declarada'):d.details?'área del plano':'área indicada';
     page.innerHTML = `<div class="pd-bar">${iconButton('back',window.ArenalPreview?'Cerrar vista previa':'Cerrar propiedad y volver a los resultados','back')}<a class="pd-brand" href="#" aria-label="Arenal Index">arenal <small>INDEX</small></a><div class="pd-bar-actions">${iconButton('share','Compartir propiedad','share')}${iconButton('save','Guardar propiedad','heart')}</div></div>
       <div class="pd-scroll"><header class="pd-heading"><p class="pd-kicker">${d.draftPreview?'Vista previa privada · borrador sin publicar':window.ArenalPreview?'Vista previa privada':d.isDemo?'Un ejemplo de lo que podés encontrar':'Propiedad en venta'}</p><h1 tabindex="-1">${escape(title)}</h1><p class="pd-location"><a href="#pd-location">${icon('pin')}${escape(d.place)} · Costa Rica</a>${d.isDemo?'<span class="pd-sample">Demostración</span>':''}</p></header>

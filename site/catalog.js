@@ -40,7 +40,7 @@
     const loadDatabase=async()=>{
       const rows=[],size=1000;
       for(let offset=0;;offset+=size){
-        const query=new URLSearchParams({select:'id,name,description,place,price,area,lng,lat,house,volcano,river,water,electricity,well,private_residential,approximate,images,is_demo',status:'eq.published',order:'sort_order.asc,id.asc',limit:String(size),offset:String(offset)});
+        const query=new URLSearchParams({select:'id,name,description,place,price,currency,area,lng,lat,house,volcano,river,water,electricity,well,private_residential,approximate,images,is_demo,details',status:'eq.published',order:'sort_order.asc,id.asc',limit:String(size),offset:String(offset)});
         const response=await fetch(`${supabaseUrl}/rest/v1/arenalindex_properties?${query}`,{
           headers:{apikey:publishableKey},signal:AbortSignal.timeout(15000),cache:'no-store'
         });

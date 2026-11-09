@@ -64,7 +64,7 @@
       if(!rate)return 'Conversión no disponible. Mostramos las monedas originales; los filtros de precio están temporalmente desactivados.';
       const date=new Intl.DateTimeFormat('es-CR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(rate.date));
       const amount=new Intl.NumberFormat('en-US',{maximumFractionDigits:3}).format(midpoint);
-      return `${stale?'Último tipo disponible. ':''}≈ Conversión orientativa: USD 1 = ₡${amount}. Promedio de compra y venta del BCCR · ${date}.`;
+      return `${stale?'Último tipo disponible. ':''}Conversión estimada: USD 1 = ₡${amount}. Promedio de compra y venta del BCCR · ${date}.`;
     }
     // Prepare both currencies once; slider movement reuses these values.
     for(const item of items)for(const target of currencies)view(item,target);

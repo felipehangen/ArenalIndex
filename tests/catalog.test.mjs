@@ -28,6 +28,8 @@ test('paginates published rows and sends only the public API key',async()=>{
  const rows=await api.load();assert.equal(rows.length,1001);assert.equal(calls.length,2);
  assert.match(calls[1].url,/offset=1000/);assert.match(calls[0].url,/status=eq.published/);
  assert.equal(calls[0].options.headers.apikey,'public-test');assert.equal(calls[0].options.headers.Authorization,undefined);
+ const selected=new URL(calls[0].url).searchParams.get('select').split(',');
+ assert.ok(selected.includes('currency'));assert.ok(selected.includes('details'));
 });
 test('an empty or unavailable database never silently displays old demo listings',async()=>{
  assert.equal((await setup(async()=>({ok:true,json:async()=>[]})).load()).length,0);
