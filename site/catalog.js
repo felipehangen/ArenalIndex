@@ -4,6 +4,13 @@
     (/^\/?photos\/[a-z0-9-]+\.(jpg|png|webp)$/i.test(value) || /^https:\/\//i.test(value));
   const imagePath=value=>value.startsWith('photos/')?'/'+value:value;
   const text=(value,max=2000)=>typeof value==='string'?value.slice(0,max):'';
+  function contact(input){
+    if(!input||typeof input!=='object')return null;
+    const phone=value=>typeof value==='string'&&/^\+?[1-9]\d{7,14}$/.test(value)?value.replace(/^\+/,''):'';
+    const whatsapp=phone(input.whatsapp),number=phone(input.phone);
+    const email=typeof input.email==='string'&&input.email.length<=254&&/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(input.email)?input.email:'';
+    return whatsapp||number||email?{name:text(input.name,80),whatsapp,phone:number,email}:null;
+  }
   function details(input){
     if(input?.schemaVersion!==1)return null;
     const rows=value=>Array.isArray(value)?value.slice(0,50).map(row=>({label:text(row?.label,160),value:text(row?.value),source:text(row?.source,160)})).filter(row=>row.label&&row.value):[];
@@ -14,7 +21,7 @@
       conditions:(Array.isArray(input.conditions)?input.conditions:[]).map(v=>text(v)).filter(Boolean).slice(0,40),
       declaredArea:Number(input.declaredArea)||null,documentedArea:Number(input.documentedArea)||null,areaSource:text(input.areaSource,120),entrance:input.entrance===true,
       residential:['no','residential','condo'].includes(input.residential)?input.residential:'unknown',
-      contact:/^[1-9]\d{7,14}$/.test(input.contact?.whatsapp||'')?{whatsapp:input.contact.whatsapp}:null
+      contact:contact(input.contact)
     };
   }
   function normalize(row) {
@@ -25,6 +32,8 @@
       throw new Error('Invalid property in catalog');
     }
     const demo=row.is_demo===true,detail=details(row.details),currency=row.currency||'USD';
+    const demoContact=demo&&contact(window.ArenalConfig?.demoContact);
+    if(detail&&demoContact)detail.contact=demoContact;
     if(!['USD','CRC'].includes(currency))throw new Error('Unsupported listing currency');
     const images=Array.isArray(row.images)?row.images.filter(safeImage).map(imagePath):[];
     if (!images.length) images.push(demo?'/photos/lot.jpg':'/icons/no-photo.svg');

@@ -4,6 +4,39 @@
   const number=value=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(value);
   const price=(value,currency='USD')=>value===null||!Number.isFinite(value)||!['USD','CRC'].includes(currency)?'Por definir':(currency==='CRC'?'₡':'$')+number(value);
   const rowsHTML=rows=>'<dl class="pd-detail-rows">'+rows.map(row=>'<div><dt>'+esc(row.label)+'</dt><dd>'+esc(row.value)+(row.source?'<small>'+esc(row.source)+'</small>':'')+'</dd></div>').join('')+'</dl>';
+  function highlights(d){
+    const facts=d.details?.sections?.flatMap(s=>s.rows)||[],value=label=>facts.find(r=>r.label===label)?.value;
+    const items=[],add=(icon,label,description=label)=>items.push({icon,label,description});
+    const count=d.details?.buildings?.length;
+    if(count)add('house',count+' constr.',count+' '+(count===1?'construcción':'construcciones'));
+    else if(d.house&&!d.details)add('house','Construcción');
+    if(d.privateResidential)add('fence','Condominio');
+    if(d.volcano)add('mountain','Vista al volcán');
+    const waterbody=value('Río, quebrada o naciente');
+    if(['Dentro de la propiedad','Colindante'].includes(waterbody))add('waves','Agua natural','Río, quebrada o naciente: '+waterbody.toLowerCase());
+    const water=value('Agua de red');
+    if(water==='Conexión activa')add('droplet','Agua activa','Agua de red con conexión activa, según el anuncio');
+    else if(water==='Carta de disponibilidad')add('droplet','Carta de agua','Carta de disponibilidad de agua; conexión pendiente');
+    if(value('Electricidad')==='Medidor activo')add('zap','Luz activa','Electricidad con medidor activo, según el anuncio');
+    if(d.well)add('droplets','Pozo','Pozo indicado; derechos de uso y potabilidad por confirmar');
+    return items.slice(0,3);
+  }
+  function contactLinks(d){
+    if(d.draftPreview||!d.details?.contact)return null;
+    const c=d.details.contact,url='https://arenalindex.com/#propiedad/'+encodeURIComponent(d.id);
+    const message=(d.isDemo?'Hola, estoy consultando el anuncio de demostración ':'Hola, me interesa ')+d.name+' ('+price(d.price,d.currency)+' '+d.currency+'). '+url;
+    return {name:c.name||'Contacto del anuncio',
+      whatsapp:c.whatsapp?'https://wa.me/'+c.whatsapp+'?text='+encodeURIComponent(message):'',
+      phone:c.phone?'tel:+'+c.phone:'',
+      phoneLabel:c.phone?(/^506\d{8}$/.test(c.phone)?'+506 '+c.phone.slice(3,7)+' '+c.phone.slice(7):'+'+c.phone):'',
+      email:c.email?'mailto:'+encodeURIComponent(c.email)+'?subject='+encodeURIComponent('Consulta: '+d.name)+'&body='+encodeURIComponent(message):'',emailLabel:c.email||''};
+  }
+  function contactContent(d){
+    const c=contactLinks(d);if(!c)return '';
+    return '<section class="pd-section pd-contact" id="pd-contact"><h2>Contacto</h2><p class="pd-contact-name">'+esc(c.name)+'</p>'+(d.isDemo?'<p class="pd-muted">Anuncio de demostración. Las consultas llegan a este contacto.</p>':'')+
+      (c.whatsapp?'<a class="pd-primary" href="'+esc(c.whatsapp)+'" target="_blank" rel="noopener noreferrer">Consultar por WhatsApp</a>':'')+
+      '<div class="pd-contact-options">'+(c.phone?'<a href="'+esc(c.phone)+'">Llamar · '+esc(c.phoneLabel)+'</a>':'')+(c.email?'<a href="'+esc(c.email)+'">'+esc(c.emailLabel)+'</a>':'')+'</div></section>';
+  }
   function groups(d){
     if(d.details?.photoGroups?.length)return d.details.photoGroups.map(group=>({label:group.title,images:group.photos.map(p=>({src:p.src,label:p.caption,caption:p.caption}))})).filter(g=>g.images.length);
     return [{label:d.isDemo?'Imágenes de muestra':'Fotografías de la propiedad',images:[...new Set(d.images)].filter(src=>!src.includes('no-photo.svg')).map((src,i)=>({src,label:(d.isDemo?'Imagen ilustrativa':'Foto')+' '+(i+1)}))}].filter(g=>g.images.length);
@@ -39,5 +72,5 @@
     html+='<p class="pd-source-note">'+(d.draftPreview?'Vista previa privada de tu borrador. La información, el título y la localidad están pendientes de revisión; el anuncio todavía no se ha publicado.':d.isDemo?'Anuncio de demostración · imágenes ilustrativas.':detail?'La información se atribuye al vendedor salvo donde se indique otra fuente. La revisión editorial no sustituye una verificación técnica o legal.':'Información del anuncio. Confirmá los detalles con el responsable de la venta.')+'</p>';
     return html;
   }
-  window.ArenalListing=Object.freeze({esc,price,number,rowsHTML,groups,sections,content});
+  window.ArenalListing=Object.freeze({esc,price,number,rowsHTML,groups,sections,content,highlights,contactLinks,contactContent});
 })();

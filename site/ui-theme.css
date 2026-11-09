@@ -166,3 +166,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 #arenal-index-dos .maplibregl-ctrl-bottom-right,#arenal-index-dos.results-expanded .maplibregl-ctrl-bottom-right{top:auto;bottom:calc(var(--sheet-height) + 4px);transition:none}
 #arenal-index-dos button#results-handle{cursor:ns-resize}
 @media(max-width:350px){#arenal-index-dos .results-body{padding-left:14px;padding-right:14px}}
+
+/* Result cards summarize facts; the written introduction stays in the detail. */
+#arenal-index-dos .listing-info-copy{width:100%;min-width:0;gap:4px}
+#arenal-index-dos .listing-info-copy :is(h3,.listing-title-link){color:var(--m-text);font-weight:600;font-size:15px;text-decoration:none}
+#arenal-index-dos .listing-info-copy .listing-meta{font-size:12px}
+#arenal-index-dos .listing-features{display:flex;align-items:center;gap:12px;list-style:none;margin:3px 0 0;padding:0;color:var(--m-muted)}
+#arenal-index-dos .listing-features li{display:inline-flex;align-items:center;gap:4px;min-width:0;font-size:11px;line-height:1.5;white-space:nowrap}
+#arenal-index-dos .listing-features svg{width:14px;height:14px;flex-shrink:0;stroke-width:1.7}
+#arenal-index-dos .listing-prices{gap:6px}
+#arenal-index-dos .listing-prices :is(.listing-unit,.metadata-separator){font-size:11px}
+@media(max-width:360px){#arenal-index-dos .listing-features{gap:8px}#arenal-index-dos .listing-features li{font-size:10px}}

@@ -42,7 +42,8 @@
     const title = d.name;
     const tour=content.groups(d),allPhotos=tour.flatMap(group=>group.images);
     photos=d.images.filter((src,i,array)=>array.indexOf(src)===i).slice(0,5).map(src=>allPhotos.find(p=>p.src===src)||{src,label:d.name});
-    const count=allPhotos.length,hasContact=!!d.details?.contact?.whatsapp;
+    const count=allPhotos.length,contactLinks=content.contactLinks(d),hasContact=!!contactLinks;
+    const contactAction=label=>contactLinks?.whatsapp?'<a class="pd-primary" href="'+escape(contactLinks.whatsapp)+'" target="_blank" rel="noopener noreferrer">'+label+'</a>':'<button class="pd-primary" data-action="contact">'+label+'</button>';
     const pricing=app.pricing||window.ArenalPricing?.create([d]);
     const display=pricing?.view(d,app.state.filters?.currency||'USD')||{price:d.price,unit:d.price!==null&&d.area>0?d.price/d.area:null,currency:d.currency};
     const currency=display.currency||'',unitPrice=display.unit;
@@ -50,15 +51,16 @@
     const other=pricing?.view(d,d.currency==='CRC'?'USD':'CRC');
     const originalPrice=money(d.price)+' '+(d.currency||'');
     const priceDetails='<section class="pd-section pd-sale-price"><h2>El precio</h2><p><strong>Precio solicitado: '+escape(originalPrice)+'</strong></p>'+(other?.approximate?'<p>Equivalente estimado: '+escape(content.price(other.price,other.currency)+' '+other.currency)+'</p>':'')+'<p class="pd-muted">'+escape(pricing?.note()||'')+'</p><p class="pd-muted">El precio y la moneda de pago se acuerdan con el propietario.</p></section>';
-    const areaBasis=d.draftPreview?(d.details.documentedArea?'área indicada del plano':'área declarada'):d.details?'área del plano':'área indicada';
+    const areaBasis=d.isDemo?'área de ejemplo':d.draftPreview?(d.details.documentedArea?'área indicada del plano':'área declarada'):d.details?'área del plano':'área indicada';
     page.innerHTML = `<div class="pd-bar">${iconButton('back',window.ArenalPreview?'Cerrar vista previa':'Cerrar propiedad y volver a los resultados','back')}<a class="pd-brand" href="#" aria-label="Arenal Index">arenal <small>INDEX</small></a><div class="pd-bar-actions">${iconButton('share','Compartir propiedad','share')}${iconButton('save','Guardar propiedad','heart')}</div></div>
       <div class="pd-scroll"><header class="pd-heading"><p class="pd-kicker">${d.draftPreview?'Vista previa privada · borrador sin publicar':window.ArenalPreview?'Vista previa privada':d.isDemo?'Un ejemplo de lo que podés encontrar':'Propiedad en venta'}</p><h1 tabindex="-1">${escape(title)}</h1><p class="pd-location"><a href="#pd-location">${icon('pin')}${escape(d.place)} · Costa Rica</a>${d.isDemo?'<span class="pd-sample">Demostración</span>':''}</p></header>
       <button class="pd-hero" data-action="photos" aria-label="Ver ${count} fotografías" ${!count?'disabled':''}><div class="pd-photo-grid pd-grid-${photos.length}">${photos.map(p=>`<img src="${escape(p.src)}" alt="${escape(p.label)}${current.isDemo?' · imagen ilustrativa IA':''}">`).join('')}</div>${d.isDemo?'<span class="pd-photo-label">Fotos ilustrativas</span>':''}<span class="pd-photo-count">${icon('grid')} ${count?'Ver las '+count+' fotos':'Fotos por incorporar'}</span></button>
-      <div class="pd-content"><main>${content.content(d,display)}${priceDetails}
+      <div class="pd-content"><main>${content.content(d,display)}${priceDetails}${content.contactContent(d)}
       <section class="pd-section" id="pd-location"><h2>La ubicación</h2><p>${escape(d.place)} · Costa Rica</p><div class="pd-map" aria-label="Mapa de ubicación"></div><p class="pd-muted">${!d.coordinates?'Entrada por ubicar':d.isDemo?'Ubicación de demostración':d.details?.entrance?'El pin señala la entrada de la propiedad':d.approximate?'Ubicación aproximada':'Ubicación indicada en el anuncio'}. El punto no representa los linderos.</p><button class="pd-outline" data-action="map"${!d.coordinates?' disabled':''}>Explorar esta zona en el mapa</button></section>
-      </main><aside class="pd-aside"><p class="pd-price-label">Precio en ${currency}</p><strong>${displayedMoney(display.price)} <small>${currency}</small></strong><p>${displayedMoney(unitPrice)} ${currency}/m² · ${areaBasis}</p><p class="pd-original-price">Solicitado: ${escape(originalPrice)}</p><div class="pd-price-rule"></div><p>¿Te imaginás aquí?<br>Consultá los detalles y coordiná una visita.</p><button class="pd-primary" data-action="contact">${hasContact?'Consultar por WhatsApp':'Preparar una consulta'} ${icon('next')}</button><small class="pd-contact-caption">${hasContact?'Con el contacto autorizado del anuncio':'El contacto de venta está por asignar'}</small></aside></div></div>
-      <div class="pd-footer"><div><strong>${displayedMoney(display.price)} <small>${currency}</small></strong><span class="pd-unit">${displayedMoney(unitPrice)} ${currency}/m²</span></div><button class="pd-primary" data-action="contact">${hasContact?'Consultar':'Preparar consulta'}</button></div>`;
+      </main><aside class="pd-aside"><p class="pd-price-label">Precio en ${currency}</p><strong>${displayedMoney(display.price)} <small>${currency}</small></strong><p>${displayedMoney(unitPrice)} ${currency}/m² · ${areaBasis}</p><p class="pd-original-price">Solicitado: ${escape(originalPrice)}</p><div class="pd-price-rule"></div><p>¿Te imaginás aquí?<br>Consultá los detalles y coordiná una visita.</p>${contactAction(contactLinks?.whatsapp?'Consultar por WhatsApp':hasContact?'Ver contacto':'Preparar una consulta')}${hasContact?'<a class="pd-contact-more" href="#pd-contact">Ver contacto y otras opciones</a>':''}<small class="pd-contact-caption">${hasContact?escape(contactLinks.name):'El contacto de venta está por asignar'}</small></aside></div></div>
+      <div class="pd-footer"><div><strong>${displayedMoney(display.price)} <small>${currency}</small></strong><span class="pd-unit">${displayedMoney(unitPrice)} ${currency}/m²</span></div>${contactAction(contactLinks?.whatsapp?'WhatsApp':hasContact?'Ver contacto':'Preparar consulta')}</div>`;
     syncSave();
+    const contactMore=page.querySelector('.pd-contact-more');if(contactMore)contactMore.onclick=e=>{e.preventDefault();page.querySelector('#pd-contact').scrollIntoView({block:'start',behavior:'smooth'});};
     page.querySelector('.pd-brand').onclick=e=>{e.preventDefault();back();};
     page.querySelector('.pd-location a').onclick = e => { e.preventDefault(); page.querySelector('#pd-location').scrollIntoView({block:'start',behavior:'smooth'}); };
     const mapNode = page.querySelector('.pd-map');
@@ -99,11 +101,7 @@
   async function copy(text,status,field) {try{await navigator.clipboard.writeText(text);status.textContent='Copiado. Podés pegarlo donde prefirás.';}catch{field.focus();field.select();status.textContent='Seleccioná y copiá el texto con el teclado.';}}
   function contact() {
     if(current.draftPreview){dialog('Consultas del comprador','<div class="pd-dialog-body"><p>Así verá el comprador el botón de consulta. El contacto público se asignará durante la revisión del anuncio.</p><p>Esta vista previa no envía mensajes.</p></div>');return;}
-    if(current.details?.contact?.whatsapp){
-      const url=new URL('https://wa.me/'+current.details.contact.whatsapp);
-      url.searchParams.set('text','Hola, me interesa '+current.name+' ('+money(current.price)+' '+(current.currency||'USD')+'). '+location.href);
-      window.open(url.href,'_blank','noopener,noreferrer');return;
-    }
+    if(content.contactLinks(current)){page.querySelector('#pd-contact').scrollIntoView({block:'start',behavior:'smooth'});return;}
     const node=dialog('Consultá sobre la propiedad',`<div class="pd-dialog-body"><p><strong>${escape(current.name)}</strong><br>${money(current.price)} ${current.currency||'USD'} · ${number(current.area)} m²</p><p>${current.isDemo?'Este anuncio es de demostración y todavía no tiene un contacto asignado.':'Este anuncio todavía no tiene un contacto asignado.'} Podés preparar tu consulta; no se enviará ningún mensaje.</p><label for="pd-message">Tu consulta</label><textarea id="pd-message" rows="5">${escape('Hola, me interesa '+current.name+' ('+money(current.price)+' '+(current.currency||'USD')+'). ¿Sigue disponible? Me gustaría recibir más información y coordinar una visita.')}</textarea><button class="pd-primary" id="pd-copy-message">Copiar consulta</button><p class="pd-dialog-status" role="status"></p></div>`);
     node.querySelector('#pd-copy-message').onclick=()=>copy(node.querySelector('textarea').value,node.querySelector('[role="status"]'),node.querySelector('textarea'));
   }
