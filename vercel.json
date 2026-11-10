@@ -102,10 +102,18 @@
   "rewrites": [
     {
       "source": "/p/:code/image.jpg",
-      "destination": "/api/share?code=:code&image=1"
+      "destination": "/api/share?code=:code&image=1&legacy=1"
     },
     {
       "source": "/p/:code",
+      "destination": "/api/share?code=:code&legacy=1"
+    },
+    {
+      "source": "/:code([A-Z][A-Za-z0-9]{5})/image.jpg",
+      "destination": "/api/share?code=:code&image=1"
+    },
+    {
+      "source": "/:code([A-Z][A-Za-z0-9]{5})",
       "destination": "/api/share?code=:code"
     }
   ]

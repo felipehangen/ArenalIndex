@@ -39,7 +39,7 @@
     if(!['USD','CRC'].includes(currency))throw new Error('Unsupported listing currency');
     const images=Array.isArray(row.images)?row.images.filter(safeImage).map(imagePath):[];
     if (!images.length) images.push(demo?'/photos/lot.jpg':'/icons/no-photo.svg');
-    const shareUrl=typeof row.shareUrl==='string'&&/^https:\/\/(?:go\.arenalindex\.com|arenalindex-intake\.vercel\.app)\/p\/[A-Za-z0-9_-]{10}$/.test(row.shareUrl)?row.shareUrl:null;
+    const shareUrl=typeof row.shareUrl==='string'&&/^https:\/\/(?:go\.arenalindex\.com|arenalindex-intake\.vercel\.app)\/(?:[A-Z][A-Za-z0-9]{5}|p\/[A-Za-z0-9_-]{10})$/.test(row.shareUrl)?row.shareUrl:null;
     return {id:row.id,shareUrl,name:row.name,description:row.description||'',place:row.place||'La Fortuna',
       price,area,currency,details:detail,coordinates:[lng,lat],house:row.house===true,volcano:row.volcano===true,river:row.river===true,
       water:row.water===true,electricity:row.electricity===true,well:row.well===true,

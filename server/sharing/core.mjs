@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {shareCode,shareURL,shareOrigin,propertyURL} from './links.mjs';
+import {shareCode,legacyShareCode,shareURL,shareOrigin,propertyURL} from './links.mjs';
 import {fetchCover,publicCoverURL,renderShareImage} from './image.mjs';
 
 const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -35,10 +35,11 @@ export function createShareHandler({published,origin=shareOrigin(),fetchImage=fe
     const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Robots-Tag':'noindex, follow'};
     const error=(status,message)=>new Response(request.method==='HEAD'?null:message,{status,headers:{...headers,'Content-Type':'text/plain; charset=utf-8'}});
     if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405,headers:{...headers,Allow:'GET, HEAD'}});
-    const url=new URL(request.url),match=url.pathname.match(/^\/p\/([A-Za-z0-9_-]{10})(\/image\.jpg)?\/?$/);
+    const url=new URL(request.url),legacy=url.pathname.startsWith('/p/');
+    const match=url.pathname.match(legacy? /^\/p\/([A-Za-z0-9_-]{10})(\/image\.jpg)?\/?$/ : /^\/([A-Z][A-Za-z0-9]{5})(\/image\.jpg)?\/?$/);
     if(!match)return error(404,'Propiedad no disponible · Property unavailable');
     try{
-      const rows=await published(),matches=rows.filter(row=>codeFor(row.id)===match[1]);
+      const rows=await published(),matches=rows.filter(row=>(legacy?legacyShareCode:codeFor)(row.id)===match[1]);
       // Never let an alias collision open a different property.
       if(matches.length>1)return error(409,'Enlace no disponible · Link unavailable');
       if(!matches.length)return error(404,'Propiedad no disponible · Property unavailable');

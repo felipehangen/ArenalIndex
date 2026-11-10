@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import sharp from 'sharp';
 import {parseHTML} from 'linkedom';
-import {shareCode,shareURL,propertyURL} from '../server/sharing/links.mjs';
+import {shareCode,legacyShareCode,shareURL,propertyURL} from '../server/sharing/links.mjs';
 import {createShareHandler,renderSharePage} from '../server/sharing/core.mjs';
 import {fetchCover,publicCoverURL,renderShareImage} from '../server/sharing/image.mjs';
 import {createPublicHandler} from '../server/intake/public.mjs';
@@ -14,12 +14,26 @@ const row={id:'ai-c7bcad95a170344b232982f7',name:'Un jardín frente al Arenal',p
 const request=(suffix='',method='GET')=>new Request(shareURL(row.id,origin)+suffix,{method});
 
 test('stable compact aliases depend only on public IDs; invalid IDs and collisions never misroute',async()=>{
-  assert.equal(shareURL(row.id,origin).length,39);
+  assert.equal(shareURL(row.id,origin).length,33);
+  assert.match(shareCode(row.id),/^[A-Z][A-Za-z0-9]{5}$/);
+  assert.equal(legacyShareCode(row.id),'y-b96PDJKq');
   assert.equal(shareCode(row.id),shareCode({...row,name:'Updated',price:1}.id));
   assert.notEqual(shareCode(row.id),shareCode('lot-101'));
   for(const id of ['',null,'../secret','A'.repeat(81)])assert.throws(()=>shareCode(id));
   const handler=createShareHandler({origin,published:async()=>[row,{...row,id:'lot-101'}],codeFor:()=>shareCode(row.id)});
   assert.equal((await handler(request())).status,409);
+});
+
+test('previous ten-character links and images still open the same listing with the shorter canonical URL',async()=>{
+  const bytes=Buffer.from('jpeg');
+  const handler=createShareHandler({origin,published:async()=>[row],fetchImage:async()=>bytes,renderImage:async()=>bytes});
+  const old=origin+'/p/y-b96PDJKq';
+  const response=await handler(new Request(old));assert.equal(response.status,200);
+  const {document}=parseHTML(await response.text());
+  assert.equal(document.querySelector('[property="og:url"]').getAttribute('content'),shareURL(row.id,origin));
+  assert.equal(document.querySelector('[property="og:title"]').getAttribute('content'),row.name);
+  assert.equal((await handler(new Request(old+'/image.jpg?v=old'))).status,200);
+  for(const path of ['/cuenta','/admin','/photos','/ABCDEF7','/Abc_d1','/p/ABCDEF'])assert.equal((await handler(new Request(origin+path))).status,404);
 });
 
 test('crawler receives photo, title, original price and locality without JavaScript or private data',async()=>{
@@ -104,6 +118,8 @@ test('public catalog and contact/share UI use the canonical URL, preserving lega
   assert.equal(window.ArenalListing.publicURL(item),shareURL(row.id,origin));
   assert.ok(new URL(window.ArenalListing.contactLinks(item).whatsapp).searchParams.get('text').endsWith(shareURL(row.id,origin)));
   assert.equal(window.ArenalListing.contactLinks({...item,draftPreview:true}),null);
+  const old=origin+'/p/'+legacyShareCode(row.id);
+  assert.equal(window.ArenalListing.publicURL(window.ArenalData.normalize({...published,shareUrl:old})),old);
   for(const invalid of ['https://evil.example/p/1234567890',shareURL(row.id,origin)+'?token=secret','javascript:alert(1)']){
     const legacy=window.ArenalData.normalize({...published,shareUrl:invalid});assert.equal(window.ArenalListing.publicURL(legacy),propertyURL(row.id));
   }
