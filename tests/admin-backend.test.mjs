@@ -82,6 +82,16 @@ test('inbox pages return summaries without tokens, private files or document det
   assert.doesNotMatch(JSON.stringify(result.body),/SECRET|PRIVATE-PLAN|plan_file|token_hash|payload|files/);assert.equal(e.signed.length,0);
   assert.deepEqual(result.body.records[0],recordSummary(row));
 });
+test('admin listing sources load concurrently and a failed source never returns a partial inbox',{timeout:2000},async()=>{
+  const e=environment(),token=await e.login();let finish;
+  e.repository.records=()=>new Promise(resolve=>{finish=resolve;});
+  const catalog={list:async()=>{assert.ok(finish);finish({records:[],cursor:null});return [{id:'lot-1'}];}};
+  const handler=createAdminHandler({...e.options,catalog});
+  const call=()=>handler(new Request('https://example.com/admin',{method:'POST',headers:{Authorization:'Bearer '+token},body:JSON.stringify({action:'list'})}));
+  const response=await call();assert.equal(response.status,200);assert.deepEqual((await response.json()).records,[{id:'lot-1'}]);
+  catalog.list=async()=>{finish({records:[],cursor:null});throw Object.assign(Error('Source unavailable'),{status:503});};
+  const failure=await call();assert.equal(failure.status,503);assert.equal((await failure.json()).records,undefined);
+});
 test('an administrator can review expired email links and prepare, publish and withdraw an approved version',async()=>{
   const e=environment(),row=approvedRow();row.status='ready_for_review';row.review_token_hash='expired-link';row.review_token_expires='2020-01-01';e.rows.set(row.id,row);
   const token=await e.login(),body={id:row.id,version:row.version,publicationRevision:0,editorial,confirmed:true};

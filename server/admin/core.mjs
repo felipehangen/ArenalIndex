@@ -63,8 +63,8 @@ export function createAdminHandler({repository,verifyGoogle,config,mailer,resolv
       if(typeof action==='string'&&action.startsWith('catalog_')&&catalog)return json(await catalog.action(action,body,session));
       if(action==='list'){
         if(body.cursor!==undefined&&(typeof body.cursor!=='string'||body.cursor.length>2000))fail(400,'Página inválida.');
-        const page=await repository.records(body.cursor);
-        return json({records:[...page.records.filter(row=>row.status!=='deleted').map(recordSummary),...(!body.cursor&&catalog?await catalog.list():[])],cursor:page.cursor});
+        const [page,demos]=await Promise.all([repository.records(body.cursor),!body.cursor&&catalog?catalog.list():[]]);
+        return json({records:[...page.records.filter(row=>row.status!=='deleted').map(recordSummary),...demos],cursor:page.cursor});
       }
       if(reviewActions.has(action)){
         // Identity is passed through a server-only closure; headers cannot grant this privilege.

@@ -7,7 +7,7 @@ export function application(env=process.env){
   const storeId=env.BLOB_STORE_ID,token=env.BLOB_READ_WRITE_TOKEN;
   const emailKey=env.RESEND_API_KEY||'',from=env.INTAKE_EMAIL_FROM||'',to=env.INTAKE_REVIEW_EMAIL||'';
   const reviewSecret=env.INTAKE_REVIEW_SECRET||'';
-  const repository=createRepository({storeId,token});
+  const repository=createRepository({storeId,token,deadline:Date.now()+24000});
   return createHandler({
     repository,resolveLocality:createLocalityResolver({repository}),
     mailer:createMailer({key:emailKey,from,to}),
