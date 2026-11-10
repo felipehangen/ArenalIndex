@@ -9,7 +9,7 @@ test('loading more preserves existing cards, images and carousel state',()=>{
  const original=data.slice(0,20).map(d=>({...d,image:{decoded:true},photo:2}));
  const list={children:[...original],append(batch){this.children.push(...batch.children);}};
  const more={},progress={};let created=0,iconRenders=0;
- const context={icons:()=>iconRenders++,visibleLimit:20,selected:null,selectedGroup:null,results:()=>data,q:selector=>({'#index-list':list,'#results-more':more,'#results-progress':progress})[selector],document:{createDocumentFragment:()=>({children:[],append(card){this.children.push(card);}})},property:d=>{created++;return {...d};}};
+ const context={icons:()=>iconRenders++,visibleLimit:20,selected:null,selectedGroup:null,listingResults:()=>data,q:selector=>({'#index-list':list,'#results-more':more,'#results-progress':progress})[selector],document:{createDocumentFragment:()=>({children:[],append(card){this.children.push(card);}})},property:d=>{created++;return {...d};}};
  vm.createContext(context);vm.runInContext(appendFunction+';appendMoreResults();',context);
  assert.equal(list.children.length,40);assert.equal(created,20);
  original.forEach((card,i)=>assert.equal(list.children[i],card));

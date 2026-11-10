@@ -1,6 +1,14 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
   "Explorar": "Explore",
+  "Ordenar": "Sort",
+  "Ordenar propiedades": "Sort properties",
+  "Menor precio": "Lowest price",
+  "Mayor precio": "Highest price",
+  "Menor precio por m²": "Lowest price per m²",
+  "Mayor terreno": "Largest land area",
+  "{count} guardado": "{count} saved",
+  "{count} guardados": "{count} saved",
   "Guardados": "Saved",
   "La Fortuna y alrededores": "La Fortuna and surrounding areas",
   "Filtros": "Filters",
