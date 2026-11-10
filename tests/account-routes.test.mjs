@@ -6,10 +6,12 @@ import {parseHTML} from 'linkedom';
 import {accountContext,accountKey} from '../site/newlisting/account.mjs';
 import * as client from '../site/cuenta/client.mjs';
 
-test('old portal links redirect to the neutral route with their destination intact',()=>{
-  const html=fs.readFileSync(new URL('../site/owner/index.html',import.meta.url),'utf8'),{document}=parseHTML(html);
-  let destination;const location={search:'?lang=en',hash:'#edit=property-001',replace:url=>destination=url};
-  vm.runInNewContext(document.querySelector('script').textContent,{location});assert.equal(destination,'/cuenta/?lang=en#edit=property-001');
+test('English and old portal links redirect to the neutral route with their destination intact',()=>{
+  for(const route of ['account','owner']){
+    const html=fs.readFileSync(new URL('../site/'+route+'/index.html',import.meta.url),'utf8'),{document}=parseHTML(html);
+    let destination;const location={search:'?lang=en',hash:'#edit=property-001',replace:url=>destination=url};
+    vm.runInNewContext(document.querySelector('script').textContent,{location});assert.equal(destination,'/cuenta/?lang=en#edit=property-001');
+  }
 });
 test('neutral and legacy editor routes retain the same session and local draft key',async t=>{
   const identity={token:'a'.repeat(64),email:'broker@example.com',expiresAt:Date.now()+3600000};let replaced;

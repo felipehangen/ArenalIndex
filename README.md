@@ -117,7 +117,7 @@ Publicar primero el servicio Vercel y después el frontend. Para verificar Googl
 
 ### Mi cuenta y acceso
 
-`https://arenalindex.com/cuenta/` muestra «Mis anuncios» para cualquier persona autorizada, ya sea propietaria, corredora o representante. El enlace anterior `/owner/` redirige a esta página conservando el destino de la ficha. Los identificadores internos y las claves locales se conservan para mantener cuentas, sesiones y borradores existentes.
+`https://arenalindex.com/cuenta/` muestra «Mis anuncios» para cualquier persona autorizada, ya sea propietaria, corredora o representante. `/account/` sirve como acceso equivalente y redirige a `/cuenta/`. El enlace anterior `/owner/` también redirige a esta página. Ambas redirecciones conservan los parámetros y el destino de la ficha, sin cambiar el idioma elegido. Los identificadores internos y las claves locales se conservan para mantener cuentas, sesiones y borradores existentes.
 
 Todas las altas se hacen desde administración → **Cuentas y acceso**. No se crean ni se aceptan códigos de invitación. Hay dos formas de entrar:
 
