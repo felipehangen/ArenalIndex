@@ -10,8 +10,7 @@
   #arenal-index-dos .explore-header .browse-location{grid-column:2;grid-row:1;text-align:center;font-size:15px;line-height:1.5}
   #arenal-index-dos .browse-tools{display:none}
   #arenal-index-dos .bottom-navigation{position:absolute;top:20px;right:32px;min-height:54px;padding:0;border:0;gap:8px;background:transparent;z-index:6}
-  #arenal-index-dos .bottom-navigation :is(button,#index-saved){min-width:0;width:auto;height:48px;min-height:48px;display:flex;flex-direction:row;gap:8px;padding:10px 14px;border-radius:24px;font-size:13px}
-  #arenal-index-dos .bottom-navigation button[aria-pressed=true]{background:#f0f5ee;color:#285a3d}
+  #arenal-index-dos .bottom-navigation button{min-width:0;width:auto;height:48px;min-height:48px;display:flex;flex-direction:row;gap:8px;padding:10px 14px;border-radius:24px;font-size:13px}
   #arenal-index-dos .bottom-navigation svg{width:18px;height:18px}
   #arenal-index-dos .desktop-filters{display:flex;align-items:center;gap:10px;padding:14px 32px;border-bottom:1px solid var(--m-line);flex-shrink:0;overflow-x:auto;scrollbar-width:thin}
   #arenal-index-dos .desktop-filters button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 14px;background:#fff;border:1px solid var(--m-line);border-radius:22px;white-space:nowrap;font-size:12px;font-weight:500;color:var(--m-text);flex-shrink:0}
