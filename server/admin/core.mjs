@@ -3,7 +3,6 @@ import {recordSummary} from '../portal/summary.mjs';
 export {recordSummary} from '../portal/summary.mjs';
 import {createHandler} from '../intake/core.mjs';
 import {workspaceAction} from '../portal/workspace.mjs';
-import {invitationAction} from '../portal/core.mjs';
 import {accountAdminAction} from '../portal/accounts.mjs';
 
 const hash=value=>createHash('sha256').update(value).digest('hex');
@@ -57,8 +56,7 @@ export function createAdminHandler({repository,verifyGoogle,config,mailer,resolv
       }
       if(action==='session')return json({email:session.email,expiresAt:session.expiresAt});
       if(action==='health')return json({ready:config.emailReady});
-      if(['invitations','create_invitation','revoke_invitation'].includes(action))return json(await invitationAction({action,body,repository,actor:session,now}));
-      if(['owner_accounts','set_owner_password','set_owner_active'].includes(action))return json(await accountAdminAction({action,body,repository,actor:session,now}));
+      if(['create_account','owner_accounts','set_owner_password','set_owner_active'].includes(action))return json(await accountAdminAction({action,body,repository,actor:session,now}));
       if(['workspace_open','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen_owner','workspace_unlist'].includes(action))return json(await workspaceAction({action,body,actor:{...session,role:'admin'},repository,config,mailer,now}));
       if(action==='list'){
         if(body.cursor!==undefined&&(typeof body.cursor!=='string'||body.cursor.length>2000))fail(400,'Página inválida.');

@@ -67,7 +67,7 @@ export async function workspaceAction({action,body,actor,repository,config,maile
     if(body.version!==row.version||body.editRevision!==(row.edit_revision||0))fail(409,'La ficha cambió. Volvé a abrirla.');
     if(action==='workspace_reopen_owner'&&actor.role!=='admin')fail(403,'Acción no autorizada.');
     const feedback=String(body.feedback||'').trim().slice(0,3000);
-    if(action==='workspace_reopen_owner'&&!feedback)fail(422,'Explicá qué debe cambiar el propietario.');
+    if(action==='workspace_reopen_owner'&&!feedback)fail(422,'Explicá qué cambios necesita la ficha.');
     const updated=await repository.update(id,{version:row.version,status:row.status,edit_revision:row.edit_revision},{status:action==='workspace_reopen_owner'?'changes_requested':'draft',feedback:feedback||row.feedback||'',edit_revision:(row.edit_revision||0)+1,review:{},review_token_hash:null,review_token_expires:null,reviewed_by:actor.email,reviewed_at:now().toISOString(),updated_at:now().toISOString()});
     if(!updated)fail(409,'La ficha cambió. Volvé a abrirla.');return workspaceSummary(updated);
   }

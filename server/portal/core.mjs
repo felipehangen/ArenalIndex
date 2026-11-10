@@ -5,19 +5,6 @@ import {findAccount,googleAccount,normalizeEmail,verifyPassword,changePassword} 
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const secret=()=>randomBytes(32).toString('hex');
-export async function invitationAction({action,body,repository,actor,now}){
-  if(action==='invitations')return {invitations:(await repository.invitations()).map(({id,label,active,createdAt})=>({id,label,active,createdAt}))};
-  if(action==='create_invitation'){
-    const code=randomBytes(15).toString('base64url'),id=hash(code),row={id,label:String(body.label||'Invitación de propietarios').trim().slice(0,80),active:true,createdAt:now().toISOString(),createdBy:actor.email};
-    await repository.portalCreate('invites',id,row);return {code,invitation:row};
-  }
-  if(action==='revoke_invitation'){
-    if(!/^[a-f0-9]{64}$/.test(body.id||''))fail(400,'Invitación inválida.');
-    const updated=await repository.portalUpdate('invites',body.id,{active:true},{active:false,revokedAt:now().toISOString()});
-    if(!updated)fail(409,'La invitación ya cambió. Actualizá la lista.');return {revoked:true};
-  }
-  fail(400,'Acción no reconocida.');
-}
 export function createOwnerHandler({repository,verifyGoogle,config,mailer,now=()=>new Date()}){
   const origins=new Set(config.origins||['https://arenalindex.com','https://www.arenalindex.com']);
   return async request=>{
@@ -55,10 +42,8 @@ export function createOwnerHandler({repository,verifyGoogle,config,mailer,now=()
         if(!challenge||challenge.used||challenge.expiresAt<=now().getTime())fail(401,'El inicio de sesión venció. Intentá de nuevo.');
         let identity;try{identity=await verifyGoogle(body.credential,body.nonce);}catch{fail(401,'No se pudo verificar el acceso con Google.');}
         identity.email=normalizeEmail(identity.email);
-        const code=typeof body.invitation==='string'?body.invitation.trim():'';
-        const invite=/^[A-Za-z0-9_-]{20}$/.test(code)?await repository.portalGet('invites',hash(code)):null;
         if(!await repository.authUpdate('owner-challenge',hash(body.nonce),{used:false},{used:true}))fail(401,'El inicio de sesión ya se utilizó. Intentá de nuevo.');
-        const account=await googleAccount(repository,identity,{allowCreate:!!invite?.active,now});
+        const account=await googleAccount(repository,identity);
         return startSession(account,'google');
       }
       const token=request.headers.get('Authorization')?.match(/^Bearer ([a-f0-9]{64})$/)?.[1];if(!token)fail(401,'Iniciá sesión para continuar.');

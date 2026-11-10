@@ -5,16 +5,24 @@ import {completeDraft} from './intake-fixtures.mjs';
 import {approvedRow,editorial} from './publication-fixture.mjs';
 import {newDraft} from '../site/newlisting/model.mjs';
 import {createPublication} from '../server/intake/publication.mjs';
-async function setup(){const e=portalFixture(),invitation=await e.invite(),a=await e.login('owner-a',invitation.code),b=await e.login('owner-b',invitation.code);assert.equal(a.status,200);assert.equal(b.status,200);return {...e,...invitation,a:a.body.token,b:b.body.token};}
+async function setup(){const e=portalFixture(),admin=await e.adminSession();await e.register('owner-a',admin);await e.register('owner-b',admin);const a=await e.login('owner-a'),b=await e.login('owner-b');assert.equal(a.status,200);assert.equal(b.status,200);return {...e,admin,a:a.body.token,b:b.body.token,subjectA:e.auth.get('owner-session/'+hash(a.body.token)).subject,subjectB:e.auth.get('owner-session/'+hash(b.body.token)).subject};}
 async function save(e,payload,token=e.a,revision=0,version=0,reuse=[]){const prepared=await e.call('workspace_save_prepare',{draft:payload,editRevision:revision,version,reuse},token);assert.equal(prepared.status,200,JSON.stringify(prepared.body));e.upload(prepared.body,payload);return e.call('workspace_save_commit',{id:payload.id,transaction:prepared.body.transaction},token);}
-test('reusable invitations activate separate Google accounts; revoking a code blocks new accounts, not existing owners',async()=>{
-  const e=await setup();assert.doesNotMatch(JSON.stringify([...e.portal]),new RegExp(e.code));
-  assert.equal((await e.login('unknown','bad')).status,403);
-  assert.equal((await e.call('revoke_invitation',{id:e.id},e.admin,'admin')).status,200);
-  assert.equal((await e.login('new-owner',e.code)).status,403);
+test('only admin-registered accounts can enter; old invitation codes cannot register new accounts',async()=>{
+  const e=await setup(),code='A'.repeat(20);e.portal.set('invites/'+hash(code),{active:true});
+  assert.equal((await e.login('unknown','owner',{invitation:code})).status,403);
+  assert.equal((await e.login('new-owner')).status,403);
   assert.equal((await e.login('owner-a')).status,200);
+  for(const action of ['invitations','create_invitation','revoke_invitation'])assert.equal((await e.call(action,{},e.admin,'admin')).status,400);
   assert.equal((await e.call('list',{},e.admin)).status,401);assert.equal((await e.call('list',{},e.a,'admin')).status,401);
-  for(const action of ['create_invitation','revoke_invitation','approve','publish','review','workspace_reopen_owner'])assert.equal((await e.call(action,{},e.a)).status,400);
+  for(const action of ['create_account','create_invitation','revoke_invitation','approve','publish','review','workspace_reopen_owner'])assert.equal((await e.call(action,{},e.a)).status,400);
+});
+test('accounts created under the previous Google invitation flow keep their identity and listings',async()=>{
+  const e=portalFixture(),subject='previous-google-account',email=subject+'@gmail.com';
+  e.portal.set('emails/'+hash(email),{subject,email});e.portal.set('accounts/'+hash(subject),{subject,email,googleSubject:subject,active:true});
+  const draft=newDraft('previous-draft-01');e.rows.set(draft.id,{id:draft.id,owner_subject:subject,payload:draft,status:'draft',version:1});
+  const signed=await e.login(subject);assert.equal(signed.status,200);
+  assert.equal(e.auth.get('owner-session/'+hash(signed.body.token)).subject,subject);
+  assert.equal((await e.call('list',{},signed.body.token)).body.records[0].id,draft.id);
 });
 test('incomplete cloud drafts are isolated by account, and a second user cannot read, overwrite, submit or unlist them',async()=>{
   const e=await setup(),draft=newDraft('owner-draft-01');draft.values.listing_title='My draft';
@@ -43,7 +51,7 @@ test('saving is idempotent, and a complete account draft can enter the existing 
   const review=await e.call('review',{id:draft.id},e.admin,'admin');assert.equal(review.status,200);assert.match(review.body.draft.files[0].url,/draft-/);
 });
 test('administrators edit received data and reopen for owners while the old publication remains unchanged',async()=>{
-  const e=await setup(),row=approvedRow();row.owner_subject='owner-a';row.owner_email='owner-a@gmail.com';row.publication=createPublication(row,editorial,{apiURL:e.options.config.publicAPIURL});e.rows.set(row.id,row);
+  const e=await setup(),row=approvedRow();row.owner_subject=e.subjectA;row.owner_email='owner-a@gmail.com';row.publication=createPublication(row,editorial,{apiURL:e.options.config.publicAPIURL});e.rows.set(row.id,row);
   const published=structuredClone(row.publication),payload=structuredClone(row.payload);payload.values.price='999999';payload.files=[];payload.values.photo_exception='New photos pending';
   const reopened=await e.call('workspace_reopen_owner',{id:row.id,version:row.version,editRevision:0,feedback:'Confirm the price.'},e.admin,'admin');assert.equal(reopened.body.status,'changes_requested');assert.deepEqual(e.rows.get(row.id).publication,published);
   const saved=await save(e,payload,e.a,1,row.version);assert.equal(saved.status,200);assert.deepEqual(e.rows.get(row.id).publication,published);
@@ -63,7 +71,7 @@ test('owner challenges are single-use and sessions expire, revoke and obey accou
   const e=await setup(),challenge=await e.call('challenge'),body={nonce:challenge.body.nonce,credential:'owner-a'};
   const results=await Promise.all([e.call('login',body),e.call('login',body)]);assert.deepEqual(results.map(r=>r.status).sort(),[200,401]);
   await e.call('logout',{},e.a);assert.equal((await e.call('list',{},e.a)).status,401);
-  e.portal.get('accounts/'+hash('owner-b')).active=false;assert.equal((await e.call('list',{},e.b)).status,401);
+  e.portal.get('accounts/'+hash(e.subjectB)).active=false;assert.equal((await e.call('list',{},e.b)).status,401);
   const fresh=await e.login('owner-a');e.advance(8*3600000);assert.equal((await e.call('list',{},fresh.body.token)).status,401);
 });
 test('direct admin edits invalidate an owner save in progress and require a new review before publication',async()=>{

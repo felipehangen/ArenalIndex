@@ -1,5 +1,5 @@
 export const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export const labels={ready_for_review:'Por revisar',approved:'Aprobados',changes_requested:'Esperando al propietario',draft:'En preparación',published:'Publicados',all:'Todos'};
+export const labels={ready_for_review:'Por revisar',approved:'Aprobados',changes_requested:'Esperando cambios',draft:'En preparación',published:'Publicados',all:'Todos'};
 const t=text=>window.ArenalI18n?.t(text)||text;
 export function selectRecords(records,{status='ready_for_review',query=''}={}){
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -14,7 +14,7 @@ export function renderRows(records,{owner=false}={}){
     const updated=row.updatedAt&&!Number.isNaN(Date.parse(row.updatedAt))?new Intl.DateTimeFormat(locale,{day:'numeric',month:'short',year:'numeric'}).format(new Date(row.updatedAt)):'—';
     const amount=row.price?new Intl.NumberFormat(locale,{style:'currency',currency:row.currency,maximumFractionDigits:0}).format(row.price):'—';
     const id=encodeURIComponent(row.id);
-    const href=owner?'/newlisting/?owner='+id:'/admin/review/#id='+id;
+    const href=owner?'/newlisting/?cuenta='+id:'/admin/review/#id='+id;
     const state=owner?(row.publishedVersion?'Publicado':row.withdrawn?'Retirado':row.status==='changes_requested'?'Necesita tus cambios':row.status==='ready_for_review'?'En revisión':row.status==='approved'?'Listo para publicar':'Borrador'):(labels[row.status]||'En preparación');
     return '<article class="admin-row"><div class="admin-property"><a class="admin-record-link" translate="no" href="'+href+'">'+esc(row.title)+'</a><p translate="no">'+esc(row.contact||row.email||row.id)+'</p></div>'+
       '<div class="admin-price"><strong translate="no">'+esc(amount)+'</strong><span translate="no">'+esc(row.area?new Intl.NumberFormat(locale).format(row.area)+' m²':'—')+'</span></div>'+

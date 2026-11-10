@@ -39,13 +39,6 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
       if(!current||Object.entries(filters).some(([key,value])=>current.row[key]!==value))return null;
       return write(path,{...current.row,...patch},current.etag);
     },
-    async invitations(){
-      const records=[];let cursor;
-      do{const page=await sdk.list({...auth,prefix:'portal/invites/',limit:100,...(cursor?{cursor}:{})});
-        for(const entry of page.blobs){const row=await read(entry.pathname);if(row)records.push(row.row);}
-        cursor=page.hasMore?page.cursor:null;
-      }while(cursor);return records;
-    },
     async ownerAccounts(){
       const records=[];let cursor;
       do{const page=await sdk.list({...auth,prefix:'portal/accounts/',limit:100,...(cursor?{cursor}:{})});
@@ -133,6 +126,6 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
   };
 }
 function portalPath(kind,id){
-  if(!['accounts','emails','invites','stages','geocodes'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid portal key');
+  if(!['accounts','emails','stages','geocodes'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid portal key');
   return 'portal/'+kind+'/'+id+'.json';
 }

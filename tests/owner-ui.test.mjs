@@ -7,7 +7,7 @@ import {mountAccounts} from '../site/admin/accounts.mjs';
 const identity={token:'a'.repeat(64),email:'owner@example.com',method:'password',expiresAt:Date.now()+3600000,requiresPasswordChange:true};
 const event={preventDefault(){}};
 function setup({signedIn=false,hash='',handler,owner=true}={}){
-  const html=fs.readFileSync(new URL(owner?'../site/owner/index.html':'../site/admin/index.html',import.meta.url),'utf8');
+  const html=fs.readFileSync(new URL(owner?'../site/cuenta/index.html':'../site/admin/index.html',import.meta.url),'utf8');
   const {document,window}=parseHTML(html),calls=[],timers=[];let session=signedIn?{...identity}:null,required=true;
   globalThis.window=window;window.location={hash,replace(value){this.destination=value;}};
   document.querySelector('#admin-status option').selected=true;
@@ -19,7 +19,7 @@ function setup({signedIn=false,hash='',handler,owner=true}={}){
     if(action==='change_password'){required=false;return {changed:true};}
     if(action==='list')return {records:[],cursor:null};
     if(action==='owner_accounts')return {accounts:[{id:'c'.repeat(64),email:'owner@example.com',active:true,password:true,temporaryPassword:true}]};
-    if(action==='set_owner_password')return {email:body.email,active:true};
+    if(action==='set_owner_password'||action==='create_account')return {email:body.email,active:true};
     throw Error('Unexpected '+action);
   }};
   const google={initialize(options){this.options=options;},renderButton(node){node.textContent='Google';},disableAutoSelect(){}};
@@ -43,7 +43,7 @@ test('direct draft links wait until the temporary password has been replaced',as
   const e=setup({signedIn:true,hash:'#edit=property-0001'});await e.controller.ready;
   assert.equal(e.window.location.destination,undefined);assert.equal(e.$('#password-panel').hidden,false);
   e.$('#new-password').value=e.$('#confirm-password').value='Private password 123';await e.$('#password-form').onsubmit(event);
-  assert.equal(e.window.location.destination,'/newlisting/?owner=property-0001');e.controller.destroy();
+  assert.equal(e.window.location.destination,'/newlisting/?cuenta=property-0001');e.controller.destroy();
 });
 test('password sign-in is usable even when the Google SDK cannot load',async()=>{
   const e=setup({handler:action=>{if(action==='config')return {configured:false};}});await e.controller.ready;
@@ -62,4 +62,19 @@ test('the admin creates a temporary password without storing it in an account li
   assert.equal(form.querySelector('[name=password]').value,'');assert.match(e.$('#owner-accounts output').textContent,/Temporary password 123/);
   assert.doesNotMatch(e.$('[data-accounts]').textContent,/Temporary password 123/);assert.match(e.$('[data-accounts]').textContent,/owner@example.com/);
   await e.$('#sign-out').onclick();assert.equal(e.$('#owner-accounts output').textContent,'');assert.equal(e.$('[data-accounts]').textContent,'');e.controller.destroy();
+});
+test('admin registration accepts an email without a password, and the interface uses neutral account language',async()=>{
+  const e=setup({owner:false,signedIn:true});await e.controller.ready;mountAccounts({document:e.document,window:e.window,api:e.api});
+  assert.equal(e.$('#invitations'),null);assert.match(e.$('#owner-accounts summary').textContent,/Cuentas y acceso/);
+  const form=e.$('#create-owner-account');form.querySelector('[name=email]').value='broker@example.com';
+  assert.equal(form.querySelector('[name=password]').hasAttribute('required'),false);await form.onsubmit(event);
+  assert.deepEqual(e.calls.find(c=>c.action==='create_account').body,{email:'broker@example.com'});assert.equal(e.calls.some(c=>c.action==='set_owner_password'),false);
+  assert.equal(e.$('#owner-accounts output').hidden,true);assert.match(e.$('#owner-accounts [role=status]').textContent,/entrar con Google/);e.controller.destroy();
+});
+test('Google sign-in has no invitation field or code payload, and links use the neutral account routes',async()=>{
+  const e=setup({handler:action=>action==='login'?{...identity,method:'google',requiresPasswordChange:false}:undefined});await e.controller.ready;
+  assert.equal(e.$('#invitation'),null);assert.doesNotMatch(e.document.body.textContent,/propietario|código de invitación/i);
+  assert.equal(e.$('a[href="/newlisting/?cuenta=new"]')?.textContent,'Nueva propiedad');
+  await e.google.options.callback({credential:'signed-token'});
+  assert.deepEqual(e.calls.find(c=>c.action==='login').body,{credential:'signed-token',nonce:'b'.repeat(64)});assert.equal(e.$('#inbox').hidden,false);e.controller.destroy();
 });

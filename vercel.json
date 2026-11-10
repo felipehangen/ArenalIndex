@@ -23,27 +23,71 @@
   },
   "headers": [
     {
+      "source": "/cuenta/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
       "source": "/owner/(.*)",
       "headers": [
-        {"key": "Cache-Control", "value": "no-store"},
-        {"key": "Referrer-Policy", "value": "no-referrer"},
-        {"key": "X-Robots-Tag", "value": "noindex, nofollow"}
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/admin/(.*)",
       "headers": [
-        {"key": "Cache-Control", "value": "no-store"},
-        {"key": "Referrer-Policy", "value": "no-referrer"},
-        {"key": "X-Robots-Tag", "value": "noindex, nofollow"}
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/newlisting/review/(.*)",
       "headers": [
-        {"key": "Cache-Control", "value": "no-store"},
-        {"key": "Referrer-Policy", "value": "no-referrer"},
-        {"key": "X-Robots-Tag", "value": "noindex, nofollow"}
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     }
   ]

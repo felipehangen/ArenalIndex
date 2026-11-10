@@ -12,7 +12,7 @@ export function portalFixture(){
     async allow(){return true;},async ensureOwnerIndex(){},async ensurePublishedIndex(){},
     async get(id){return clone(rows.get(id)||null);},async create(row){if(rows.has(row.id))return null;rows.set(row.id,clone(row));return clone(row);},async update(id,filters,patch){return update(rows,id,filters,patch);},
     async records(){return {records:[...rows.values()],cursor:null};},async ownerRecords(subject){return {records:[...rows.values()].filter(r=>r.owner_subject===subject),cursor:null};},
-    async portalGet(kind,id){return clone(portal.get(kind+'/'+id)||null);},async portalCreate(kind,id,row){const key=kind+'/'+id;if(portal.has(key))return null;portal.set(key,clone(row));return clone(row);},async portalUpdate(kind,id,filters,patch){return update(portal,kind+'/'+id,filters,patch);},async invitations(){return [...portal].filter(([key])=>key.startsWith('invites/')).map(([,value])=>clone(value));},
+    async portalGet(kind,id){return clone(portal.get(kind+'/'+id)||null);},async portalCreate(kind,id,row){const key=kind+'/'+id;if(portal.has(key))return null;portal.set(key,clone(row));return clone(row);},async portalUpdate(kind,id,filters,patch){return update(portal,kind+'/'+id,filters,patch);},
     async authGet(kind,id){return clone(auth.get(kind+'/'+id)||null);},async authCreate(kind,id,row){auth.set(kind+'/'+id,clone(row));},async authUpdate(kind,id,filters,patch){return update(auth,kind+'/'+id,filters,patch);},
     async downloadURL(path){return 'https://files.example/'+path;},async uploadURL(path,file){return 'https://files.example/'+path;},async inspectFile(path){return files.get(path)||null;}
   };
@@ -21,11 +21,12 @@ export function portalFixture(){
   async function call(action,body={},token,role='owner',headers={}){
     const response=await(role==='admin'?admin:owner)(new Request('https://backend.example/api/'+role,{method:'POST',headers:{Origin:'https://arenalindex.com',...(token?{Authorization:'Bearer '+token}:{}),...headers},body:JSON.stringify({action,...body})}));return {status:response.status,body:await response.json()};
   }
-  async function login(subject,code,role='owner'){
+  async function login(subject,role='owner',extra={}){
     const challenge=await call('challenge',{},undefined,role);
-    return call('login',{nonce:challenge.body.nonce,credential:subject,invitation:code},undefined,role);
+    return call('login',{nonce:challenge.body.nonce,credential:subject,...extra},undefined,role);
   }
-  async function invite(){const result=await login('admin',null,'admin');const created=await call('create_invitation',{label:'Test owners'},result.body.token,'admin');return {admin:result.body.token,code:created.body.code,id:created.body.invitation.id};}
+  async function adminSession(){const result=await login('admin','admin');return result.body.token;}
+  async function register(subject,token){const result=await call('create_account',{email:subject+'@gmail.com'},token,'admin');if(result.status!==200)throw Error(JSON.stringify(result));return result;}
   function upload(prepared,payload){for(const upload of prepared.uploads){const f=payload.files.find(f=>f.id===upload.id),path=upload.url.replace('https://files.example/','');files.set(path,{size:f.size,bytes:f.type==='application/pdf'?pdf:png});}}
-  return {rows,portal,auth,files,emails,repository,options,call,login,invite,upload,advance:ms=>clock+=ms};
+  return {rows,portal,auth,files,emails,repository,options,call,login,adminSession,register,upload,advance:ms=>clock+=ms};
 }

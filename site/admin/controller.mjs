@@ -1,5 +1,5 @@
 import * as client from './client.mjs';
-import {selectRecords,renderRows} from './view.mjs';
+import {selectRecords,renderRows} from './view.mjs?v=3-account';
 
 let googleScript;
 export function loadGoogle(){
@@ -21,12 +21,11 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
   function clearPrivate(){
     cancel(expiryTimer);records=[];loaded=false;$('#admin-records').replaceChildren();$('#admin-account').textContent='';$('#admin-count').textContent='';
     $('#admin-search').value='';$('#inbox').hidden=true;$('#sign-out').hidden=true;$('#inbox-error').hidden=true;$('#admin-empty').hidden=true;
-    if($('#invitations output'))$('#invitations output').textContent='';if($('[data-invites]'))$('[data-invites]').replaceChildren();
     if($('[data-accounts]'))$('[data-accounts]').replaceChildren();
     if($('#owner-accounts output')){$('#owner-accounts output').textContent='';$('#owner-accounts output').hidden=true;}
-    for(const panel of document.querySelectorAll('#invitations, #owner-accounts'))panel.open=false;
-    for(const node of document.querySelectorAll('#owner-accounts input, #password-panel input, #email-login input, #invitation'))node.value='';
-    for(const node of document.querySelectorAll('#owner-accounts [role=status], #invitations [role=status], #import-status, #password-status'))node.textContent='';
+    for(const panel of document.querySelectorAll('#owner-accounts'))panel.open=false;
+    for(const node of document.querySelectorAll('#owner-accounts input, #password-panel input, #email-login input'))node.value='';
+    for(const node of document.querySelectorAll('#owner-accounts [role=status], #import-status, #password-status'))node.textContent='';
     if($('#password-panel'))$('#password-panel').hidden=true;
     if($('#import-browser-draft')){$('#import-browser-draft').hidden=true;$('#import-browser-draft').onclick=null;}
     activeIdentity=null;
@@ -71,7 +70,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     if(owner&&identity.requiresPasswordChange){showPassword(identity);return;}
     if($('#password-panel'))$('#password-panel').hidden=true;
     const target=new URLSearchParams(window.location.hash.slice(1)).get(owner?'edit':'review');
-    if(owner&&(target==='new'||/^[a-zA-Z0-9-]{8,80}$/.test(target||''))){window.location.replace('/newlisting/?owner='+encodeURIComponent(target));return;}
+    if(owner&&(target==='new'||/^[a-zA-Z0-9-]{8,80}$/.test(target||''))){window.location.replace('/newlisting/?cuenta='+encodeURIComponent(target));return;}
     if(/^[a-zA-Z0-9-]{8,80}$/.test(target||'')){window.location.replace('/admin/review/#id='+encodeURIComponent(target));return;}
     $('#login-panel').hidden=true;$('#inbox').hidden=false;$('#sign-out').hidden=false;$('#admin-account').textContent=identity.email;
     await refresh();
@@ -98,7 +97,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
           if(current!==epoch)return;
           const attempt=++epoch;$('#google-button').replaceChildren();loginMessage('Verificando tu cuenta…');
           try{
-            const identity=await api.request('login',{credential:response.credential,nonce:challenge.nonce,...(owner?{invitation:$('#invitation').value.trim()}:{})},false);
+            const identity=await api.request('login',{credential:response.credential,nonce:challenge.nonce},false);
             if(attempt!==epoch)return;
             api.saveSession(identity);await openInbox(identity);
           }catch(error){if(attempt===epoch)loginMessage(error.message,true);}

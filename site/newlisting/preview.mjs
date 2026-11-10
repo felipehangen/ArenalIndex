@@ -1,6 +1,6 @@
 import {openStore} from './local.mjs';
-import {accountContext} from './account.mjs';
-import {normalizeDraft} from './model.mjs?v=9-language';
+import {accountContext} from './account.mjs?v=2-account';
+import {normalizeDraft} from './model.mjs?v=10-account';
 import {createDraftPreview} from './draft-preview.mjs?v=9-language';
 
 try{

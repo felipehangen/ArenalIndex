@@ -1,18 +1,20 @@
 import * as admin from '../admin/client.mjs';
-import * as owner from '../owner/client.mjs';
+import * as owner from '../cuenta/client.mjs';
 import {newDraft,normalizeDraft} from './model.mjs';
 export const accountKey=(kind,email,id)=>kind+':'+email+':'+id;
 export async function accountContext(search=location.search){
-  const params=new URLSearchParams(search),kind=params.has('admin')?'admin':params.has('owner')?'owner':null;if(!kind)return null;
-  let id=params.get(kind);if(id==='new'){id=crypto.randomUUID();params.set(kind,id);history.replaceState(null,'','?'+params);}
+  const params=new URLSearchParams(search),kind=params.has('admin')?'admin':params.has('cuenta')||params.has('owner')?'owner':null;if(!kind)return null;
+  const param=kind==='owner'?'cuenta':'admin',legacy=kind==='owner'&&params.has('owner');
+  let id=params.get(params.has(param)?param:kind);const isNew=id==='new';if(isNew)id=crypto.randomUUID();
   if(!/^[a-zA-Z0-9-]{8,80}$/.test(id||''))throw Error('Identificador inválido.');
+  if(isNew||legacy){params.delete('owner');params.set(param,id);history.replaceState(null,'','?'+params+location.hash);}
   const client=kind==='admin'?admin:owner;
   const state={expired:false};
-  const login=()=>{state.expired=true;document.getElementById('content')?.replaceChildren();location.replace(kind==='admin'?'/admin/#review='+id:'/owner/#edit='+id);};
+  const login=()=>{state.expired=true;document.getElementById('content')?.replaceChildren();location.replace(kind==='admin'?'/admin/#review='+id:'/cuenta/#edit='+id);};
   let identity;try{identity=await client.request('session');}catch(error){if(error.status===401)login();throw error;}
   if(identity.requiresPasswordChange){login();throw Error('Cambiá tu contraseña temporal para continuar.');}
   const request=async(action,body={})=>{try{return await client.request(action==='health'?'health':'workspace_'+action,{id,...body});}catch(error){if(error.status===401)login();throw error;}};
-  return Object.assign(state,{kind,id,key:accountKey(kind,identity.email,id),email:identity.email,expiresAt:identity.expiresAt,client,request,login,back:kind==='admin'?'/admin/review/#id='+id:'/owner/',async read(onProgress=()=>{}){
+  return Object.assign(state,{kind,param,id,key:accountKey(kind,identity.email,id),email:identity.email,expiresAt:identity.expiresAt,client,request,login,back:kind==='admin'?'/admin/review/#id='+id:'/cuenta/',async read(onProgress=()=>{}){
     const result=await request('open'),files=[];
     for(let offset=0;offset<result.draft.files.length;offset+=4){
       onProgress('Abriendo archivos de tu ficha…');

@@ -43,7 +43,7 @@ test('an expired administrator session clears an open review and redirects to lo
 test('administrator review links to direct editing and offers an owner reopening action with explicit instructions',async()=>{
   const e=environment();await e.open();
   assert.equal(e.document.querySelector('.review-admin-tools a').getAttribute('href'),'/newlisting/?admin=test-property-01');
-  assert.match(e.document.querySelector('#reopen-owner').textContent,/Reabrir para el propietario/);
+  assert.match(e.document.querySelector('#reopen-owner').textContent,/Reabrir para cambios/);
   assert.match(e.document.querySelector('#public-place').parentElement.textContent,/Sugerida a partir del pin/);
   await e.document.querySelector('#sign-out').onclick();
 });

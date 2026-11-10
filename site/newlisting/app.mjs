@@ -1,9 +1,9 @@
 import {buyerCopy,concerns} from './buyer-copy.mjs?v=9-language';
-import * as M from './model.mjs?v=9-language';
+import * as M from './model.mjs?v=10-account';
 import {openStore,createSaver} from './local.mjs';
 import {createAPI,randomToken,submitDraft} from './api.mjs';
 import {mountMap} from './map.mjs';
-import {accountContext,saveToAccount} from './account.mjs';
+import {accountContext,saveToAccount} from './account.mjs?v=2-account';
 import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,renderPendingItems,areaNotice} from './view.mjs?v=9-language';
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -182,7 +182,7 @@ async function buyerPreview(){
   if(!preview)return notify('Permití abrir una pestaña nueva para ver el anuncio.');
   try{
     if(!await save())throw Error('No pudimos guardar la ficha para abrir la vista previa. Intentá de nuevo.');
-    preview.opener=null;preview.location.replace('/newlisting/preview/?draft=1'+(account?'&'+account.kind+'='+account.id:''));
+    preview.opener=null;preview.location.replace('/newlisting/preview/?draft=1'+(account?'&'+account.param+'='+account.id:''));
   }catch(error){preview.close();notify(error.message);}
 }
 async function restore(file){
@@ -275,7 +275,7 @@ $('#step-select').onchange=e=>go(Number(e.target.value));
 $('#previous').onclick=()=>{const active=M.activeSteps(draft);go(active[active.indexOf(draft.step)-1]);};
 $('#next').onclick=()=>isReview()?(locked()?refresh():send()):go(M.activeSteps(draft)[M.activeSteps(draft).indexOf(draft.step)+1]);
 $('#backup').onclick=backup;$('#restore').onclick=()=>$('#restore-file').click();$('#restore-file').onchange=e=>restore(e.target.files[0]);
-$('#new-draft').onclick=async()=>{if(account){if(!busy)location.href='/newlisting/?'+account.kind+'=new';return;}if(!busy&&await confirm('¿Empezar otra propiedad?','Guardá una copia si querés conservar este borrador en tu dispositivo. Las fichas enviadas se conservan en ArenalIndex.')){draft=M.newDraft();draft.values.listing_language=window.ArenalI18n?.language||'es';await save();render();}};
+$('#new-draft').onclick=async()=>{if(account){if(!busy)location.href='/newlisting/?'+account.param+'=new';return;}if(!busy&&await confirm('¿Empezar otra propiedad?','Guardá una copia si querés conservar este borrador en tu dispositivo. Las fichas enviadas se conservan en ArenalIndex.')){draft=M.newDraft();draft.values.listing_language=window.ArenalI18n?.language||'es';await save();render();}};
 window.addEventListener('arenal-language-change',()=>{const copy=$('.buyer-preview');if(copy)copy.textContent=buyerCopy(draft);const list=$('[data-review-section="concerns"] ul');if(list)list.innerHTML=concerns(draft).map(n=>'<li translate="no">'+esc(n)+'</li>').join('');});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')save();});
 if(account){

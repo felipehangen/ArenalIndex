@@ -9,7 +9,7 @@ export function mountAccounts({document=globalThis.document,window=globalThis.wi
     if(loading||!valid())return;loading=true;list.setAttribute('aria-busy','true');
     try{
       const {accounts}=await api.request('owner_accounts');if(!valid())return;
-      list.innerHTML=accounts.map(row=>'<div class="account-row"><div><strong translate="no">'+esc(row.email)+'</strong><span>'+[row.google?'Google':'',row.password?t(row.temporaryPassword?'Contraseña temporal':'Contraseña'):''].filter(Boolean).join(' · ')+'</span></div><span>'+t(row.active?'Activa':'Desactivada')+'</span><button class="quiet" data-account="'+esc(row.id)+'" data-active="'+!row.active+'">'+t(row.active?'Desactivar':'Activar')+'</button></div>').join('')||'<p>'+t('Todavía no hay cuentas de propietarios.')+'</p>';loaded=true;
+      list.innerHTML=accounts.map(row=>'<div class="account-row"><div><strong translate="no">'+esc(row.email)+'</strong><span>'+['Google',row.password?t(row.temporaryPassword?'Contraseña temporal':'Contraseña'):''].filter(Boolean).join(' · ')+'</span></div><span>'+t(row.active?'Activa':'Desactivada')+'</span><button class="quiet" data-account="'+esc(row.id)+'" data-active="'+!row.active+'">'+t(row.active?'Desactivar':'Activar')+'</button></div>').join('')||'<p>'+t('Todavía no hay cuentas registradas.')+'</p>';loaded=true;
     }catch(error){if(valid())message.textContent=t(error.message);}finally{loading=false;list.setAttribute('aria-busy','false');}
   }
   panel.ontoggle=()=>{if(panel.open&&!loaded)refresh();};
@@ -19,9 +19,9 @@ export function mountAccounts({document=globalThis.document,window=globalThis.wi
   form.onsubmit=async event=>{
     event.preventDefault();const button=form.querySelector('button[type=submit]'),value=password.value;button.disabled=true;output.textContent='';output.hidden=true;message.textContent='';
     try{
-      const result=await api.request('set_owner_password',{email:email.value.trim(),password:value});if(!valid())return;
-      password.value='';output.textContent=result.email+'\n'+value;output.hidden=false;
-      message.textContent=t(result.active===false?'Contraseña guardada. La cuenta sigue desactivada; activala en la lista de accesos.':'Cuenta lista. Copiá el correo y la contraseña temporal para compartirlos en privado. No se envía ningún correo automáticamente.');await refresh();
+      const result=await api.request(value?'set_owner_password':'create_account',{email:email.value.trim(),...(value?{password:value}:{})});if(!valid())return;
+      password.value='';if(value){output.textContent=result.email+'\n'+value;output.hidden=false;}
+      message.textContent=t(result.active===false?'Acceso guardado. La cuenta sigue desactivada; activala en la lista de accesos.':!value?'Correo registrado. Ya puede entrar con Google usando ese correo.':'Cuenta lista. Copiá el correo y la contraseña temporal para compartirlos en privado. No se envía ningún correo automáticamente.');await refresh();
     }catch(error){if(valid())message.textContent=t(error.message);}finally{button.disabled=false;}
   };
   list.onclick=async event=>{
