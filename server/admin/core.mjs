@@ -9,7 +9,7 @@ const hash=value=>createHash('sha256').update(value).digest('hex');
 const secret=()=>randomBytes(32).toString('hex');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const reviewActions=new Set(['review','approve','request_changes','preview_publication','publish','unpublish']);
-export function createAdminHandler({repository,verifyGoogle,config,mailer,resolveLocality,now=()=>new Date()}){
+export function createAdminHandler({repository,verifyGoogle,config,mailer,resolveLocality,catalog,now=()=>new Date()}){
   const origins=new Set(config.origins||['https://arenalindex.com','https://www.arenalindex.com']);
   const allowed=new Set((config.adminEmails||[]).map(email=>email.trim().toLowerCase()).filter(Boolean));
   const configured=!!config.googleClientId&&allowed.size>0;
@@ -57,11 +57,12 @@ export function createAdminHandler({repository,verifyGoogle,config,mailer,resolv
       if(action==='session')return json({email:session.email,expiresAt:session.expiresAt});
       if(action==='health')return json({ready:config.emailReady});
       if(['create_account','owner_accounts','set_owner_password','set_owner_active'].includes(action))return json(await accountAdminAction({action,body,repository,actor:session,now}));
-      if(['workspace_open','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen_owner','workspace_unlist'].includes(action))return json(await workspaceAction({action,body,actor:{...session,role:'admin'},repository,config,mailer,now}));
+      if(['workspace_open','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen_owner','workspace_unlist','workspace_delete'].includes(action))return json(await workspaceAction({action,body,actor:{...session,role:'admin'},repository,config,mailer,now}));
+      if(typeof action==='string'&&action.startsWith('catalog_')&&catalog)return json(await catalog.action(action,body,session));
       if(action==='list'){
         if(body.cursor!==undefined&&(typeof body.cursor!=='string'||body.cursor.length>2000))fail(400,'Página inválida.');
         const page=await repository.records(body.cursor);
-        return json({records:page.records.map(recordSummary),cursor:page.cursor});
+        return json({records:[...page.records.filter(row=>row.status!=='deleted').map(recordSummary),...(!body.cursor&&catalog?await catalog.list():[])],cursor:page.cursor});
       }
       if(reviewActions.has(action)){
         // Identity is passed through a server-only closure; headers cannot grant this privilege.

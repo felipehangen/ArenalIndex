@@ -2,7 +2,7 @@ export const VERSION = 3;
 export const MAX_FILE = 12 * 1024 * 1024;
 export const MAX_TOTAL = 60 * 1024 * 1024;
 export const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-export const STATES = {draft:'Borrador', ready_for_review:'Lista para revisión de publicación', changes_requested:'Esperando cambios', approved:'Aprobada para publicar', published:'Publicada'};
+export const STATES = {draft:'Borrador', ready_for_review:'Lista para revisión de publicación', changes_requested:'Borrador', approved:'Aprobada para publicar', published:'Publicada'};
 const options = rows => [['','Elegí una respuesta'], ...rows.map(row => Array.isArray(row) ? row : [row,row]), ['unknown','No confirmado']];
 const select = (id,label,rows,extra={}) => ({id,label,type:'select',options:options(rows),...extra});
 const text = (id,label,extra={}) => ({id,label,type:'text',maxLength:120,...extra});
@@ -28,9 +28,8 @@ export const steps = [
   {id:'property',short:'La propiedad',title:'Todo empieza con el terreno.',lead:'Completá lo que sepás. Podés guardar el borrador y volver después.',fields:[
     select('buildings','¿Incluye construcciones?',[['yes','Sí'],['no','No']],{required:true}),
     text('name','Referencia privada para reconocerla',{maxLength:60,optional:true,prominent:true,placeholder:'Ej. Terreno de don Carlos',help:'Solo para identificar tu borrador y la revisión; no se muestra en el anuncio.'}),
-    text('listing_title','Nombre corto sugerido para el anuncio',{maxLength:45,optional:true,prominent:true,placeholder:'Ej. Lote con vista al Arenal',help:'Hasta 45 caracteres. Describí un rasgo comprobable; evitá nombres personales, dirección exacta, precio, emojis y MAYÚSCULAS sostenidas. ArenalIndex decide el título definitivo durante la revisión.'}),
-    {id:'listing_language',label:'Idioma del título',type:'select',options:[['es','Español'],['en','English']],optional:true,prominent:true},
-    text('listing_title_translation','Traducción del título',{maxLength:45,optional:true,help:'Opcional: la versión en el otro idioma. ArenalIndex puede completarla durante la revisión.'}),
+    text('listing_title_es','Título en español',{maxLength:45,optional:true,prominent:true,placeholder:'Ej. Lote con vista al Arenal',help:'Completá uno o ambos idiomas. Hasta 45 caracteres por título.'}),
+    text('listing_title_en','Título en inglés',{maxLength:45,optional:true,prominent:true,placeholder:'Ej. Land with Arenal views'}),
     select('current_use','¿Cómo se utiliza hoy?',['Sin uso','Vivienda','Cultivos o ganadería','Recreación / descanso','Alojamiento turístico','Comercio','Otro'],{optional:true}),
     note('intro','Algún detalle que no encaje en las opciones')
   ]},
@@ -170,8 +169,16 @@ const aliases = {
   internet:{'Instalado':'installed','Cobertura confirmada por proveedor':'confirmed','Cobertura por consultar':'unknown','No tiene':'none'},
   role:{'Propietario':'owner','Corredor':'representative','Representante autorizado':'representative','Equipo ArenalIndex':'representative'}
 };
+export function normalizeTitles(values){
+  const v={...values},explicit=Object.hasOwn(v,'listing_title_es')||Object.hasOwn(v,'listing_title_en');
+  const original=v.listing_language==='en'?'en':'es',other=original==='es'?'en':'es';
+  if(!explicit){v['listing_title_'+original]=v.listing_title||'';v['listing_title_'+other]=v.listing_title_translation||'';}
+  const language=v.listing_title_es?.trim()?'es':v.listing_title_en?.trim()?'en':original;
+  v.listing_language=language;v.listing_title=v['listing_title_'+language]||'';v.listing_title_translation=v['listing_title_'+(language==='es'?'en':'es')]||'';
+  return v;
+}
 export function normalizeDraft(input,id) {
-  const d={...newDraft(id||input.id),...input,version:VERSION,values:{...input.values},buildings:Array.isArray(input.buildings)?input.buildings.map(b=>({...b})):[]};
+  const d={...newDraft(id||input.id),...input,version:VERSION,values:normalizeTitles(input.values),buildings:Array.isArray(input.buildings)?input.buildings.map(b=>({...b})):[]};
   const v=d.values;
   if(!v.buildings) v.buildings=['built_land','home','business','Terreno con casa','Casa','Negocio turístico'].includes(v.type)?'yes':['land','Lote','Finca','Quinta'].includes(v.type)?'no':'';
   if(input.version!==VERSION) {
@@ -344,7 +351,7 @@ export function validateDraft(input) {
   if(!/^[a-zA-Z0-9-]{8,80}$/.test(input.id||''))throw Error('Identificador de ficha inválido.');
   if(input.files.length>120||input.buildings.length>30)throw Error('Demasiados archivos o construcciones.');
   const fields=steps.flatMap(s=>s.fields).filter(f=>f.id),values={};
-  for(const f of [...fields,{id:'cover_id',type:'text',maxLength:100}]) {
+  for(const f of [...fields,{id:'cover_id',type:'text',maxLength:100},text('listing_title','Título'),text('listing_title_translation','Título'),{id:'listing_language',options:[['es'],['en']]}]) {
     const value=input.values[f.id];if(value===undefined)continue;
     if(f.type==='checkbox'){if(typeof value!=='boolean')throw Error('Respuesta inválida.');}
     else if(typeof value!=='string'||value.length>12000)throw Error('Campo inválido.');
@@ -364,7 +371,7 @@ export function validateDraft(input) {
     ids.add(f.id);total+=f.size;if(total>MAX_TOTAL)throw Error('Los archivos superan 60 MB.');
     return {id:f.id,name:f.name,type:f.type,size:f.size,category:f.category,shot:['entrance','road','exterior','interior','general'].includes(f.shot)?f.shot:'general',perspective:f.perspective==='drone'?'drone':'ground',buildingId:buildingIds.has(f.buildingId)?f.buildingId:'',caption:typeof f.caption==='string'?f.caption.slice(0,160):''};
   });
-  return {version:VERSION,id:input.id,values,buildings,files};
+  return {version:VERSION,id:input.id,values:normalizeTitles(values),buildings,files};
 }
 export function importBackup(obj,id) {
   if(!obj||obj.format!=='arenalindex-intake'||![1,2,3].includes(obj.version))throw Error('Esta no es una copia de ArenalIndex.');

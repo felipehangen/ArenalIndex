@@ -59,3 +59,7 @@ test('both sources start before either responds and the catalog waits for both',
  published.resolve({ok:true,json:async()=>[{...seed[1],id:'new-publication'}]});
  const rows=await loading;assert.equal(rows.length,2);assert.equal(rows[0].id,'new-publication');
 });
+test('the managed catalog is the only source when enabled, so deleted demos cannot reappear from Supabase',async()=>{
+ const calls=[],api=setup(async url=>{calls.push(url);return {ok:true,json:async()=>[seed[1]]};},{managedCatalog:true,listingsUrl:'https://example.test/listings'});
+ const rows=await api.load();assert.equal(calls.length,1);assert.equal(calls[0],'https://example.test/listings?catalog=1');assert.equal(rows.length,1);assert.equal(rows[0].id,seed[1].id);
+});

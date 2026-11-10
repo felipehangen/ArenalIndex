@@ -40,10 +40,10 @@ test('an expired administrator session clears an open review and redirects to lo
   await e.document.querySelector('#public-publish').onclick();
   assert.equal(e.location.destination,'/admin/#review=test-property-01');assert.equal(e.document.querySelector('#review-content').textContent,'');
 });
-test('administrator review links to direct editing and offers an owner reopening action with explicit instructions',async()=>{
+test('administrator review links to direct editing and offers an owner reopening action without mandatory comments',async()=>{
   const e=environment();await e.open();
   assert.equal(e.document.querySelector('.review-admin-tools a').getAttribute('href'),'/newlisting/?admin=test-property-01');
-  assert.match(e.document.querySelector('#reopen-owner').textContent,/Reabrir para cambios/);
+  assert.match(e.document.querySelector('#reopen-owner').textContent,/Reabrir como borrador/);
   assert.match(e.document.querySelector('#public-place').parentElement.textContent,/Sugerida a partir del pin/);
   await e.document.querySelector('#sign-out').onclick();
 });

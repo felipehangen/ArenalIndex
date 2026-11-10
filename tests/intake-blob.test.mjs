@@ -96,3 +96,12 @@ test('owner indexes cannot expose other owners records, and account records use 
   assert.equal(changes.filter(Boolean).length,1);assert.equal((await repository.ownerAccounts())[0].active,false);
   await assert.rejects(()=>repository.portalGet('../records',id));assert.equal(await repository.portalCreate('accounts',id,{}),null);
 });
+test('catalog decisions use conditional private writes so simultaneous changes cannot revive a deleted demo',async()=>{
+  const {repository}=setup();assert.deepEqual(await repository.catalogState(),{});
+  const initial=await Promise.all([1,2].map(()=>repository.catalogUpdate('lot-1',0,{status:'unlisted',revision:1})));
+  assert.equal(initial.filter(Boolean).length,1);
+  const changes=await Promise.all(['deleted','published'].map(status=>repository.catalogUpdate('lot-1',1,{status,revision:2})));
+  assert.equal(changes.filter(Boolean).length,1);
+  const state=await repository.catalogState();assert.equal(state['lot-1'].revision,2);
+  assert.equal(await repository.catalogUpdate('lot-1',1,{status:'published',revision:2}),null);
+});

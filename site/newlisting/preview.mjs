@@ -1,7 +1,7 @@
 import {openStore} from './local.mjs';
-import {accountContext} from './account.mjs?v=2-account';
-import {normalizeDraft} from './model.mjs?v=10-account';
-import {createDraftPreview} from './draft-preview.mjs?v=9-language';
+import {accountContext} from './account.mjs?v=3-titles';
+import {normalizeDraft} from './model.mjs?v=11-titles';
+import {createDraftPreview} from './draft-preview.mjs?v=10-titles';
 
 try{
   const isDraft=new URLSearchParams(location.search).get('draft')==='1';

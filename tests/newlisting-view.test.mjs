@@ -55,13 +55,13 @@ test('the first pass shows necessary questions while optional answers remain acc
 
 test('the listing title stays separate from the private reference and has a short limit',()=>{
   const d=completeDraft();d.values.name='Terreno de don Carlos';d.values.listing_title='Lote con vista al Arenal';
-  const field=M.steps[0].fields.find(f=>f.id==='listing_title');
+  const field=M.steps[0].fields.find(f=>f.id==='listing_title_es');
   assert.equal(field.maxLength,45);
   assert.equal(M.reference(d),'Terreno de don Carlos');
   assert.match(M.buyerCopy(d),/^Lote con vista al Arenal/);
   assert.doesNotMatch(M.buyerCopy(d),/Terreno de don Carlos/);
-  d.values.listing_title='x'.repeat(46);
-  assert.ok(M.pending(d).some(issue=>issue.label==='Nombre corto sugerido para el anuncio'));
+  d.values.listing_title_es='x'.repeat(46);
+  assert.ok(M.pending(d).some(issue=>issue.label==='Título en español'));
 });
 
 test('access details only apply to a private route, and an old construction label is removed',()=>{

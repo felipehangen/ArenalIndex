@@ -24,9 +24,11 @@ export function createHandler({repository,mailer,config,now=()=>new Date(),autho
       const token=request.headers.get(reviewAction?'X-Review-Token':'X-Intake-Token')||'';
       if(!admin&&!owner&&!/^[a-f0-9]{64}$/.test(token))fail(401,'El enlace o la autorización no son válidos.');
       const tokenHash=admin||owner?null:await digest(token);
+      if(action==='prepare'&&config.requireAccountCreation&&!owner&&!admin)fail(401,'Iniciá sesión para agregar un anuncio.');
       const id=action==='prepare'?body.draft?.id:body.id;
       if(!/^[a-zA-Z0-9-]{8,80}$/.test(id||''))fail(400,'Identificador inválido.');
       let row=await repository.get(id);
+      if(row?.status==='deleted')fail(404,'No se encontró la ficha.');
       if(admin||owner){if(!row||owner&&owner.role!=='admin'&&row.owner_subject!==owner.subject)fail(404,'No se encontró la ficha.');}
       else if(reviewAction){
         if(!row||row.review_token_hash!==tokenHash||!row.review_token_expires||new Date(row.review_token_expires)<=now())fail(403,'El enlace de revisión venció o fue reemplazado por una nueva versión.');

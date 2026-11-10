@@ -65,7 +65,7 @@ export function createOwnerHandler({repository,verifyGoogle,config,mailer,now=()
       if(action==='health')return json({ready:config.emailReady});
       if(action==='list'){
         if(body.cursor!==undefined&&(typeof body.cursor!=='string'||body.cursor.length>2000))fail(400,'Página inválida.');
-        const page=await repository.ownerRecords(session.subject,body.cursor);return json({records:page.records.map(recordSummary),cursor:page.cursor});
+        const page=await repository.ownerRecords(session.subject,body.cursor);return json({records:page.records.filter(row=>row.status!=='deleted').map(recordSummary),cursor:page.cursor});
       }
       if(['workspace_open','workspace_claim','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen','workspace_unlist'].includes(action))return json(await workspaceAction({action,body,actor:session,repository,config,mailer,now}));
       fail(400,'Acción no reconocida.');

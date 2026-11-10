@@ -70,3 +70,16 @@ test('inbox text is escaped and search and status filters preserve published sna
   assert.equal(selectRecords(rows,{status:'all',query:'jardin'}).length,3);
   assert.equal(selectRecords(rows).length,1);
 });
+test('a denied Google login renders a fresh retry button, preserves the error and ignores its old callback',async()=>{
+  let attempt=0,nonce=0;
+  const e=setup({handler:action=>{
+    if(action==='challenge')return {nonce:String(++nonce).repeat(64)};
+    if(action==='login'&&++attempt===1)throw Object.assign(Error('Este correo no está autorizado.'),{status:403});
+  }});
+  await e.controller.ready;const first=e.google.options;
+  await first.callback({credential:'unauthorized'});
+  assert.match(e.$('#google-button').textContent,/Google/);assert.match(e.$('#login-status').textContent,/no está autorizado/);
+  assert.notEqual(e.google.options.nonce,first.nonce);assert.equal(e.api.session(),null);
+  await first.callback({credential:'stale'});assert.equal(attempt,1);
+  await e.google.options.callback({credential:'allowed'});assert.equal(e.$('#inbox').hidden,false);assert.equal(attempt,2);e.controller.destroy();
+});

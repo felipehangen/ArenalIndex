@@ -85,7 +85,7 @@
   function listingText(item,key='title'){
     const detail=item.details,source=key==='title'?item.name:item.description;
     const translated=detail?.translations?.[language]?.[key];
-    const demo=language==='en'&&item.isDemo?window.ArenalDemoEnglish?.[item.id]?.[key]:null;
+    const demo=language==='en'&&item.isDemo&&!(key==='title'&&detail?.titlesReviewed)?window.ArenalDemoEnglish?.[item.id]?.[key]:null;
     return translated||demo||(item.draftPreview&&source==='Título por definir'?t(source):source)||'';
   }
   function photoText(source,item){

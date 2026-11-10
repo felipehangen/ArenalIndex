@@ -1,5 +1,5 @@
 import * as client from './client.mjs';
-import {selectRecords,renderRows} from './view.mjs?v=3-account';
+import {selectRecords,renderRows} from './view.mjs?v=4-workflow';
 
 let googleScript;
 export function loadGoogle(){
@@ -21,25 +21,27 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
   function clearPrivate(){
     cancel(expiryTimer);records=[];loaded=false;$('#admin-records').replaceChildren();$('#admin-account').textContent='';$('#admin-count').textContent='';
     $('#admin-search').value='';$('#inbox').hidden=true;$('#sign-out').hidden=true;$('#inbox-error').hidden=true;$('#admin-empty').hidden=true;
+    if($('#listing-dialog')?.open)$('#listing-dialog').close();
+    if($('#listing-dialog-body'))$('#listing-dialog-body').replaceChildren();
     if($('[data-accounts]'))$('[data-accounts]').replaceChildren();
     if($('#owner-accounts output')){$('#owner-accounts output').textContent='';$('#owner-accounts output').hidden=true;}
     for(const panel of document.querySelectorAll('#owner-accounts'))panel.open=false;
     for(const node of document.querySelectorAll('#owner-accounts input, #password-panel input, #email-login input'))node.value='';
-    for(const node of document.querySelectorAll('#owner-accounts [role=status], #import-status, #password-status'))node.textContent='';
+    for(const node of document.querySelectorAll('#owner-accounts [role=status], #password-status'))node.textContent='';
     if($('#password-panel'))$('#password-panel').hidden=true;
-    if($('#import-browser-draft')){$('#import-browser-draft').hidden=true;$('#import-browser-draft').onclick=null;}
+    if($('#accounts-panel')){$('#accounts-panel').hidden=true;$('#listings-panel').hidden=false;for(const tab of document.querySelectorAll('[data-panel]')){if(tab.dataset.panel==='listings')tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current');}}
     activeIdentity=null;
   }
-  function loginMessage(message,retry=false){$('#login-status').textContent=t(message);$('#retry-login').hidden=!retry;}
+  function loginMessage(message,retry=false){$('#login-status').textContent=t(message);$('#login-status').classList.toggle('login-error',retry&&!!message);$('#retry-login').hidden=!retry;}
   function showLogin(message){
     ++epoch;clearPrivate();$('#login-panel').hidden=false;$('#google-button').replaceChildren();loginMessage(message,true);
   }
   function expire(){api.clearSession();showLogin(owner?'Tu sesión venció. Volvé a entrar.':'Tu sesión venció. Volvé a entrar con Google.');}
   function render(){
     if(!loaded)return;
-    const shown=selectRecords(records,{status:$('#admin-status').value,query:$('#admin-search').value});
+    const shown=selectRecords(records,{status:$('#admin-status').value,query:$('#admin-search').value,source:$('#admin-source')?.value||'all'});
     $('#admin-records').innerHTML=renderRows(shown,{owner});$('#admin-empty').hidden=shown.length>0;
-    $('#admin-count').textContent=t(owner?'{shown} de {total} fichas':'{shown} de {total} propuestas',{shown:shown.length,total:records.length});
+    $('#admin-count').textContent=t('{shown} de {total} anuncios',{shown:shown.length,total:records.length});
   }
   async function refresh(){
     const current=++epoch;loaded=false;records=[];$('#admin-records').replaceChildren();$('#admin-empty').hidden=true;$('#inbox-error').hidden=true;
@@ -84,9 +86,9 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     $('#password-back').hidden=!!identity.requiresPasswordChange;$('#password-status').textContent='';
     for(const node of $('#password-panel').querySelectorAll('input'))node.value='';
   }
-  async function prepareGoogle(){
+  async function prepareGoogle(message=''){
     const current=++epoch;
-    $('#google-button').replaceChildren();loginMessage('Preparando acceso con Google…');
+    $('#google-button').replaceChildren();loginMessage(message||'Preparando acceso con Google…',!!message);
     try{
       config=await api.request('config',{},false);if(current!==epoch)return;
       if(!config.configured){loginMessage('El acceso con Google todavía no está configurado.',true);return;}
@@ -100,11 +102,11 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
             const identity=await api.request('login',{credential:response.credential,nonce:challenge.nonce},false);
             if(attempt!==epoch)return;
             api.saveSession(identity);await openInbox(identity);
-          }catch(error){if(attempt===epoch)loginMessage(error.message,true);}
+          }catch(error){if(attempt===epoch){google?.disableAutoSelect();await prepareGoogle(error.message);}}
         }
       });
       google.renderButton($('#google-button'),{type:'standard',theme:'outline',size:'large',text:'signin_with',shape:'pill',locale:window.ArenalI18n?.language||'es',width:Math.min(300,$('#google-button').clientWidth||300)});
-      loginMessage('');
+      loginMessage(message,!!message);
     }catch(error){if(current===epoch)loginMessage(error.message,true);}
   }
   async function start(){
@@ -123,7 +125,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
       try{
         const identity=await api.request('login_password',{email,password},false);if(current!==epoch)return;
         api.saveSession(identity);await openInbox(identity);
-      }catch(error){if(current===epoch)loginMessage(error.message,true);}finally{button.disabled=false;}
+      }catch(error){if(current===epoch)await prepareGoogle(error.message);}finally{button.disabled=false;}
     };
     $('#change-password').onclick=()=>showPassword(activeIdentity);
     $('#password-back').onclick=()=>openInbox(activeIdentity);
@@ -146,6 +148,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     catch{if(current===epoch)loginMessage('Se cerró el acceso en esta pestaña, pero no se pudo revocar la sesión en el servidor. Vence en un máximo de 8 horas.',true);}
   };
   $('#refresh').onclick=refresh;$('#admin-search').oninput=render;$('#admin-status').onchange=render;
+  if($('#admin-source'))$('#admin-source').onchange=render;
   if(owner)$('#admin-records').onclick=async event=>{
     const button=event.target.closest('[data-unlist]');if(!button)return;
     const row=records.find(row=>row.id===button.dataset.unlist);if(!row)return;
@@ -158,5 +161,5 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
   window.addEventListener('pageshow',event=>{if(event.persisted)start();});
   window.addEventListener('focus',()=>{if(!$('#inbox').hidden&&!api.session())expire();});
   const ready=start();
-  return {ready,refresh,destroy(){++epoch;clearPrivate();}};
+  return {ready,refresh,getRecords:()=>records,destroy(){++epoch;clearPrivate();}};
 }

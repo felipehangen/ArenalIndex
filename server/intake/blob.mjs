@@ -32,6 +32,12 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
     return (await sdk.presignUrl(delegation,{access:'private',pathname:path,operation,validUntil,...constraints,...(file?{allowOverwrite:false,addRandomSuffix:false}:{useCache:false})})).presignedUrl;
   }
   return {
+    async catalogState(){return (await read('catalog/decisions.json'))?.row||{};},
+    async catalogUpdate(id,revision,decision){
+      const current=await read('catalog/decisions.json');
+      if((current?.row[id]?.revision||0)!==revision)return null;
+      return write('catalog/decisions.json',{...current?.row,[id]:decision},current?.etag);
+    },
     async portalGet(kind,id){return (await read(portalPath(kind,id)))?.row||null;},
     async portalCreate(kind,id,row,ttlDays){return write(portalPath(kind,id),row,null,ttlDays?{ttlDays}:{});},
     async portalUpdate(kind,id,filters,patch){
@@ -52,7 +58,7 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
       const ids=page.blobs.map(entry=>entry.pathname.slice(prefix.length).match(/^([a-zA-Z0-9-]{8,80})\.json$/)?.[1]).filter(Boolean);
       const records=[];for(let offset=0;offset<ids.length;offset+=10){
         const batch=await Promise.all(ids.slice(offset,offset+10).map(async id=>(await read('records/'+id+'.json'))?.row));
-        records.push(...batch.filter(row=>row?.owner_subject===subject));
+        records.push(...batch.filter(row=>row?.owner_subject===subject&&row.status!=='deleted'));
       }return {records,cursor:page.hasMore?page.cursor:null};
     },
     async authCreate(kind,id,row){
@@ -71,7 +77,7 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
       const records=[];
       for(let offset=0;offset<ids.length;offset+=10){
         const batch=await Promise.all(ids.slice(offset,offset+10).map(async id=>(await read('records/'+id+'.json'))?.row));
-        records.push(...batch.filter(Boolean));
+        records.push(...batch.filter(row=>row&&row.status!=='deleted'));
       }
       return {records,cursor:page.hasMore?page.cursor:null};
     },

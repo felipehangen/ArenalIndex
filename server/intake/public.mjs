@@ -1,4 +1,4 @@
-export function createPublicHandler(repository){
+export function createPublicHandler(repository,{catalog}={}){
   return async request=>{
     const headers={'Access-Control-Allow-Origin':'*','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
     const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{...headers,'Content-Type':'application/json'}});
@@ -15,8 +15,11 @@ export function createPublicHandler(repository){
         const location=await repository.downloadURL(file.path);
         return new Response(null,{status:307,headers:{...headers,Location:location}});
       }
-      const listings=await repository.published();
-      return json(listings);
+      if(url.searchParams.has('catalog')&&catalog){
+        const [listings,legacy]=await Promise.all([repository.published(),catalog.published()]);
+        return json([...listings,...legacy]);
+      }
+      return json(await repository.published());
     }catch{return json({error:'No se pudo cargar el catálogo. Intentá de nuevo.'},503);}
   };
 }

@@ -11,7 +11,7 @@ export function application(env=process.env){
   return createHandler({
     repository,resolveLocality:createLocalityResolver({repository}),
     mailer:createMailer({key:emailKey,from,to}),
-    config:{siteURL:'https://arenalindex.com',publicAPIURL:'https://arenalindex-intake.vercel.app/api/listings',reviewEmail:to,reviewSecret,rateSalt:reviewSecret,emailReady:!!(storeId||token)&&!!emailKey&&!!from&&!!to&&reviewSecret.length>=32}
+    config:{requireAccountCreation:true,siteURL:'https://arenalindex.com',publicAPIURL:'https://arenalindex-intake.vercel.app/api/listings',reviewEmail:to,reviewSecret,rateSalt:reviewSecret,emailReady:!!(storeId||token)&&!!emailKey&&!!from&&!!to&&reviewSecret.length>=32}
   });
 }
 export default async function handler(req,res){

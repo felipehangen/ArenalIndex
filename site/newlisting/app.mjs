@@ -1,13 +1,14 @@
 import {buyerCopy,concerns} from './buyer-copy.mjs?v=9-language';
-import * as M from './model.mjs?v=10-account';
-import {openStore,createSaver} from './local.mjs';
+import * as M from './model.mjs?v=11-titles';
+import {openStore,createSaver} from './local.mjs?v=2-account-save';
 import {createAPI,randomToken,submitDraft} from './api.mjs';
 import {mountMap} from './map.mjs';
-import {accountContext,saveToAccount} from './account.mjs?v=2-account';
-import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,renderPendingItems,areaNotice} from './view.mjs?v=9-language';
+import {accountContext,saveToAccount} from './account.mjs?v=3-titles';
+import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,renderPendingItems,areaNotice} from './view.mjs?v=10-titles';
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let account;try{account=await accountContext();}catch(error){$('#step-body').textContent=error.message;throw error;}
+if(!account){location.replace('/cuenta/#edit=new');throw Error('Iniciá sesión para agregar un anuncio.');}
 const api=account?{request:account.request,available:async()=>{try{return (await account.request('health')).ready;}catch{return false;}}}:createAPI();
 let draft=account?account.blank():M.newDraft(),storage,save,ready=false,busy=false,map,urls=new Map(),saveTimer,noticeTimer,cloudConflict=false,cloudProblem='';
 const status=text=>$('#save-status').textContent=text;
@@ -15,17 +16,17 @@ const locked=()=>account?.kind==='admin'?false:!!draft.submission&&!['draft',...
 const isReview=()=>M.steps[draft.step].id==='review';
 function notify(text){$('#notice').textContent=text;$('#notice').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('#notice').hidden=true,8000);}
 function confirm(title,copy){return new Promise(resolve=>{const dialog=$('#confirm-dialog');$('#confirm-title').textContent=title;$('#confirm-copy').textContent=copy;$('#confirm-ok').onclick=()=>{dialog.close();resolve(true);};$('#confirm-cancel').onclick=()=>{dialog.close();resolve(false);};dialog.oncancel=()=>resolve(false);dialog.showModal();});}
-try {storage=await openStore(account?.key);const previous=await storage.read();if(previous)draft=M.normalizeDraft(previous);
-  if(account){
-    try{const remote=await account.request('status');
-      const same=previous&&draft.cloud?.version===remote.version&&draft.cloud?.editRevision===remote.editRevision;
-      if(previous&&draft.cloud?.dirty&&!same)cloudConflict=true;
-      else if(same)draft.submission=remote;
-      else draft=await account.read(status);
-    }catch(error){if(error.status!==404)throw error;}
-  }
-  draft.values.listing_language ||= previous?'es':(window.ArenalI18n?.language||'es');status(previous?'Retomamos tu borrador':'El borrador se guarda en este navegador');}
-catch(error) {if(account){cloudConflict=true;cloudProblem=error.message;notify(error.message);}status('Sin guardado automático. Descargá una copia antes de salir.');}
+let previous;
+try{storage=await openStore(account.key);previous=await storage.read();if(previous)draft=M.normalizeDraft(previous);}
+catch{status('Sin guardado local. Guardá el borrador en tu cuenta antes de salir.');}
+try{
+  const remote=await account.request('status');
+  const same=previous&&draft.cloud?.version===remote.version&&draft.cloud?.editRevision===remote.editRevision;
+  if(previous&&draft.cloud?.dirty&&!same)cloudConflict=true;
+  else if(same)draft.submission=remote;
+  else draft=await account.read(status);
+}catch(error){if(error.status!==404){cloudConflict=true;cloudProblem=error.message;notify(error.message);}}
+if(storage)status(previous?'Retomamos tu borrador':'El borrador se guarda en este navegador');
 draft.values.listing_language ||= window.ArenalI18n?.language||'es';
 save=createSaver(async snapshot=>{if(!storage)throw Error('Sin almacenamiento');await storage.write(snapshot);},()=>structuredClone(draft),status);
 function changed(){draft.updated=new Date().toISOString();if(account){draft.cloud ||= {version:0,editRevision:0};draft.cloud.dirty=true;if($('#cloud-status')&&!cloudConflict)$('#cloud-status').textContent='Hay cambios guardados solo en este navegador.';}clearTimeout(saveTimer);saveTimer=setTimeout(()=>save(),300);}
@@ -69,13 +70,13 @@ function review(){
     (M.photoTour(draft).length?'<details class="review-detail" data-review-section="photos"><summary>Ver el recorrido de fotos</summary>'+renderPhotoTour(draft,file=>objectURL(file.blob))+'</details>':'')+
     '<details class="review-detail" data-review-section="answers"><summary>Revisar todas las respuestas</summary>'+M.steps.map(s=>'<h3>'+esc(s.short)+'</h3><dl>'+s.fields.filter(f=>f.id&&M.visible(f,draft.values)).map(f=>'<dt>'+esc(f.label)+'</dt><dd'+(!f.options&&f.type!=='checkbox'?' translate="no"':'')+'>'+esc(M.label(f,draft.values[f.id]))+'</dd>').join('')+'</dl>').join('')+'</details>'+
     '<p class="note">Al enviar, tus respuestas y archivos se compartirán de forma privada con ArenalIndex. La ficha quedará como <strong>Lista para revisión de publicación</strong>. Los documentos no aparecerán en el anuncio.</p>'+
-    (!ready?'<p class="service-status" role="status">El envío todavía no está habilitado. Podés preparar tu ficha y guardar una copia; tus datos permanecen en este navegador.</p>':'')+
-    '<div class="actions"><button class="secondary" type="button" data-action="backup">Guardar copia completa</button><button class="secondary" type="button" data-action="summary">Resumen de texto</button></div></section>';
+    (!ready?'<p class="service-status" role="status">El envío todavía no está habilitado. Podés guardar el borrador y enviar la ficha más tarde.</p>':'')+
+    '</section>';
 }
 function submissionState(){
   const s=draft.submission;
   if(!s){$('#submission-state').innerHTML='<span class="draft-badge">Borrador</span>';return;}
-  const explanation=s.status==='changes_requested'?'ArenalIndex reabrió la ficha para vos. Revisá las instrucciones, corregí los datos y volvé a enviarla.':s.status==='approved'?'Aprobada para preparar la publicación.':s.status==='draft'?'Enviá los cambios cuando estén listos.':'La ficha enviada se conserva como una versión para revisión.';
+  const explanation=s.status==='changes_requested'?'La ficha está abierta para editar. Cuando terminés, enviala de nuevo a revisión.':s.status==='approved'?'Aprobada para preparar la publicación.':s.status==='draft'?'Enviá los cambios cuando estén listos.':'La ficha enviada se conserva como una versión para revisión.';
   $('#submission-state').innerHTML='<section class="submission-banner"><strong>'+esc(s.publishedVersion?'Publicado':M.STATES[s.status]||s.status)+'</strong><p>'+explanation+'</p>'+(s.publishedVersion?'<p>El anuncio publicado sigue visible mientras preparás cambios.</p>':'')+(s.feedback?'<p translate="no">'+esc(s.feedback)+'</p>':'')+(s.status==='ready_for_review'&&!s.notificationSent?'<p>Tu ficha está recibida, pero el correo de aviso sigue pendiente.</p><button class="secondary" data-action="retry-email">Reintentar aviso</button>':'')+(locked()?'<button class="secondary" data-action="edit">Editar y volver a enviar</button>':'')+' <button class="quiet" data-action="refresh">Actualizar estado</button>'+(account&&s.publishedVersion?'<button class="secondary" data-action="unlist">Retirar anuncio</button>':'')+'</section>';
 }
 function updateReview(){
@@ -115,9 +116,9 @@ function render(focus=true){
   },message=>{if($('#map-status'))$('#map-status').textContent=message;});
   $('#previous').disabled=busy||active.indexOf(draft.step)===0;
   $('#next').textContent=isReview()?(locked()?'Actualizar estado':'Enviar para revisión'):'Continuar →';
-  for(const id of ['backup','restore','new-draft','step-select'])$('#'+id).disabled=busy;
+  for(const id of ['step-select'])$('#'+id).disabled=busy;
   submissionState();updateReview();
-  if(account){$('#cloud-save').textContent=account.kind==='admin'?'Guardar cambios':'Guardar en mi cuenta';if(isReview()&&account.kind==='admin')$('#next').textContent='Guardar y revisar';$('#cloud-save').disabled=busy||locked()||cloudConflict;$('#reload-cloud').hidden=!cloudConflict;$('#cloud-status').textContent=cloudConflict?cloudProblem||'Hay cambios más recientes en la cuenta. Guardá una copia de tus cambios antes de cargar la versión actual.':draft.cloud?.dirty?'Hay cambios guardados solo en este navegador.':'La ficha está guardada en tu cuenta.';}
+  if(account){$('#cloud-save').textContent='Guardar borrador';if(isReview()&&account.kind==='admin')$('#next').textContent='Guardar y revisar';$('#cloud-save').disabled=busy||locked()||cloudConflict;$('#reload-cloud').hidden=!cloudConflict;$('#cloud-status').textContent=cloudConflict?cloudProblem||'Hay cambios más recientes en la cuenta. Tus cambios locales se conservan hasta que decidas cargar la versión actual.':draft.cloud?.dirty?'Hay cambios guardados solo en este navegador.':'La ficha está guardada en tu cuenta.';}
   if(focus){$('#content').focus({preventScroll:true});window.scrollTo({top:0,behavior:'instant'});}
 }
 async function go(step){
@@ -155,27 +156,6 @@ async function addFiles(input){
     changed();await save();
   }finally{busy=false;render(false);if(errors.length)notify(errors.join(' '));}
 }
-function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
-const dataURL=blob=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});
-async function backup(){
-  if(busy)return;busy=true;render(false);
-  try {
-    await save();const snapshot=structuredClone(draft);
-    const files=await Promise.all(snapshot.files.map(async({blob,...f})=>({...f,data:await dataURL(blob)})));
-    const {submission,accessToken,cloud,...portable}=snapshot;
-    download(new Blob([JSON.stringify({...portable,format:'arenalindex-intake',files},null,2)],{type:'application/json'}),'arenalindex-'+draft.id.slice(0,8)+'.json');
-    notify('Copia preparada. Guardá el archivo para restaurar una copia del borrador.');
-  }catch{notify('No se pudo preparar la copia. Conservá esta página e intentá de nuevo.');}
-  finally{busy=false;render(false);}
-}
-function summary(){
-  const t=value=>window.ArenalI18n?.text(value)||value,answer=(f,value)=>f.options||f.type==='checkbox'?t(M.label(f,value)):M.label(f,value);
-  let content=M.reference(draft)+'\n'+t('BORRADOR · No publicado ni verificado')+'\n\n'+buyerCopy(draft)+'\n\n';
-  for(const s of M.steps){content+=t(s.short).toUpperCase()+'\n';for(const f of s.fields.filter(f=>f.id&&M.visible(f,draft.values)))content+=t(f.label)+': '+answer(f,draft.values[f.id])+'\n';content+='\n';}
-  content+=t('CONSTRUCCIONES')+'\n'+draft.buildings.map(b=>M.buildingFields.map(f=>t(f.label)+': '+answer(f,b[f.id])).join('\n')).join('\n\n');
-  content+='\n\n'+t('PENDIENTES')+'\n'+M.pending(draft).map(i=>t(i.label)).join('\n')+'\n\n'+t('ARCHIVOS')+'\n'+draft.files.map(f=>imageCaption(f)+': '+f.name).join('\n');
-  download(new Blob([content],{type:'text/plain;charset=utf-8'}),'arenalindex-'+draft.id.slice(0,8)+'-resumen.txt');
-}
 async function buyerPreview(){
   if(busy)return;
   const preview=window.open('about:blank','_blank');
@@ -184,16 +164,6 @@ async function buyerPreview(){
     if(!await save())throw Error('No pudimos guardar la ficha para abrir la vista previa. Intentá de nuevo.');
     preview.opener=null;preview.location.replace('/newlisting/preview/?draft=1'+(account?'&'+account.param+'='+account.id:''));
   }catch(error){preview.close();notify(error.message);}
-}
-async function restore(file){
-  if(!file||busy||account&&locked())return;if(file.size>90*1024*1024)return notify('La copia supera 90 MB.');
-  busy=true;render(false);
-  try {
-    const restored=M.importBackup(JSON.parse(await file.text()),crypto.randomUUID());
-    for(const f of restored.files)await verifyFile(f.blob);
-    if(await confirm('¿Restaurar esta copia?','Reemplazará el borrador de este navegador. La ficha enviada, si existe, se conserva en ArenalIndex.')){if(account)Object.assign(restored,{id:account.id,submission:draft.submission,cloud:{...draft.cloud,dirty:true}});draft=restored;await save();}
-  }catch(error){notify(error.message||'No se pudo restaurar la copia.');}
-  finally{busy=false;$('#restore-file').value='';render();}
 }
 async function send(){
   if(busy||locked()||!ready)return;
@@ -231,6 +201,7 @@ document.addEventListener('input',event=>{
   const el=event.target;if(!el.dataset.key||busy||locked())return;
   const values=el.dataset.building?draft.buildings.find(b=>b.id===el.dataset.building):draft.values;if(!values)return;
   values[el.dataset.key]=el.type==='checkbox'?el.checked:el.value;
+  if(el.dataset.key.startsWith('listing_title_'))draft.values=M.normalizeTitles(draft.values);
   if(['lat','lng'].includes(el.dataset.key)){draft.values.exact=false;draft.values.location_method='coordinates';$('#field-exact').checked=false;$('#field-location_method').value='coordinates';}
   if(['lat','lng','exact'].includes(el.dataset.key))map?.update(draft.values);
   for(const f of M.steps[draft.step].fields.filter(f=>f.id)) {const wrapper=$('[data-visible="'+f.id+'"]');if(wrapper)wrapper.hidden=!M.visible(f,draft.values);}
@@ -265,7 +236,7 @@ document.addEventListener('click',async event=>{
   if(action==='unlist'&&account){if(await confirm('¿Retirar este anuncio del catálogo público?','La ficha y sus documentos se conservan. Para volver a publicarlo, contactá a ArenalIndex.')){busy=true;try{draft.submission=await account.request('unlist',{version:draft.submission.version,publicationRevision:draft.submission.publicationRevision});await save();notify('El anuncio fue retirado del catálogo.');}catch(error){notify(error.message);}finally{busy=false;render(false);}}}
   if(action==='authorizations')$('#review-authorizations')?.scrollIntoView({behavior:'smooth',block:'start'});
   if(action==='add-building'&&!locked()){if(draft.buildings.length>=30)return notify('Se admite un máximo de 30 construcciones.');draft.buildings.push({id:crypto.randomUUID(),kind:'',name:''});changed();render(false);}
-  if(action==='backup')backup();if(action==='summary')summary();if(action==='refresh')refresh();if(action==='edit')edit();if(action==='retry-email')retryEmail();
+  if(action==='refresh')refresh();if(action==='edit')edit();if(action==='retry-email')retryEmail();
   if(action==='gps'&&!locked()){
     if(!navigator.geolocation)return notify('El GPS no está disponible. Usá el mapa o las coordenadas.');
     navigator.geolocation.getCurrentPosition(p=>{if(draft.step!==1||locked())return;draft.values.lng=String(p.coords.longitude);draft.values.lat=String(p.coords.latitude);draft.values.location_method='gps';draft.values.exact=false;changed();render(false);notify('Ubicación aproximada del GPS: '+Math.round(p.coords.accuracy)+' m. Comprobá que corresponde a la entrada.');},()=>notify('No se pudo obtener el GPS. Podés marcar la entrada en el mapa.'),{enableHighAccuracy:true,timeout:15000,maximumAge:0});
@@ -274,17 +245,16 @@ document.addEventListener('click',async event=>{
 $('#step-select').onchange=e=>go(Number(e.target.value));
 $('#previous').onclick=()=>{const active=M.activeSteps(draft);go(active[active.indexOf(draft.step)-1]);};
 $('#next').onclick=()=>isReview()?(locked()?refresh():send()):go(M.activeSteps(draft)[M.activeSteps(draft).indexOf(draft.step)+1]);
-$('#backup').onclick=backup;$('#restore').onclick=()=>$('#restore-file').click();$('#restore-file').onchange=e=>restore(e.target.files[0]);
-$('#new-draft').onclick=async()=>{if(account){if(!busy)location.href='/newlisting/?'+account.param+'=new';return;}if(!busy&&await confirm('¿Empezar otra propiedad?','Guardá una copia si querés conservar este borrador en tu dispositivo. Las fichas enviadas se conservan en ArenalIndex.')){draft=M.newDraft();draft.values.listing_language=window.ArenalI18n?.language||'es';await save();render();}};
 window.addEventListener('arenal-language-change',()=>{const copy=$('.buyer-preview');if(copy)copy.textContent=buyerCopy(draft);const list=$('[data-review-section="concerns"] ul');if(list)list.innerHTML=concerns(draft).map(n=>'<li translate="no">'+esc(n)+'</li>').join('');});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')save();});
 if(account){
   window.addEventListener('pageshow',event=>{if(event.persisted){release();$('#content').replaceChildren();location.reload();}});
   window.addEventListener('beforeunload',event=>{if(!account.expired&&(busy||draft.cloud?.dirty)){event.preventDefault();event.returnValue='';}});
-  const bar=document.createElement('section');bar.className='account-bar';bar.innerHTML='<a href="'+account.back+'">'+(account.kind==='admin'?'← Volver a revisión':'← Mis anuncios')+'</a><p id="cloud-status" role="status"></p><button id="cloud-save" class="secondary">Guardar en mi cuenta</button><button id="reload-cloud" class="quiet" hidden>Cargar la versión actual</button>';
+  const bar=document.createElement('section');bar.className='account-bar';bar.innerHTML='<p id="cloud-status" role="status"></p><button id="reload-cloud" class="quiet" hidden>Cargar la versión actual</button>';
   $('#submission-state').before(bar);
+  $('#account-back').href=account.back;$('#account-back').textContent=account.kind==='admin'?'← Volver a revisión':'← Mis anuncios';
   $('#cloud-save').onclick=async()=>{if(busy||locked()||cloudConflict)return;busy=true;render(false);try{await saveToAccount(draft,account,notify);await save();notify('Borrador guardado en tu cuenta.');}catch(error){notify(error.message);}finally{busy=false;render(false);}};
-  $('#reload-cloud').onclick=async()=>{if(busy||!await confirm('¿Cargar la versión actual?','Los cambios locales se reemplazarán. Usá Guardar copia antes si querés conservarlos.'))return;busy=true;try{draft=await account.read(notify);cloudConflict=false;cloudProblem='';await save();}catch(error){notify(error.message);}finally{busy=false;render(false);}};
+  $('#reload-cloud').onclick=async()=>{if(busy||!await confirm('¿Cargar la versión actual?','Esto reemplazará los cambios que guardaste solo en este navegador. Cancelá para conservarlos y revisarlos primero.'))return;busy=true;try{draft=await account.read(notify);cloudConflict=false;cloudProblem='';await save();}catch(error){notify(error.message);}finally{busy=false;render(false);}};
   setTimeout(()=>{clearTimeout(saveTimer);release();account.login();},Math.max(0,account.expiresAt-Date.now()));
 }
 render(false);

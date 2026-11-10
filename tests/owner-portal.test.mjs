@@ -53,9 +53,9 @@ test('saving is idempotent, and a complete account draft can enter the existing 
 test('administrators edit received data and reopen for owners while the old publication remains unchanged',async()=>{
   const e=await setup(),row=approvedRow();row.owner_subject=e.subjectA;row.owner_email='owner-a@gmail.com';row.publication=createPublication(row,editorial,{apiURL:e.options.config.publicAPIURL});e.rows.set(row.id,row);
   const published=structuredClone(row.publication),payload=structuredClone(row.payload);payload.values.price='999999';payload.files=[];payload.values.photo_exception='New photos pending';
-  const reopened=await e.call('workspace_reopen_owner',{id:row.id,version:row.version,editRevision:0,feedback:'Confirm the price.'},e.admin,'admin');assert.equal(reopened.body.status,'changes_requested');assert.deepEqual(e.rows.get(row.id).publication,published);
+  const reopened=await e.call('workspace_reopen_owner',{id:row.id,version:row.version,editRevision:0},e.admin,'admin');assert.equal(reopened.body.status,'draft');assert.deepEqual(e.rows.get(row.id).publication,published);
   const saved=await save(e,payload,e.a,1,row.version);assert.equal(saved.status,200);assert.deepEqual(e.rows.get(row.id).publication,published);
-  const opened=await e.call('workspace_open',{id:row.id},e.a);assert.equal(opened.body.draft.values.price,'999999');assert.equal(opened.body.feedback,'Confirm the price.');
+  const opened=await e.call('workspace_open',{id:row.id},e.a);assert.equal(opened.body.draft.values.price,'999999');assert.equal(opened.body.feedback,'');
   const prepared=await e.call('workspace_save_prepare',{draft:payload,version:opened.body.version,editRevision:opened.body.editRevision},e.admin,'admin');assert.equal(prepared.status,200);
   const unlisted=await e.call('workspace_unlist',{id:row.id,version:opened.body.version,publicationRevision:0},e.a);assert.equal(unlisted.status,200);assert.equal(e.rows.get(row.id).publication,null);
   assert.equal((await e.call('workspace_save_commit',{id:row.id,transaction:prepared.body.transaction},e.admin,'admin')).status,409);

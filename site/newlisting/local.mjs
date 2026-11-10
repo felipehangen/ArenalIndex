@@ -17,7 +17,7 @@ export function createSaver(write,snapshot,status) {
     if(!running)running=(async()=>{
       let ok=true;
       try {while(pending){pending=false;status('Guardando…');await write(snapshot());}status('Borrador guardado en este navegador');}
-      catch {ok=false;status('No se pudo guardar. Descargá una copia antes de salir.');}
+      catch {ok=false;status('No se pudo guardar en este navegador. Guardá el borrador en tu cuenta antes de salir.');}
       finally {running=null;}
       return ok;
     })();

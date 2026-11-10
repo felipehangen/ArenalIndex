@@ -1,9 +1,11 @@
 import {buyerCopy,concerns as localizedConcerns} from './buyer-copy.mjs?v=9-language';
-import * as M from './model.mjs?v=10-account';
+import * as M from './model.mjs?v=11-titles';
 import {renderPhotoTour} from './view.mjs';
 import * as adminClient from '../admin/client.mjs';
 const params=new URLSearchParams(location.hash.slice(1)),id=params.get('id'),token=params.get('token');
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const embedded=params.get('embedded')==='1',focusAction=params.get('focus');
+function saved(){if(embedded)window.parent.postMessage({type:'arenal-review-saved'},location.origin);}
 const isAdmin=location.pathname.startsWith('/admin/');
 let record,busy=false,closed=false,expiryTimer;
 function requireLogin(){
@@ -53,9 +55,9 @@ function render(){
     ].map(([id,label,checked])=>'<label><input id="'+id+'" type="checkbox"'+(checked?' checked':'')+'>'+label+'</label>').join('')+'</div>'+inspection(r,d)+'<div class="approval-checks copy-confirmation"><label><input id="copy-checked" type="checkbox"'+(r.copy_checked?' checked':'')+'>Revisé texto, fotos, permisos y condiciones conocidas; se representarán correctamente en la publicación.</label></div><label for="feedback">Comentarios o cambios que debe realizar el vendedor</label><textarea id="feedback" maxlength="3000">'+esc(record.feedback||'')+'</textarea><div id="approval-pending" class="map-note"></div><div class="actions"><button class="primary" type="submit" id="approve">Aprobar para publicar</button><button class="secondary" type="button" id="request-changes">Reabrir para cambios</button></div><p class="map-note">Aprobar guarda la versión autorizada para preparar la publicación. La ficha no se agrega automáticamente al catálogo público.</p></section></fieldset></form><p id="review-message" role="status"></p>';
   if(isAdmin){
     const tools=document.createElement('section');tools.className='review-admin-tools';
-    tools.innerHTML='<a class="secondary" href="/newlisting/?admin='+encodeURIComponent(id)+'">Editar ficha</a><details class="reopen-panel"><summary>Reabrir para cambios</summary><p>Podés corregir los datos vos o reabrir la ficha con instrucciones para quien la envió. El anuncio publicado se conserva.</p><label for="owner-feedback">Cambios necesarios</label><textarea id="owner-feedback" maxlength="3000"></textarea><button class="secondary" id="reopen-owner">Reabrir para cambios</button></details><p id="owner-message" role="status"></p>';
+    tools.innerHTML='<a class="secondary" href="/newlisting/?admin='+encodeURIComponent(id)+'"'+(embedded?' target="_top"':'')+'>Editar ficha</a><button class="quiet" id="reopen-owner">Reabrir como borrador</button><p id="owner-message" role="status"></p>';
     $('#review-content .review-status').after(tools);$('#request-changes').hidden=true;$('#feedback').hidden=true;$('[for=feedback]').hidden=true;
-    $('#reopen-owner').onclick=async()=>{if(busy)return;busy=true;$('#reopen-owner').disabled=true;try{const result=await request('workspace_reopen_owner',{version:record.version,editRevision:record.editRevision||0,feedback:$('#owner-feedback').value});record={...record,...result};render();$('#owner-message').textContent='La ficha está abierta para que quien la envió haga los cambios.';}catch(error){if(!closed)$('#owner-message').textContent=error.message;}finally{busy=false;if($('#reopen-owner'))$('#reopen-owner').disabled=false;}};
+    $('#reopen-owner').onclick=async()=>{if(busy||!window.confirm(window.ArenalI18n?.t('La ficha volverá a borrador para editar. Podés coordinar las correcciones por llamada o WhatsApp. El anuncio publicado se conserva.')||'La ficha volverá a borrador para editar. Podés coordinar las correcciones por llamada o WhatsApp. El anuncio publicado se conserva.'))return;busy=true;$('#reopen-owner').disabled=true;try{const result=await request('workspace_reopen_owner',{version:record.version,editRevision:record.editRevision||0});record={...record,...result};render();saved();$('#owner-message').textContent='La ficha está abierta para editar y volver a enviar.';}catch(error){if(!closed)$('#owner-message').textContent=error.message;}finally{busy=false;if($('#reopen-owner'))$('#reopen-owner').disabled=false;}};
   }
   $('#review-form').oninput=updateChecks;
   $('#review-form').onsubmit=e=>{e.preventDefault();decide('approve');};
@@ -77,7 +79,7 @@ async function decide(action){
   busy=true;$('#review-form fieldset').disabled=true;$('#approve').disabled=true;$('#request-changes').disabled=true;
   try{
     const result=await request(action,{version:record.version,review,feedback});
-    record={...record,...result,review:M.normalizeReview(review)};render();$('#review-message').textContent=action==='approve'?'Versión aprobada para publicar.':'Se guardó la solicitud de cambios. El vendedor la verá al actualizar el estado de su ficha.';
+    record={...record,...result,review:M.normalizeReview(review)};render();saved();if(embedded)document.querySelector('.publication-panel')?.scrollIntoView({block:'start'});$('#review-message').textContent=action==='approve'?'Versión aprobada para publicar.':'Se guardó la solicitud de cambios. El vendedor la verá al actualizar el estado de su ficha.';
   }catch(error){if(!closed)$('#review-message').textContent=error.message;}
   finally{busy=false;if(!closed&&record.status==='ready_for_review'){$('#review-form fieldset').disabled=false;updateChecks();$('#request-changes').disabled=false;}}
 }
@@ -101,7 +103,7 @@ async function publishAction(action){
   try{
     const result=await request(action,{version:record.version,publicationRevision:record.publicationRevision||0,editorial:editorial(),confirmed:$('#public-confirm').checked});
     if(preview){preview.sessionStorage.setItem('arenalindex.public-preview',JSON.stringify(result.listing));preview.opener=null;preview.location.replace('/newlisting/preview/');$('#public-message').textContent='Vista previa abierta. Volvé aquí para publicar.';}
-    else {record={...record,...result};render();const message=$('#public-message')||$('#review-message');message.textContent=action==='unpublish'?'El anuncio fue retirado del catálogo.':'El anuncio está publicado.';if(result.url){const a=document.createElement('a');a.href=result.url;a.target='_blank';a.rel='noopener';a.textContent=' Abrir anuncio';message.append(a);}}
+    else {record={...record,...result};render();saved();const message=$('#public-message')||$('#review-message');message.textContent=action==='unpublish'?'El anuncio fue retirado del catálogo.':'El anuncio está publicado.';if(result.url){const a=document.createElement('a');a.href=result.url;a.target='_blank';a.rel='noopener';a.textContent=' Abrir anuncio';message.append(a);}}
   }catch(error){preview?.close();if(!closed)($('#public-message')||$('#review-message')).textContent=error.message;}
   finally{busy=false;document.querySelectorAll('.publication-panel button').forEach(b=>b.disabled=false);if($('#public-publish'))$('#public-publish').disabled=!$('#public-confirm').checked||record.status!=='approved';if($('#public-preview'))$('#public-preview').disabled=record.status!=='approved';}
 }
@@ -121,5 +123,8 @@ try{
     window.addEventListener('pageshow',event=>{if(event.persisted){$('#review-content').replaceChildren();location.reload();}});
     window.addEventListener('focus',()=>{if(!adminClient.session())requireLogin();});
   }else if(!/^[a-f0-9]{64}$/.test(token||''))throw Error('Abrí el enlace privado que recibiste en el correo de revisión.');
-  record=await request('review');render();
+  record=await request('review');record.draft.values=M.normalizeTitles(record.draft.values);render();
+  if(embedded){document.body.classList.add('embedded-review');document.querySelector('.admin-header').hidden=true;}
+  if(focusAction==='publish')document.querySelector('.publication-panel')?.scrollIntoView({block:'start'});
+  if(focusAction==='approve'&&record.status==='ready_for_review')document.querySelector('#review-form')?.scrollIntoView({block:'start'});
 }catch(error){if(!closed)$('#review-content').innerHTML='<h1>No se pudo abrir esta revisión.</h1><p>'+esc(error.message)+'</p>';}

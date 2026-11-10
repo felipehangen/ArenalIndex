@@ -9,6 +9,7 @@ export async function workspaceAction({action,body,actor,repository,config,maile
   const id=body.id||body.draft?.id;
   if(!/^[a-zA-Z0-9-]{8,80}$/.test(id||''))fail(400,'Identificador inválido.');
   let row=await repository.get(id);
+  if(row?.status==='deleted')fail(404,'No se encontró la ficha.');
   if(action==='workspace_claim'){
     if(row?.owner_subject===actor.subject)return workspaceSummary(row);
     if(!row||row.owner_subject||!/^[a-f0-9]{64}$/.test(body.token||'')||row.token_hash!==await digest(body.token))fail(403,'No se pudo vincular esta ficha. Necesitás su acceso privado original.');
@@ -22,7 +23,13 @@ export async function workspaceAction({action,body,actor,repository,config,maile
     row=await repository.create({id,owner_subject:actor.subject,owner_email:actor.email,payload:validateDraft(newDraft(id)),status:'draft',version:0,edit_revision:0,updated_at:now().toISOString()});
     if(!row)fail(409,'La ficha cambió. Actualizá su estado.');
   }
-  if(!row||actor.role!=='admin'&&row.owner_subject!==actor.subject)fail(404,'No se encontró la ficha.');
+  if(!row||row.status==='deleted'||actor.role!=='admin'&&row.owner_subject!==actor.subject)fail(404,'No se encontró la ficha.');
+  if(action==='workspace_delete'){
+    if(actor.role!=='admin')fail(403,'Acción no autorizada.');
+    if(body.version!==row.version||body.editRevision!==(row.edit_revision||0)||body.publicationRevision!==(row.publication_revision||0))fail(409,'La ficha cambió. Actualizá la lista antes de borrarla.');
+    const updated=await repository.update(id,{version:row.version,status:row.status,edit_revision:row.edit_revision,publication_revision:row.publication_revision},{status:'deleted',publication:null,payload:{id,values:{},buildings:[],files:[]},editorial:{},review:{},feedback:'',file_paths:{},token_hash:null,review_token_hash:null,review_token_expires:null,deleted_by:actor.email,deleted_at:now().toISOString(),edit_revision:(row.edit_revision||0)+1,publication_revision:(row.publication_revision||0)+1});
+    if(!updated)fail(409,'La ficha cambió. Actualizá la lista antes de borrarla.');return {deleted:true};
+  }
   if(action==='workspace_open'){
     let available=row.payload.files;
     if(!row.last_save_id&&row.status==='draft'){
@@ -66,9 +73,7 @@ export async function workspaceAction({action,body,actor,repository,config,maile
   if(action==='workspace_reopen'||action==='workspace_reopen_owner'){
     if(body.version!==row.version||body.editRevision!==(row.edit_revision||0))fail(409,'La ficha cambió. Volvé a abrirla.');
     if(action==='workspace_reopen_owner'&&actor.role!=='admin')fail(403,'Acción no autorizada.');
-    const feedback=String(body.feedback||'').trim().slice(0,3000);
-    if(action==='workspace_reopen_owner'&&!feedback)fail(422,'Explicá qué cambios necesita la ficha.');
-    const updated=await repository.update(id,{version:row.version,status:row.status,edit_revision:row.edit_revision},{status:action==='workspace_reopen_owner'?'changes_requested':'draft',feedback:feedback||row.feedback||'',edit_revision:(row.edit_revision||0)+1,review:{},review_token_hash:null,review_token_expires:null,reviewed_by:actor.email,reviewed_at:now().toISOString(),updated_at:now().toISOString()});
+    const updated=await repository.update(id,{version:row.version,status:row.status,edit_revision:row.edit_revision},{status:'draft',feedback:'',edit_revision:(row.edit_revision||0)+1,review:{},review_token_hash:null,review_token_expires:null,reviewed_by:actor.email,reviewed_at:now().toISOString(),updated_at:now().toISOString()});
     if(!updated)fail(409,'La ficha cambió. Volvé a abrirla.');return workspaceSummary(updated);
   }
   if(['workspace_submit','workspace_status','workspace_unlist'].includes(action)){

@@ -6,19 +6,19 @@
   "functions": {
     "api/admin.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,site/newlisting/model.mjs}"
+      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,server/catalog/**,site/newlisting/model.mjs}"
     },
     "api/owner.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,site/newlisting/model.mjs}"
+      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,server/catalog/**,site/newlisting/model.mjs}"
     },
     "api/listings.mjs": {
       "maxDuration": 60,
-      "includeFiles": "server/intake/**"
+      "includeFiles": "{server/intake/**,server/catalog/**}"
     },
     "api/intake.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/intake/**,site/newlisting/model.mjs}"
+      "includeFiles": "{server/intake/**,server/catalog/**,site/newlisting/model.mjs}"
     }
   },
   "headers": [
