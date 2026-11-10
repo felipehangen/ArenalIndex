@@ -101,6 +101,9 @@ export function createHandler({repository,mailer,config,now=()=>new Date(),autho
         if(action!=='unpublish'){
           if(action==='publish'&&body.confirmed!==true)fail(422,'Confirmá los datos públicos y las fotografías antes de publicar.');
           try{publication=createPublication(row,body.editorial||{},{apiURL:config.publicAPIURL,date:now().toISOString()});}catch(error){fail(422,error.message);}
+          // Every publication uses a server-generated, metadata-free image, even
+          // for older drafts or clients that skipped browser-side optimization.
+          for(const [photoId,file] of Object.entries(publication.media))publication.media[photoId]=await repository.publicPhoto(file.path,file);
           if(action==='preview_publication'){
             const images=new Map();
             for(const group of publication.listing.details.photoGroups)for(const photo of group.photos){const url=await repository.downloadURL(publication.media[photo.id].path);images.set(photo.src,url);photo.src=url;}

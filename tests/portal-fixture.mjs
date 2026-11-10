@@ -10,6 +10,7 @@ export function portalFixture({acceptRules=true}={}){
   const repository={
     async ownerAccounts(){return [...portal].filter(([key])=>key.startsWith('accounts/')).map(([,value])=>clone(value));},
     async allow(){return true;},async ensureOwnerIndex(){},async ensurePublishedIndex(){},
+    async publicPhoto(path,file){return {path:path+'/web-v1.jpg',type:'image/jpeg',size:file.size};},
     async get(id){return clone(rows.get(id)||null);},async create(row){if(rows.has(row.id))return null;rows.set(row.id,clone(row));return clone(row);},async update(id,filters,patch){return update(rows,id,filters,patch);},
     async records(){return {records:[...rows.values()],cursor:null};},async ownerRecords(subject){return {records:[...rows.values()].filter(r=>r.owner_subject===subject),cursor:null};},
     async portalGet(kind,id){return clone(portal.get(kind+'/'+id)||null);},async portalCreate(kind,id,row){const key=kind+'/'+id;if(portal.has(key))return null;portal.set(key,clone(row));return clone(row);},async portalUpdate(kind,id,filters,patch){return update(portal,kind+'/'+id,filters,patch);},

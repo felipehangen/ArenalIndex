@@ -2,6 +2,7 @@ import * as blob from '@vercel/blob';
 import {createHash} from 'node:crypto';
 import {analyticsStore} from '../analytics/store.mjs';
 import {storageRequest} from './storage-request.mjs';
+import {inspectImage,optimizePhoto,publicPhotoPath} from './images.mjs';
 
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const conflict=error=>error instanceof blob.BlobPreconditionFailedError||/already exists/i.test(error.message);
@@ -39,6 +40,18 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now,timeoutMs,
     const constraints=file?{allowedContentTypes:[file.type],maximumSizeInBytes:file.size}:{};
     const delegation=await run('sign','files',signal=>sdk.issueSignedToken({...auth,abortSignal:signal,pathname:path,operations:[operation],validUntil,...constraints}));
     return (await sdk.presignUrl(delegation,{access:'private',pathname:path,operation,validUntil,...constraints,...(file?{allowOverwrite:false,addRandomSuffix:false}:{useCache:false})})).presignedUrl;
+  }
+  async function imageBytes(path,file){
+    return run('read-image','files',async signal=>{
+      const result=await sdk.get('files/'+path,readOptions(signal));
+      if(!result)return null;
+      if(file.size<1||file.size>12*1024*1024||result.blob.size!==file.size||result.blob.contentType.split(';')[0]!==file.type){await result.stream.cancel();return null;}
+      const reader=result.stream.getReader(),chunks=[];let length=0;
+      try{
+        while(true){const {done,value}=await reader.read();if(done)break;length+=value.length;if(length>file.size)return null;chunks.push(value);}
+      }finally{await reader.cancel();}
+      return length===file.size?Buffer.concat(chunks,length):null;
+    },{retry:true});
   }
   return {
     ...analyticsStore({read,write,list}),
@@ -129,7 +142,30 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now,timeoutMs,
     },
     uploadURL(path,file){return signed('files/'+path,'put',file);},
     downloadURL(path){return signed('files/'+path,'get');},
+    async publicPhoto(path,file){
+      const outputPath=publicPhotoPath(path);
+      const cached=await run('read-photo','files',async signal=>{
+        const result=await sdk.get('files/'+outputPath,readOptions(signal));
+        if(!result)return null;
+        await result.stream.cancel();
+        return result.blob.contentType==='image/jpeg'&&result.blob.size>0?{path:outputPath,type:'image/jpeg',size:result.blob.size}:null;
+      },{retry:true});
+      if(cached)return cached;
+      const bytes=await imageBytes(path,file);
+      if(!bytes)throw Object.assign(Error('No se pudo preparar una foto para publicar. Volvé a guardar la ficha.'),{status:422});
+      const optimized=await optimizePhoto(bytes,file.type);
+      await run('write-photo','files',async signal=>{
+        try{await sdk.put('files/'+outputPath,optimized,{...options(signal),contentType:'image/jpeg',addRandomSuffix:false,allowOverwrite:false});}
+        catch(error){if(!conflict(error))throw error;}
+      });
+      return {path:outputPath,type:'image/jpeg',size:optimized.length};
+    },
     async inspectFile(path,file){
+      if(file.type.startsWith('image/')){
+        const bytes=await imageBytes(path,file);if(!bytes)return null;
+        try{return {size:bytes.length,bytes:bytes.subarray(0,32),...await inspectImage(bytes,file.type)};}
+        catch(error){if(error.status===422)return null;throw error;}
+      }
       return run('inspect','files',async signal=>{
         const result=await sdk.get('files/'+path,readOptions(signal));
         if(!result)return null;

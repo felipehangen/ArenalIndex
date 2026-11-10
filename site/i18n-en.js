@@ -1257,3 +1257,21 @@ window.ArenalEnglish=Object.freeze({
   "Reglas: aceptación pendiente": "Rules: acceptance pending",
   "Reglas aceptadas": "Rules accepted"
 });
+
+window.ArenalEnglish=Object.freeze({...window.ArenalEnglish,...{
+  "JPG, PNG o WebP, hasta 32 MB por foto. Exportá HEIC como JPG. Ajustamos automáticamente el tamaño y el peso, conservando la imagen completa.": "JPG, PNG, or WebP, up to 32 MB per photo. Export HEIC as JPG. We automatically adjust dimensions and file size, preserving the full image.",
+  "JPG, PNG, WebP o PDF. Hasta 12 MB por archivo. Los documentos conservan su calidad original.": "JPG, PNG, WebP, or PDF. Up to 12 MB per file. Documents keep their original quality.",
+  "Hasta 60 MB en total después de preparar las fotos.": "Up to 60 MB in total after preparing the photos.",
+  "Preparando archivos…": "Preparing files…",
+  "No se pudo leer el tamaño de la imagen.": "The image dimensions could not be read.",
+  "La imagen supera 60 megapíxeles o 16384 píxeles por lado. Usá una copia más pequeña.": "The image exceeds 60 megapixels or 16384 pixels on one side. Use a smaller copy.",
+  "Esta foto tiene poca resolución. Si tenés una copia más nítida, usala.": "This photo has low resolution. Use a sharper copy if you have one.",
+  "Esta foto es muy alargada. La vista completa se conserva en la galería.": "This photo is very wide or tall. The full image is preserved in the gallery.",
+  "Usá fotos JPG, PNG o WebP. Exportá HEIC como JPG.": "Use JPG, PNG, or WebP photos. Export HEIC as JPG.",
+  "La foto supera 32 MB. Usá una copia más pequeña.": "The photo exceeds 32 MB. Use a smaller copy.",
+  "No se reconoció el contenido del archivo.": "The file contents could not be recognized.",
+  "No se pudo preparar la imagen. Probá con otra copia JPG, PNG o WebP.": "The image could not be prepared. Try another JPG, PNG, or WebP copy.",
+  "Esta foto ya está en la ficha. Podés cambiar su grupo sin subirla otra vez.": "This photo is already in the listing. You can change its group without uploading it again.",
+  "No se pudo comprobar la imagen. Usá otra copia JPG, PNG o WebP.": "The image could not be verified. Use another JPG, PNG, or WebP copy.",
+  "No se pudo preparar una foto para publicar. Volvé a guardar la ficha.": "A photo could not be prepared for publication. Save the listing again."
+}});

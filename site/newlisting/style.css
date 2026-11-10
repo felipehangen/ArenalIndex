@@ -93,3 +93,5 @@
 @media(max-width:480px){.admin-editor .editor-toolbar-actions{flex-wrap:wrap;gap:8px}.admin-editor #admin-editor-actions{width:100%;flex-basis:100%;justify-content:space-between}.admin-editor #cloud-save{width:100%}.admin-editor .editor-toolbar{position:static}}
 .toolbar-state{font-size:11px;color:#617455;border-radius:6px;background:#edf2e7;padding:4px 8px;white-space:nowrap;margin-right:auto}.admin-editor .editor-toolbar{gap:10px}.admin-editor .editor-back{white-space:nowrap}#listing-dialog .dialog-actions button{min-width:90px}
 .account-bar{border:0;border-radius:0;padding:0;background:transparent;margin:0 0 12px}.editor-state .draft-badge{margin:0}.account-bar:has(#reload-cloud:not([hidden])){padding:14px;border:1px solid #dfcdb7;border-radius:10px;background:#faf4eb}
+
+.photo-warning{font-size:12px;line-height:1.5;color:#79552d;background:#fbf3e5;padding:9px 12px;border-radius:8px;overflow-wrap:anywhere}.attachment-info .photo-warning{margin:10px 0 0}#upload-feedback:empty{display:none}

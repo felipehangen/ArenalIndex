@@ -369,7 +369,8 @@ export function validateDraft(input) {
     if(!f||!/^[a-zA-Z0-9-]{1,100}$/.test(f.id||'')||ids.has(f.id)||!categories.includes(f.category)||!TYPES.includes(f.type)||typeof f.name!=='string'||!f.name||f.name.length>255||!Number.isInteger(f.size)||f.size<1||f.size>MAX_FILE)throw Error('Archivo inválido.');
     if(photoGroups.some(g=>g.id===f.category)&&!f.type.startsWith('image/'))throw Error('El recorrido solo admite fotografías.');
     ids.add(f.id);total+=f.size;if(total>MAX_TOTAL)throw Error('Los archivos superan 60 MB.');
-    return {id:f.id,name:f.name,type:f.type,size:f.size,category:f.category,shot:['entrance','road','exterior','interior','general'].includes(f.shot)?f.shot:'general',perspective:f.perspective==='drone'?'drone':'ground',buildingId:buildingIds.has(f.buildingId)?f.buildingId:'',caption:typeof f.caption==='string'?f.caption.slice(0,160):''};
+    const dimensions=Number.isInteger(f.width)&&Number.isInteger(f.height)&&f.width>0&&f.height>0&&Math.max(f.width,f.height)<=16384?{width:f.width,height:f.height}:{};
+    return {id:f.id,name:f.name,type:f.type,size:f.size,category:f.category,shot:['entrance','road','exterior','interior','general'].includes(f.shot)?f.shot:'general',perspective:f.perspective==='drone'?'drone':'ground',buildingId:buildingIds.has(f.buildingId)?f.buildingId:'',caption:typeof f.caption==='string'?f.caption.slice(0,160):'',...dimensions,...(/^[a-f0-9]{64}$/.test(f.contentHash||'')?{contentHash:f.contentHash}:{})};
   });
   return {version:VERSION,id:input.id,values:normalizeTitles(values),buildings,files};
 }

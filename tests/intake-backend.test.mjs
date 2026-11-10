@@ -7,6 +7,7 @@ function environment({emailFails=false,invalidFile=false}={}){
   const rows=new Map(),emails=[];
   const repository={
     async ensurePublishedIndex(){},
+    async publicPhoto(path,file){return {path:path+'/web-v1.jpg',type:'image/jpeg',size:file.size};},
     async health(){return true;},async allow(){return true;},
     async get(id){return structuredClone(rows.get(id)||null);},
     async create(row){if(rows.has(row.id))return null;rows.set(row.id,structuredClone(row));return structuredClone(row);},
@@ -104,6 +105,7 @@ test('publication is a separate reviewer action, rejects stale edits, and keeps 
   assert.equal((await e.call('publish',{...body,confirmed:false},reviewToken,true)).status,422);
   const published=await e.call('publish',body,reviewToken,true);
   assert.equal(published.status,200);assert.equal(published.body.publishedVersion,version);assert.equal(published.body.publicationRevision,1);
+  assert.ok(Object.values(e.rows.get(d.id).publication.media).every(file=>file.path.endsWith('/web-v1.jpg')&&file.type==='image/jpeg'));
   assert.equal((await e.call('unpublish',body,reviewToken,true)).status,409);
   assert.equal((await e.call('publish',body,reviewToken,true)).status,409);
   const removed=await e.call('unpublish',{...body,publicationRevision:1},reviewToken,true);assert.equal(removed.body.publishedVersion,null);

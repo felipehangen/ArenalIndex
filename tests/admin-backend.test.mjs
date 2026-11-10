@@ -17,7 +17,8 @@ function environment({configured=true}={}){
     async get(id){return structuredClone(rows.get(id)||null);},
     async update(id,filters,patch){const row=rows.get(id);if(!row||Object.entries(filters).some(([k,v])=>row[k]!==v))return null;Object.assign(row,structuredClone(patch));return structuredClone(row);},
     async downloadURL(path){signed.push(path);return 'https://files.example/'+path;},
-    async ensurePublishedIndex(){}
+    async ensurePublishedIndex(){},
+    async publicPhoto(path,file){return {path:path+'/web-v1.jpg',type:'image/jpeg',size:file.size};}
   };
   const options={repository,config:{googleClientId:configured?'google-client':'',adminEmails:[email],rateSalt:'test-salt',siteURL:'https://arenalindex.com',publicAPIURL:'https://backend.example/api/listings',reviewEmail:'different-reviewer@example.com'},now:()=>new Date(clock),verifyGoogle:async credential=>{
     if(credential==='invalid')throw Error('Provider failure with private details');

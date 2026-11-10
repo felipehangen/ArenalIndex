@@ -91,3 +91,8 @@ window.ArenalEnglish=Object.freeze({...window.ArenalEnglish,...{
   "Volver a explorar propiedades": "Back to exploring properties",
   "Reglas de publicación": "Listing rules"
 }});
+
+window.ArenalEnglish=Object.freeze({...window.ArenalEnglish,...{
+  "Subí fotos claras de tu propiedad. Ajustamos automáticamente su tamaño y peso para que carguen rápido, conservando la imagen completa. Elegí la portada y enviá tu anuncio a revisión.": "Upload clear photos of your property. We automatically adjust their dimensions and file size so they load quickly, preserving the full image. Choose the cover and submit your listing for review.",
+  "Fotos: JPG, PNG o WebP, hasta 32 MB por foto. Documentos: PDF o imagen, hasta 12 MB. Hasta 60 MB en total después de preparar las fotos.": "Photos: JPG, PNG, or WebP, up to 32 MB each. Documents: PDF or image, up to 12 MB. Up to 60 MB in total after preparing the photos."
+}});

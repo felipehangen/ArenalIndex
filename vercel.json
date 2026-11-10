@@ -6,23 +6,23 @@
   "functions": {
     "api/admin.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/publicar/rules.mjs}"
+      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/publicar/rules.mjs,site/newlisting/photo-policy.mjs}"
     },
     "api/owner.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/publicar/rules.mjs}"
+      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/publicar/rules.mjs,site/newlisting/photo-policy.mjs}"
     },
     "api/listings.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/intake/**,server/analytics/**,server/catalog/**}"
+      "includeFiles": "{server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/photo-policy.mjs}"
     },
     "api/intake.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs}"
+      "includeFiles": "{server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/newlisting/photo-policy.mjs}"
     },
     "api/analytics.mjs": {
       "maxDuration": 30,
-      "includeFiles": "{server/intake/**,server/analytics/**}"
+      "includeFiles": "{server/intake/**,server/analytics/**,site/newlisting/photo-policy.mjs}"
     }
   },
   "headers": [

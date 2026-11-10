@@ -5,6 +5,8 @@ import {createAPI,randomToken,submitDraft} from './api.mjs';
 import {mountMap} from './map.mjs?v=2-zoom-labels';
 import {accountContext,saveToAccount} from './account.mjs?v=5-listing-rules';
 import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,renderPendingItems,areaNotice} from './view.mjs?v=11-title-examples';
+import {addAttachments} from './photos.mjs?v=1';
+import {photoWarnings} from './photo-policy.mjs';
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let account;try{account=await accountContext();}catch(error){$('#step-body').textContent=error.message;throw error;}
@@ -19,6 +21,7 @@ const canAdminReview=()=>account.kind==='admin'&&!draft.cloud?.dirty&&['ready_fo
 function notify(text){$('#notice').textContent=text;$('#notice').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('#notice').hidden=true,8000);}
 function confirm(title,copy){return new Promise(resolve=>{const dialog=$('#confirm-dialog');$('#confirm-title').textContent=title;$('#confirm-copy').textContent=copy;$('#confirm-ok').onclick=()=>{dialog.close();resolve(true);};$('#confirm-cancel').onclick=()=>{dialog.close();resolve(false);};dialog.oncancel=()=>resolve(false);dialog.showModal();});}
 let previous;
+let uploadMessages=[];
 try{storage=await openStore(account.key);previous=await storage.read();if(previous)draft=M.normalizeDraft(previous);}
 catch{status('Sin guardado local. Guardá el borrador en tu cuenta antes de salir.');}
 try{
@@ -47,6 +50,7 @@ function attachment(file){
     (image&&file.category==='access'?'<label>Qué muestra <span class="required-label">Para completar el grupo</span><select data-file="'+file.id+'" data-meta="shot">'+[['general','Elegir toma'],['entrance','Entrada'],['road','Vía de llegada']].map(([v,l])=>'<option value="'+v+'"'+(file.shot===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>':'')+
     (image&&file.category==='buildings'?'<label>Construcción <span class="required-label">Para completar el grupo</span><select data-file="'+file.id+'" data-meta="buildingId"><option value="">Elegir construcción</option>'+draft.buildings.map((b,i)=>'<option'+(b.name?' translate="no"':'')+' value="'+b.id+'"'+(file.buildingId===b.id?' selected':'')+'>'+esc(M.buildingName(b,i))+'</option>').join('')+'</select></label><label>Toma <span class="required-label">Para completar el grupo</span><select data-file="'+file.id+'" data-meta="shot">'+[['general','Elegir toma'],['exterior','Exterior'],['interior','Interior']].map(([v,l])=>'<option value="'+v+'"'+(file.shot===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>':'')+
     (image&&gallery?'<label>Punto de vista<select data-file="'+file.id+'" data-meta="perspective"><option value="ground"'+(file.perspective!=='drone'?' selected':'')+'>Desde el suelo</option><option value="drone"'+(file.perspective==='drone'?' selected':'')+'>Dron</option></select></label><button type="button" class="cover-button" data-cover="'+file.id+'">'+(draft.values.cover_id===file.id?'✓ Portada elegida':'Usar de portada')+'</button>':'')+
+    (gallery?photoWarnings(file).map(message=>'<p class="photo-warning">'+esc(message)+'</p>').join(''):'')+
     '</div><button type="button" data-remove-file="'+file.id+'" aria-label="Quitar '+esc(file.name)+'">Quitar</button></article>';
 }
 function attachments(photo){
@@ -54,7 +58,8 @@ function attachments(photo){
   const groups=original.filter(g=>!g.building||M.hasBuildings(draft.values)||draft.files.some(f=>f.category===g.id));
   const cover=draft.files.find(f=>f.id===draft.values.cover_id&&f.type.startsWith('image/')&&M.photoGroups.some(g=>g.id===f.category&&(!g.building||M.hasBuildings(draft.values))));
   return (photo?renderPhotoChecklist(draft)+'<section class="cover-card" id="photo-group-cover"><div><p class="eyebrow">LA PRIMERA IMPRESIÓN</p><h2>Elegí una portada'+renderPhotoGroupStatus(draft,'cover')+'</h2><p>En la foto que prefirás, pulsá «Usar de portada». La selección no duplica el archivo.</p></div><div id="cover-preview">'+(cover?'<img src="'+objectURL(cover.blob)+'" alt="Portada elegida">':'Todavía no elegiste una portada.')+'</div></section>':'')+
-    '<p class="map-note">'+(photo?'JPG, PNG o WebP. Exportá HEIC como JPG.':'JPG, PNG, WebP o PDF.')+' Hasta 12 MB por archivo y 60 MB en total.</p>'+groups.map((g,i)=>{
+    '<p class="map-note">'+(photo?'JPG, PNG o WebP, hasta 32 MB por foto. Exportá HEIC como JPG. Ajustamos automáticamente el tamaño y el peso, conservando la imagen completa.':'JPG, PNG, WebP o PDF. Hasta 12 MB por archivo. Los documentos conservan su calidad original.')+'</p><p class="map-note">Hasta 60 MB en total después de preparar las fotos.</p>'+
+    '<div id="upload-feedback" role="status">'+uploadMessages.map(item=>'<p class="photo-warning"><span translate="no">'+esc(item.name)+': </span><span>'+esc(item.message)+'</span></p>').join('')+'</div>'+groups.map((g,i)=>{
       const inactive=g.building&&!M.hasBuildings(draft.values),list=draft.files.filter(f=>f.category===g.id);
       const requirement=inactive?'':photo?renderPhotoGroupStatus(draft,g.id):g.id==='plan_file'?' <span class="required-label">Necesario</span>':'';
       const guidance=g.id==='access'?'Después de subirlas, elegí «Entrada» en una foto y «Vía de llegada» en otra, en el campo «Qué muestra».':g.id==='buildings'?'En cada exterior, elegí la construcción correspondiente y la toma «Exterior».':'';
@@ -138,30 +143,14 @@ function showPhotoGroup(group){
   if(section.tagName==='DETAILS')section.open=true;
   section.scrollIntoView({behavior:'smooth',block:'start'});
 }
-async function verifyFile(file){
-  if(!M.TYPES.includes(file.type)||file.size>M.MAX_FILE||file.size<1)throw Error('Usá JPG, PNG, WebP o PDF de hasta 12 MB.');
-  const bytes=new Uint8Array(await file.slice(0,32).arrayBuffer());
-  if(!M.validSignature(file.type,bytes,file.size))throw Error('No se reconoció el contenido de '+(file.name||'un archivo')+'.');
-  if(file.type.startsWith('image/')){
-    const bitmap=await createImageBitmap(file).catch(()=>{throw Error('La imagen '+(file.name||'adjunta')+' está dañada.');});
-    bitmap.close();
-  }
-}
 async function addFiles(input){
   if(busy||locked())return;
-  const selected=[...input.files],category=input.dataset.upload,errors=[];busy=true;render(false);
+  const selected=[...input.files],category=input.dataset.upload;uploadMessages=[];busy=true;render(false);
   try {
-    for(const file of selected){
-      try {
-        if(M.photoGroups.some(g=>g.id===category)&&!file.type.startsWith('image/'))throw Error('El recorrido solo admite fotografías.');
-        if(draft.files.reduce((sum,f)=>sum+f.size,0)+file.size>M.MAX_TOTAL)throw Error('La ficha supera 60 MB.');
-        if(draft.files.length>=120)throw Error('El máximo es 120 archivos por ficha.');
-        await verifyFile(file);
-        draft.files.push({id:crypto.randomUUID(),category,name:file.name,type:file.type,size:file.size,blob:file,shot:'general',perspective:'ground',buildingId:''});
-      }catch(error){errors.push(file.name+': '+error.message);}
-    }
-    changed();await save();
-  }finally{busy=false;render(false);if(errors.length)notify(errors.join(' '));}
+    const result=await addAttachments(draft,selected,category,(index,total)=>notify((window.ArenalI18n?.t('Preparando archivos…')||'Preparando archivos…')+' '+index+' / '+total));
+    uploadMessages=result.messages;
+    if(result.added){changed();await save();}
+  }finally{busy=false;render(false);clearTimeout(noticeTimer);$('#notice').hidden=true;}
 }
 async function buyerPreview(){
   if(busy)return;
