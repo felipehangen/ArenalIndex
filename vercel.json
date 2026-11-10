@@ -109,11 +109,11 @@
       "destination": "/api/share?code=:code&legacy=1"
     },
     {
-      "source": "/:code([A-Z][A-Za-z0-9]{5})/image.jpg",
+      "source": "/:code([A-Z][0-9][A-Za-z0-9]{4})/image.jpg",
       "destination": "/api/share?code=:code&image=1"
     },
     {
-      "source": "/:code([A-Z][A-Za-z0-9]{5})",
+      "source": "/:code([A-Z][0-9][A-Za-z0-9]{4})",
       "destination": "/api/share?code=:code"
     }
   ]

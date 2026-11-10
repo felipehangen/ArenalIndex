@@ -36,7 +36,7 @@ export function createShareHandler({published,origin=shareOrigin(),fetchImage=fe
     const error=(status,message)=>new Response(request.method==='HEAD'?null:message,{status,headers:{...headers,'Content-Type':'text/plain; charset=utf-8'}});
     if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405,headers:{...headers,Allow:'GET, HEAD'}});
     const url=new URL(request.url),legacy=url.pathname.startsWith('/p/');
-    const match=url.pathname.match(legacy? /^\/p\/([A-Za-z0-9_-]{10})(\/image\.jpg)?\/?$/ : /^\/([A-Z][A-Za-z0-9]{5})(\/image\.jpg)?\/?$/);
+    const match=url.pathname.match(legacy? /^\/p\/([A-Za-z0-9_-]{10})(\/image\.jpg)?\/?$/ : /^\/([A-Z][0-9][A-Za-z0-9]{4})(\/image\.jpg)?\/?$/);
     if(!match)return error(404,'Propiedad no disponible · Property unavailable');
     try{
       const rows=await published(),matches=rows.filter(row=>(legacy?legacyShareCode:codeFor)(row.id)===match[1]);

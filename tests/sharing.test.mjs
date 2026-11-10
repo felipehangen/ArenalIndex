@@ -15,7 +15,7 @@ const request=(suffix='',method='GET')=>new Request(shareURL(row.id,origin)+suff
 
 test('stable compact aliases depend only on public IDs; invalid IDs and collisions never misroute',async()=>{
   assert.equal(shareURL(row.id,origin).length,33);
-  assert.match(shareCode(row.id),/^[A-Z][A-Za-z0-9]{5}$/);
+  assert.match(shareCode(row.id),/^[A-Z][0-9][A-Za-z0-9]{4}$/);
   assert.equal(legacyShareCode(row.id),'y-b96PDJKq');
   assert.equal(shareCode(row.id),shareCode({...row,name:'Updated',price:1}.id));
   assert.notEqual(shareCode(row.id),shareCode('lot-101'));

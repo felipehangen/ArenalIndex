@@ -12,9 +12,10 @@ export const legacyShareCode=id=>digest(id).toString('base64url').slice(0,10);
 export function shareCode(id){
   const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let value=BigInt('0x'+digest(id).toString('hex')),suffix='';
-  for(let i=0;i<5;i++){suffix=alphabet[Number(value%62n)]+suffix;value/=62n;}
-  // An uppercase first character keeps aliases separate from existing site paths.
-  return alphabet[Number(value%26n)]+suffix;
+  for(let i=0;i<4;i++){suffix=alphabet[Number(value%62n)]+suffix;value/=62n;}
+  // A letter followed by a digit avoids existing site paths even on case-insensitive routers.
+  const digit=String(value%10n);value/=10n;
+  return alphabet[Number(value%26n)]+digit+suffix;
 }
 export const propertyURL=id=>SITE_ORIGIN+'/#propiedad/'+encodeURIComponent(id);
 export const shareURL=(id,origin=shareOrigin())=>origin+'/'+shareCode(id);

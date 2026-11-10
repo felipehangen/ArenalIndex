@@ -20,4 +20,4 @@ The public catalog adds `shareUrl`; the client accepts only the branded or exist
 
 Initial validation: 309 tests passed and build passed. `tests/sharing.test.mjs` covers stable links, collisions, crawler-visible metadata, browser redirect, escaping, withdrawals, image generation and fetching, contact links, and private-preview guards. Actual WhatsApp client rendering remains a device check because its layout and cache behavior are controlled by WhatsApp.
 
-Six-character aliases use letters and numbers, start uppercase to avoid existing site paths, and retain collision checks. Previous ten-character `/p/` links and their image URLs continue to resolve to the same property; their metadata points to the new canonical URL.
+Six-character aliases use letters and numbers, start with an uppercase letter and a digit to avoid existing site paths, and retain collision checks. Previous ten-character `/p/` links and their image URLs continue to resolve to the same property; their metadata points to the new canonical URL.
