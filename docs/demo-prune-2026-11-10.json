@@ -1,0 +1,268 @@
+{
+  "date": "2026-11-10",
+  "reason": "User requested deletion of half the older demo listings",
+  "existingOriginals": 99,
+  "deleteCount": 50,
+  "remainingOriginals": 49,
+  "preserve": [
+    "lot-1",
+    "lot-2",
+    "lot-101"
+  ],
+  "selection": "Five published demos from each of the ten original property profiles; preserve already unlisted records and the new stock-photo demo.",
+  "listings": [
+    {
+      "id": "lot-4",
+      "title": "Dos cabañas en un jardín tropical",
+      "revision": 0
+    },
+    {
+      "id": "lot-5",
+      "title": "Parcela agrícola con bodega",
+      "revision": 0
+    },
+    {
+      "id": "lot-8",
+      "title": "Local con terreno y entrada directa",
+      "revision": 0
+    },
+    {
+      "id": "lot-9",
+      "title": "Lote abierto para un nuevo proyecto",
+      "revision": 0
+    },
+    {
+      "id": "lot-10",
+      "title": "Casa con patio para renovar",
+      "revision": 0
+    },
+    {
+      "id": "lot-11",
+      "title": "Casa y cabaña entre jardines",
+      "revision": 0
+    },
+    {
+      "id": "lot-16",
+      "title": "Terreno plano en residencial",
+      "revision": 0
+    },
+    {
+      "id": "lot-17",
+      "title": "Terreno junto a una quebrada",
+      "revision": 0
+    },
+    {
+      "id": "lot-18",
+      "title": "Local con terreno y entrada directa",
+      "revision": 0
+    },
+    {
+      "id": "lot-19",
+      "title": "Lote abierto para un nuevo proyecto",
+      "revision": 0
+    },
+    {
+      "id": "lot-20",
+      "title": "Casa con patio para renovar",
+      "revision": 0
+    },
+    {
+      "id": "lot-22",
+      "title": "Lote en condominio con áreas comunes",
+      "revision": 0
+    },
+    {
+      "id": "lot-24",
+      "title": "Dos cabañas en un jardín tropical",
+      "revision": 0
+    },
+    {
+      "id": "lot-25",
+      "title": "Parcela agrícola con bodega",
+      "revision": 0
+    },
+    {
+      "id": "lot-31",
+      "title": "Casa y cabaña entre jardines",
+      "revision": 0
+    },
+    {
+      "id": "lot-33",
+      "title": "Terreno en ladera con vista al Arenal",
+      "revision": 0
+    },
+    {
+      "id": "lot-34",
+      "title": "Dos cabañas en un jardín tropical",
+      "revision": 0
+    },
+    {
+      "id": "lot-36",
+      "title": "Terreno plano en residencial",
+      "revision": 0
+    },
+    {
+      "id": "lot-40",
+      "title": "Casa con patio para renovar",
+      "revision": 0
+    },
+    {
+      "id": "lot-42",
+      "title": "Lote en condominio con áreas comunes",
+      "revision": 0
+    },
+    {
+      "id": "lot-45",
+      "title": "Parcela agrícola con bodega",
+      "revision": 0
+    },
+    {
+      "id": "lot-47",
+      "title": "Terreno junto a una quebrada",
+      "revision": 0
+    },
+    {
+      "id": "lot-48",
+      "title": "Local con terreno y entrada directa",
+      "revision": 0
+    },
+    {
+      "id": "lot-51",
+      "title": "Casa y cabaña entre jardines",
+      "revision": 0
+    },
+    {
+      "id": "lot-52",
+      "title": "Lote en condominio con áreas comunes",
+      "revision": 0
+    },
+    {
+      "id": "lot-53",
+      "title": "Terreno en ladera con vista al Arenal",
+      "revision": 0
+    },
+    {
+      "id": "lot-57",
+      "title": "Terreno junto a una quebrada",
+      "revision": 0
+    },
+    {
+      "id": "lot-58",
+      "title": "Local con terreno y entrada directa",
+      "revision": 0
+    },
+    {
+      "id": "lot-63",
+      "title": "Terreno en ladera con vista al Arenal",
+      "revision": 0
+    },
+    {
+      "id": "lot-65",
+      "title": "Parcela agrícola con bodega",
+      "revision": 0
+    },
+    {
+      "id": "lot-66",
+      "title": "Terreno plano en residencial",
+      "revision": 0
+    },
+    {
+      "id": "lot-67",
+      "title": "Terreno junto a una quebrada",
+      "revision": 0
+    },
+    {
+      "id": "lot-69",
+      "title": "Lote abierto para un nuevo proyecto",
+      "revision": 0
+    },
+    {
+      "id": "lot-71",
+      "title": "Casa y cabaña entre jardines",
+      "revision": 0
+    },
+    {
+      "id": "lot-74",
+      "title": "Dos cabañas en un jardín tropical",
+      "revision": 0
+    },
+    {
+      "id": "lot-76",
+      "title": "Terreno plano en residencial",
+      "revision": 0
+    },
+    {
+      "id": "lot-80",
+      "title": "Casa con patio para renovar",
+      "revision": 0
+    },
+    {
+      "id": "lot-82",
+      "title": "Lote en condominio con áreas comunes",
+      "revision": 0
+    },
+    {
+      "id": "lot-83",
+      "title": "Terreno en ladera con vista al Arenal",
+      "revision": 0
+    },
+    {
+      "id": "lot-87",
+      "title": "Terreno junto a una quebrada",
+      "revision": 0
+    },
+    {
+      "id": "lot-89",
+      "title": "Lote abierto para un nuevo proyecto",
+      "revision": 0
+    },
+    {
+      "id": "lot-91",
+      "title": "Casa y cabaña entre jardines",
+      "revision": 0
+    },
+    {
+      "id": "lot-92",
+      "title": "Lote en condominio con áreas comunes",
+      "revision": 0
+    },
+    {
+      "id": "lot-93",
+      "title": "Terreno en ladera con vista al Arenal",
+      "revision": 0
+    },
+    {
+      "id": "lot-94",
+      "title": "Dos cabañas en un jardín tropical",
+      "revision": 0
+    },
+    {
+      "id": "lot-95",
+      "title": "Parcela agrícola con bodega",
+      "revision": 0
+    },
+    {
+      "id": "lot-96",
+      "title": "Terreno plano en residencial",
+      "revision": 0
+    },
+    {
+      "id": "lot-98",
+      "title": "Local con terreno y entrada directa",
+      "revision": 0
+    },
+    {
+      "id": "lot-99",
+      "title": "Lote abierto para un nuevo proyecto",
+      "revision": 0
+    },
+    {
+      "id": "lot-100",
+      "title": "Casa con patio para renovar",
+      "revision": 0
+    }
+  ],
+  "completed": true,
+  "completedAt": "2026-11-10T15:35:01.157Z",
+  "verifiedDeleted": 50
+}

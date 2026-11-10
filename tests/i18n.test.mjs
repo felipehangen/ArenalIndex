@@ -34,6 +34,20 @@ test('the new photo demo translates its title, disclosure, facts and gallery in 
   assert.equal(window.ArenalListing.groups(item)[0].label,'Jardín · imágenes de referencia');
 });
 
+test('all five new showcases retain their reviewed English titles and translated photo labels',()=>{
+  const {window,i18n}=languageFixture();
+  for(const row of supplementalDemos.slice(1)){
+    const item=window.ArenalData.normalize(row);
+    i18n.setLanguage('en');assert.equal(i18n.listingText(item),row.details.translations.en.title);
+    assert.match(i18n.listingText(item,'description'),/Not an offer for sale/);
+    for(const group of window.ArenalListing.groups(item)){
+      assert.match(group.label,/reference photos/);
+      for(const photo of group.images){assert.match(photo.caption,/Illustrative image/);assert.doesNotMatch(photo.caption,/Vista general|Vista al lago|Bosque|Río|Jardín/);}
+    }
+    i18n.setLanguage('es');assert.equal(i18n.listingText(item),row.name);
+  }
+});
+
 test('language uses a saved choice before browser preference and persists an explicit choice of the initial language',()=>{
   for(const [options,expected] of [[{preferred:'en-GB'},'en'],[{preferred:'es-CR'},'es'],[{preferred:'fr-FR'},'es'],[{preferred:'en-US',stored:'es'},'es'],[{preferred:'es',stored:'en'},'en'],[{preferred:'en',blocked:true},'en']]){
     const {i18n,document}=languageFixture(options);assert.equal(i18n.language,expected);assert.equal(document.documentElement.lang,expected);
