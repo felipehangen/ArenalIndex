@@ -1,3 +1,4 @@
+import {publicAccountProfile,ensureAccountSlug} from './public-page.mjs';
 import {scrypt,randomBytes,timingSafeEqual,createHash} from 'node:crypto';
 import {promisify} from 'node:util';
 import {hasAcceptedRules,rulesHash} from './listing-rules.mjs';
@@ -37,14 +38,15 @@ async function ensureAccount(repository,email,actor,now){
   return {account,created};
 }
 export async function accountAdminAction({action,body,repository,actor,now}){
-  if(action==='owner_accounts')return {accounts:(await repository.ownerAccounts()).map(row=>({id:hash(row.subject),email:row.email,name:row.name||'',nameVersion:row.name_version||0,active:row.active,google:!!row.googleSubject,password:!!row.password,temporaryPassword:!!row.mustChangePassword,rulesAccepted:hasAcceptedRules(row),rulesAcceptance:hasAcceptedRules(row)?{version:row.rulesAcceptances[rulesHash].version,acceptedAt:row.rulesAcceptances[rulesHash].acceptedAt,language:row.rulesAcceptances[rulesHash].language}:null}))};
+  if(action==='owner_accounts'){const accounts=[];for(const row of await repository.ownerAccounts())accounts.push(await ensureAccountSlug(repository,row));return {accounts:accounts.map(row=>({id:hash(row.subject),email:row.email,name:row.name||'',nameVersion:row.name_version||0,publicPage:publicAccountProfile(row),active:row.active,google:!!row.googleSubject,password:!!row.password,temporaryPassword:!!row.mustChangePassword,rulesAccepted:hasAcceptedRules(row),rulesAcceptance:hasAcceptedRules(row)?{version:row.rulesAcceptances[rulesHash].version,acceptedAt:row.rulesAcceptances[rulesHash].acceptedAt,language:row.rulesAcceptances[rulesHash].language}:null}))};}
   if(action==='set_owner_name'){
     if(!/^[a-f0-9]{64}$/.test(body.id||'')||!Number.isSafeInteger(body.nameVersion)||body.nameVersion<0)fail(400,'Cuenta inválida.');
-    const name=normalizeName(body.name),account=await repository.portalGet('accounts',body.id);if(!account)fail(404,'No se encontró la cuenta.');
+    const name=normalizeName(body.name);let account=await repository.portalGet('accounts',body.id);if(!account)fail(404,'No se encontró la cuenta.');
     if((account.name_version||0)!==body.nameVersion)fail(409,'La cuenta cambió. Actualizá la lista.');
     return withUniqueName({repository,email:account.email,name,operation:async()=>{
+    account=await ensureAccountSlug(repository,account);
     const updated=await repository.portalUpdate('accounts',body.id,{name_version:account.name_version},{name,name_version:body.nameVersion+1,updatedBy:actor.email});
-    if(!updated)fail(409,'La cuenta cambió. Actualizá la lista.');return {updated:true,name};
+    if(!updated)fail(409,'La cuenta cambió. Actualizá la lista.');await ensureAccountSlug(repository,updated);return {updated:true,name};
     }});
   }
   if(action==='set_owner_active'){
@@ -57,12 +59,14 @@ export async function accountAdminAction({action,body,repository,actor,now}){
     const name=body.name===undefined?undefined:normalizeName(body.name);
     const password=action==='set_owner_password'?await hashPassword(body.password):null;
     const save=async()=>{
-      const {account,created}=await ensureAccount(repository,email,actor,now);
+      let {account,created}=await ensureAccount(repository,email,actor,now);
+      account=await ensureAccountSlug(repository,account);
       const patch={};
       if(name!==undefined&&name!==account.name)Object.assign(patch,{name,name_version:(account.name_version||0)+1,updatedBy:actor.email});
       if(password)Object.assign(patch,{password,password_version:(account.password_version||0)+1,mustChangePassword:true,passwordExpiresAt:now().getTime()+7*86400000,passwordSetBy:actor.email});
       const updated=Object.keys(patch).length?await repository.portalUpdate('accounts',hash(account.subject),{name_version:account.name_version,password_version:account.password_version},patch):account;
       if(!updated)fail(409,'La cuenta cambió. Actualizá la lista.');
+      await ensureAccountSlug(repository,updated);
       return password?{email,active:updated.active,temporary:true,expiresAt:updated.passwordExpiresAt}:{email,active:updated.active,created};
     };
     return name===undefined?save():withUniqueName({repository,email,name,operation:save});

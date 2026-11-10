@@ -1,3 +1,4 @@
+import {publicAccountProfile,ensureAccountSlug} from './public-page.mjs';
 import {randomBytes,createHash} from 'node:crypto';
 import {recordSummary} from './summary.mjs';
 import {workspaceAction} from './workspace.mjs';
@@ -21,9 +22,10 @@ export function createOwnerHandler({repository,verifyGoogle,config,mailer,now=()
       const action=body.action;
       if(action==='config')return json({configured:!!config.googleClientId,clientId:config.googleClientId||null,passwordEnabled:true});
       const startSession=async(account,method)=>{
+        account=await ensureAccountSlug(repository,account);
         const token=secret(),expiresAt=now().getTime()+8*3600000;
         await repository.authCreate('owner-session',hash(token),{subject:account.subject,email:account.email,method,passwordVersion:method==='password'?account.password_version:null,accountVersion:account.session_version||0,role:'owner',expiresAt,revoked:false});
-        return json({token,email:account.email,expiresAt,method,requiresPasswordChange:method==='password'&&!!account.mustChangePassword,...rulesIdentity(account)});
+        return json({token,email:account.email,expiresAt,method,requiresPasswordChange:method==='password'&&!!account.mustChangePassword,publicPage:publicAccountProfile(account),...rulesIdentity(account)});
       };
       if(['challenge','login','login_password'].includes(action)){
         const ip=request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'unknown';
@@ -53,7 +55,7 @@ export function createOwnerHandler({repository,verifyGoogle,config,mailer,now=()
       const account=await repository.portalGet('accounts',hash(session.subject));
       if(!account?.active||(session.accountVersion||0)!==(account.session_version||0)||session.method==='password'&&(session.passwordVersion!==account.password_version||account.mustChangePassword&&account.passwordExpiresAt<=now().getTime()))fail(401,'Tu sesión venció. Volvé a entrar.');
       if(!await repository.allow('owner-session:'+hash(token),300))fail(429,'Demasiadas solicitudes. Intentá más tarde.');
-      if(action==='session')return json({email:session.email,expiresAt:session.expiresAt,method:session.method,requiresPasswordChange:session.method==='password'&&!!account.mustChangePassword,...rulesIdentity(account)});
+      if(action==='session')return json({email:session.email,expiresAt:session.expiresAt,method:session.method,requiresPasswordChange:session.method==='password'&&!!account.mustChangePassword,publicPage:publicAccountProfile(await ensureAccountSlug(repository,account)),...rulesIdentity(account)});
       if(action==='logout'){
         const revoked=await repository.authUpdate('owner-session',hash(token),{revoked:false},{revoked:true});
         if(!revoked&&!(await repository.authGet('owner-session',hash(token)))?.revoked)fail(503,'No se pudo cerrar la sesión. Intentá de nuevo.');return json({signedOut:true});

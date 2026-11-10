@@ -1,3 +1,4 @@
+import {publicAccountPage} from '../portal/public-page.mjs';
 import {recordInventory} from '../analytics/core.mjs';
 import {withShareURL} from '../sharing/links.mjs';
 let lastSnapshot=0;
@@ -17,6 +18,10 @@ export function createPublicHandler(repository,{catalog,defer}={}){
         // the intake's 12 MB files without passing them through a function response.
         const location=await repository.downloadURL(file.path);
         return new Response(null,{status:307,headers:{...headers,Location:location}});
+      }
+      if(url.searchParams.has('account')){
+        const page=await publicAccountPage(repository,url.searchParams.get('account'));
+        return page?json(page):json({error:'Esta página no está disponible.'},404);
       }
       if(url.searchParams.has('catalog')&&catalog){
         const [listings,legacy]=await Promise.all([repository.published(),catalog.published()]);

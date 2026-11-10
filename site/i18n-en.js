@@ -1,5 +1,15 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Contacto ArenalIndex": "Contact ArenalIndex",
+  "Propiedades de": "Properties from",
+  "Contacto de venta en cada anuncio.": "Sales contact on each listing.",
+  "Explorar todo ArenalIndex": "Explore all ArenalIndex",
+  "Ver página pública": "View public page",
+  "Ver página pública ↗": "View public page \u2197",
+  "Página no disponible": "Page unavailable",
+  "Esta página no está disponible. Podés explorar el catálogo completo.": "This page is unavailable. You can explore the full catalog.",
+  "Esta cuenta todavía no tiene propiedades publicadas.": "This account has no published properties yet.",
+
   "Ese nombre ya está en uso. Elegí otro nombre para la cuenta.": "That name is already in use. Choose another account name.",
   "Este nombre se está guardando. Intentá de nuevo.": "This name is being saved. Try again.",
   "Nombre de la cuenta": "Account name",

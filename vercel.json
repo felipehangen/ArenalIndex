@@ -14,7 +14,7 @@
     },
     "api/listings.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/photo-policy.mjs,server/sharing/links.mjs}"
+      "includeFiles": "{server/intake/**,server/portal/public-page.mjs,server/analytics/**,server/catalog/**,site/newlisting/photo-policy.mjs,server/sharing/links.mjs}"
     },
     "api/intake.mjs": {
       "maxDuration": 60,
@@ -115,6 +115,14 @@
     {
       "source": "/:code([A-Z][0-9][A-Za-z0-9]{4})",
       "destination": "/api/share?code=:code"
+    },
+    {
+      "source": "/collection/:slug([a-z0-9][a-z0-9-]{0,99})",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/collection/:slug([a-z0-9][a-z0-9-]{0,99})/",
+      "destination": "/index.html"
     }
   ]
 }

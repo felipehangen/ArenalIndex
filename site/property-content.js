@@ -3,7 +3,7 @@
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const number=value=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(value);
   const price=(value,currency='USD')=>value===null||!Number.isFinite(value)||!['USD','CRC'].includes(currency)?'Por definir':(currency==='CRC'?'₡':'$')+number(value);
-  const publicURL=d=>d.shareUrl||'https://arenalindex.com/#propiedad/'+encodeURIComponent(d.id);
+  const publicURL=d=>window.ArenalAccount?.publicURL(d)||d.shareUrl||'https://arenalindex.com/#propiedad/'+encodeURIComponent(d.id);
   const rowsHTML=(rows,literal=true)=>'<dl class="pd-detail-rows">'+rows.map(row=>'<div><dt>'+esc(row.label)+'</dt><dd><span'+(row.literal&&literal?' translate="no"':'')+'>'+esc(row.value)+'</span>'+(row.source?'<small>'+esc(row.source)+'</small>':'')+'</dd></div>').join('')+'</dl>';
   function highlights(d){
     const facts=d.details?.sections?.flatMap(s=>s.rows)||[],value=label=>facts.find(r=>r.label===label)?.value;

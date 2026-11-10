@@ -48,6 +48,7 @@
   }
   async function load() {
     const {supabaseUrl,publishableKey,listingsUrl,managedCatalog}=window.ArenalConfig||{};
+    if(window.ArenalAccount?.active)return window.ArenalAccount.load(listingsUrl,normalize);
     if(managedCatalog&&listingsUrl){
       const response=await fetch(listingsUrl+(listingsUrl.includes('?')?'&':'?')+'catalog=1',{signal:AbortSignal.timeout(25000),cache:'no-store'});
       if(!response.ok)throw new Error('Published listings unavailable');

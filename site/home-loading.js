@@ -30,10 +30,11 @@
     },
     catalogFailed(){
       finishCatalog('error');
-      q('#index-count').textContent='No pudimos cargar los terrenos';
+      q('#index-count').textContent=window.ArenalAccount?.missing?'Página no disponible':'No pudimos cargar los terrenos';
       q('#catalog-wait').textContent='Revisá tu conexión e intentá de nuevo.';
       q('#catalog-wait').hidden=false;q('#catalog-retry').hidden=false;
       q('#results-more').hidden=true;q('#results-expand').hidden=true;
+      if(window.ArenalAccount?.missing){q('#catalog-wait').hidden=true;q('#catalog-retry').hidden=true;}
       clearTimeout(mapTimer);q('#map-loading').hidden=true;
     },
     mapStarted(){
