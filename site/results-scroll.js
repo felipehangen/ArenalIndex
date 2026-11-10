@@ -5,12 +5,13 @@ window.ArenalSheetBounds = space => {
   return {min:Math.min(max,space*.55,Math.min(340,Math.max(250,space*.44))),max};
 };
 
-window.ArenalResultsScroll = ({root, sheet, scroll, handle, onChange, loadMore}) => {
+window.ArenalResultsScroll = ({root, sheet, scroll, handle, onChange, loadMore, desktop=matchMedia('(min-width: 960px)')}) => {
   let limits={min:0,max:0}, travel=0, progress=-1, frame=0;
+  let desktopMode=desktop.matches;
   let drag=null, suppressClickUntil=0;
   const observe = (checkMore=false) => {
     const offset=Math.max(0,scroll.scrollTop);
-    const next=travel>0?Math.min(1,offset/travel):0;
+    const next=desktopMode?1:travel>0?Math.min(1,offset/travel):0;
     // Once the list is expanded, scrolling it never resizes the panel or redraws
     // map markers. Native scrolling continues independently of the main thread.
     if(next!==progress){
@@ -25,6 +26,7 @@ window.ArenalResultsScroll = ({root, sheet, scroll, handle, onChange, loadMore})
     if(!frame)frame=requestAnimationFrame(()=>{frame=0;observe(true);});
   };
   const setExpanded = expanded => {
+    if(desktopMode)return;
     scroll.scrollTo({top:expanded?travel:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
   };
   const resetList = () => {
@@ -36,7 +38,7 @@ window.ArenalResultsScroll = ({root, sheet, scroll, handle, onChange, loadMore})
     sheet.addEventListener(type,event=>event.stopPropagation(),{passive:true});
   }
   handle.addEventListener('pointerdown',event=>{
-    if(event.button!==0)return;
+    if(desktopMode||event.button!==0)return;
     const start=Math.min(travel,Math.max(0,scroll.scrollTop));
     scroll.scrollTo({top:start,behavior:'instant'});
     drag={id:event.pointerId,y:event.clientY,start,moved:false};
@@ -67,19 +69,25 @@ window.ArenalResultsScroll = ({root, sheet, scroll, handle, onChange, loadMore})
   scroll.addEventListener('scroll',schedule,{passive:true});
   const resize = () => {
     const space=sheet.parentElement.clientHeight;
+    const switched=desktop.matches!==desktopMode;
     // Hidden dialogs/screens must not erase the saved browse position.
-    if(space<=0 || space===limits.max)return;
+    if(space<=0 || (space===limits.max&&!switched))return;
     const previousTravel=travel,offset=scroll.scrollTop;
-    limits=window.ArenalSheetBounds(space);travel=limits.max-limits.min;
+    desktopMode=desktop.matches;drag=null;
+    limits=desktopMode?{min:space,max:space}:window.ArenalSheetBounds(space);travel=limits.max-limits.min;
     root.style.setProperty('--sheet-travel',travel+'px');
     root.style.setProperty('--sheet-space',space+'px');
-    if(previousTravel>0){
+    if(switched){
+      const top=desktopMode?Math.max(0,offset-previousTravel):travel+offset;
+      scroll.scrollTo({top,behavior:'instant'});
+    }else if(previousTravel>0){
       const top=offset>=previousTravel?travel+offset-previousTravel:offset/previousTravel*travel;
       scroll.scrollTo({top,behavior:'instant'});
     }
     progress=-1;observe();
   };
   new ResizeObserver(resize).observe(sheet.parentElement);
+  desktop.addEventListener?.('change',resize);
   resize();
-  return {setExpanded,resetList,get collapsedHeight(){return limits.min;}};
+  return {setExpanded,resetList,get collapsedHeight(){return desktopMode?0:limits.min;}};
 };

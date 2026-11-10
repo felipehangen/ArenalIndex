@@ -45,6 +45,8 @@ Los límites de precio/área y las localidades se ajustan a los datos publicados
 
 La portada reserva el espacio del mapa y los resultados desde el primer render. Muestra tarjetas provisionales mientras carga el catálogo y un indicador independiente para el mapa. Las dos fuentes de anuncios se consultan en paralelo; solo se muestra el catálogo completo. Si la espera supera ocho segundos se ofrece reintentar, y un fallo del mapa permite seguir explorando la lista. Las animaciones respetan la preferencia de movimiento reducido.
 
+En ventanas de al menos 960 px, la portada ocupa todo el ancho: resultados en una cuadrícula a la izquierda y mapa independiente a la derecha. El listado usa dos columnas (tres desde 1600 px), fotos individuales con carrusel y desplazamiento propio. La cabecera reúne búsqueda y guardados; debajo aparecen accesos rápidos a los filtros existentes. El mapa se encuadra dentro de su propio panel. Al cambiar entre móvil y escritorio se conserva la posición dentro del listado; el espacio que permite revelar el mapa en móvil no se arrastra al escritorio. El diseño móvil conserva el collage y su panel de desplazamiento nativo.
+
 ## Datos iniciales y alcance
 
 Las migraciones en `supabase/migrations/` crean la tabla y cargan los **100 anuncios ficticios del prototipo**, con `is_demo = true`. Se aplicaron en SmallPages el 29 de octubre de 2026. La primera migración se ejecuta una sola vez; la segunda no reemplaza filas existentes. `demo-properties.json` documenta el inventario inicial y no se sirve como catálogo alternativo.

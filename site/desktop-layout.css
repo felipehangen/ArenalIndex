@@ -1,0 +1,69 @@
+/* Desktop browsing uses independent list and map panes. Mobile keeps its native sheet. */
+#arenal-index-dos .desktop-filters{display:none}
+@media(min-width:960px){
+  body:has(#arenal-index-dos){background:#fff}
+  #arenal-index-dos:is([data-screen="home"],[data-screen="filters"]){max-width:none!important;width:100%;box-shadow:none;--results-width:60%}
+  #arenal-index-dos #index-home{position:relative}
+  #arenal-index-dos header.explore-header{display:grid;grid-template-columns:minmax(180px,1fr) minmax(300px,420px) minmax(250px,1fr);min-height:96px;padding:18px 32px!important;gap:24px}
+  #arenal-index-dos .explore-header .index-arenal{font-size:31px}
+  #arenal-index-dos .explore-header .index-index{font-size:8px}
+  #arenal-index-dos .explore-header .brand small{font-size:8px;max-height:none;opacity:1;margin-top:4px}
+  #arenal-index-dos .search-row{grid-column:2;width:100%;padding:0;border:0;gap:10px}
+  #arenal-index-dos button.search-pill{border:1px solid var(--m-line);border-radius:32px;min-height:54px;padding:8px 18px;gap:14px;box-shadow:0 2px 8px #173e2c0d;background:#fff}
+  #arenal-index-dos .search-pill>svg{display:block;width:20px;height:20px;flex-shrink:0}
+  #arenal-index-dos .search-pill strong{font-size:14px}
+  #arenal-index-dos .search-pill small{font-size:11px;max-height:none;opacity:1}
+  #arenal-index-dos .search-row .filter-icon{display:none}
+  #arenal-index-dos .bottom-navigation{position:absolute;top:20px;right:32px;min-height:54px;padding:0;border:0;gap:8px;background:transparent;z-index:6}
+  #arenal-index-dos .bottom-navigation :is(button,#index-saved){min-width:0;width:auto;height:48px;min-height:48px;display:flex;flex-direction:row;gap:8px;padding:10px 14px;border-radius:24px;font-size:13px}
+  #arenal-index-dos .bottom-navigation button[aria-pressed=true]{background:#f0f5ee;color:#285a3d}
+  #arenal-index-dos .bottom-navigation svg{width:18px;height:18px}
+  #arenal-index-dos .desktop-filters{display:flex;align-items:center;gap:10px;padding:14px 32px;border-bottom:1px solid var(--m-line);flex-shrink:0;overflow-x:auto;scrollbar-width:thin}
+  #arenal-index-dos .desktop-filters button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 14px;background:#fff;border:1px solid var(--m-line);border-radius:22px;white-space:nowrap;font-size:12px;font-weight:500;color:var(--m-text);flex-shrink:0}
+  #arenal-index-dos .desktop-filters button:hover{border-color:#81927f;background:#f8faf6}
+  #arenal-index-dos .desktop-filters button[aria-pressed=true]{background:#edf4e9;border-color:#285a3d;color:#285a3d}
+  #arenal-index-dos .desktop-filters button:first-child{border-radius:12px;margin-right:6px}
+  #arenal-index-dos .desktop-filters svg{width:16px;height:16px}
+  #arenal-index-dos #index-chips:not(:empty){padding:8px 32px;max-height:58px;gap:8px}
+  #arenal-index-dos #index-chips button{font-size:12px}
+  #arenal-index-dos #index-map-view{background:#fff}
+  #arenal-index-dos #index-map-stage{left:calc(var(--results-width) + 8px);right:24px;top:20px;bottom:24px;width:auto;height:auto!important;border-radius:20px;overflow:hidden;background:var(--m-map)}
+  #arenal-index-dos #index-map{inset:0;width:100%;height:100%}
+  #arenal-index-dos #index-preview.results-sheet{inset:0 auto 0 0;width:var(--results-width);height:100%;overflow:hidden;clip-path:none;box-shadow:none;background:#fff;border-radius:0;pointer-events:auto}
+  #arenal-index-dos #results-scroll{height:100%;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:thin;scroll-padding-top:76px}
+  #arenal-index-dos #results-scroll::-webkit-scrollbar{display:block;width:8px}
+  #arenal-index-dos #results-scroll::-webkit-scrollbar-thumb{background:#d8dfd4;border:2px solid #fff;border-radius:8px}
+  #arenal-index-dos :is(.results-map-space,#results-handle,#results-expand){display:none!important}
+  #arenal-index-dos .results-sheet-header,#arenal-index-dos.has-listing-selection .results-sheet-header{position:sticky;top:0;border-radius:0;box-shadow:none;padding:20px 24px 16px 32px;background:#fff;z-index:3}
+  #arenal-index-dos .results-heading{min-height:36px;gap:12px}
+  #arenal-index-dos .results-heading #index-count{font-size:19px;font-weight:600;line-height:1.3;text-align:left;color:var(--m-text)}
+  #arenal-index-dos .results-body{min-height:0;padding:0 24px 32px 32px}
+  #arenal-index-dos :is(#index-list,#catalog-skeleton){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 22px}
+  #arenal-index-dos .listing-card{margin:0;min-width:0;border-radius:16px}
+  #arenal-index-dos .listing-gallery,#arenal-index-dos.has-listing-selection .listing-gallery{aspect-ratio:1.3;border-radius:16px}
+  #arenal-index-dos .listing-card.selected .listing-gallery{outline:3px solid #285a3d;outline-offset:3px}
+  #arenal-index-dos .listing-info-copy{gap:4px}
+  #arenal-index-dos .listing-info-copy :is(h3,.listing-title-link){font-size:14px;line-height:1.4}
+  #arenal-index-dos .listing-title-link{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #arenal-index-dos .listing-features{gap:8px}
+  #arenal-index-dos .listing-features li{flex:0 1 auto;font-size:10px;gap:3px}
+  #arenal-index-dos .listing-features li span{overflow:hidden;text-overflow:ellipsis}
+  #arenal-index-dos .listing-card-footer{display:block;margin-top:8px;min-height:0}
+  #arenal-index-dos .listing-prices{gap:5px;min-height:26px}
+  #arenal-index-dos .listing-prices .listing-total{font-size:17px}
+  #arenal-index-dos button.listing-map-action{min-height:32px;padding:4px 0;font-size:11px}
+  #arenal-index-dos .skeleton-card{margin:0}
+  #arenal-index-dos .skeleton-photo{aspect-ratio:1.3;border-radius:16px}
+  #arenal-index-dos .map-price-switch{left:calc(var(--results-width) + 24px);top:36px}
+  #arenal-index-dos .map-navigation{left:calc(var(--results-width) + 24px);top:86px}
+  #arenal-index-dos .maplibregl-ctrl-bottom-right,#arenal-index-dos.results-expanded .maplibregl-ctrl-bottom-right{bottom:0;top:auto}
+  #arenal-index-dos #map-loading{left:calc(var(--results-width) + 8px);right:24px;top:20px;bottom:24px;border-radius:20px;padding:110px 20px 20px}
+  #arenal-index-dos :is(.listing-card,.real-pin):focus-within{outline-offset:3px}
+  #arenal-index-dos .real-pin.is-hovered>.pin-price{color:#fff;background:#20533a;border-color:#153e25;transform:scale(1.08)}
+  #arenal-index-dos .real-pin.is-hovered>.pin-dot{outline:3px solid #285a3d;outline-offset:2px}
+}
+@media(min-width:1600px){
+  #arenal-index-dos:is([data-screen="home"],[data-screen="filters"]){--results-width:63%}
+  #arenal-index-dos :is(#index-list,#catalog-skeleton){grid-template-columns:repeat(3,minmax(0,1fr))}
+  #arenal-index-dos .listing-features li{font-size:11px}
+}

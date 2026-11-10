@@ -8,8 +8,8 @@ test('loading more preserves existing cards, images and carousel state',()=>{
  const data=Array.from({length:45},(_,i)=>({id:'lot-'+i}));
  const original=data.slice(0,20).map(d=>({...d,image:{decoded:true},photo:2}));
  const list={children:[...original],append(batch){this.children.push(...batch.children);}};
- const more={},progress={};let created=0;
- const context={visibleLimit:20,selected:null,selectedGroup:null,results:()=>data,q:selector=>({'#index-list':list,'#results-more':more,'#results-progress':progress})[selector],document:{createDocumentFragment:()=>({children:[],append(card){this.children.push(card);}})},property:d=>{created++;return {...d};}};
+ const more={},progress={};let created=0,iconRenders=0;
+ const context={icons:()=>iconRenders++,visibleLimit:20,selected:null,selectedGroup:null,results:()=>data,q:selector=>({'#index-list':list,'#results-more':more,'#results-progress':progress})[selector],document:{createDocumentFragment:()=>({children:[],append(card){this.children.push(card);}})},property:d=>{created++;return {...d};}};
  vm.createContext(context);vm.runInContext(appendFunction+';appendMoreResults();',context);
  assert.equal(list.children.length,40);assert.equal(created,20);
  original.forEach((card,i)=>assert.equal(list.children[i],card));
@@ -17,4 +17,5 @@ test('loading more preserves existing cards, images and carousel state',()=>{
  vm.runInContext('appendMoreResults();',context);
  assert.equal(list.children.length,45);assert.equal(more.hidden,true);assert.equal(progress.textContent,'Mostrando 45 de 45');
  vm.runInContext('appendMoreResults();',context);assert.equal(created,25);
+ assert.equal(iconRenders,2,'new cards receive their feature icons after pagination');
 });

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync(new URL('../site/results-scroll.js',import.meta.url),'utf8');
-function fixture(){
+function fixture(isDesktop=false){
  const frames=[],changes=[],writes=[],handlers=new Map();let resize,more=0;
  const element=name=>({addEventListener(type,fn,options){handlers.set(name+':'+type,{fn,options});}});
  const sheet=element('sheet');sheet.parentElement={clientHeight:700};
@@ -11,10 +11,11 @@ function fixture(){
  const scroll=element('scroll');Object.assign(scroll,{scrollTop:0,scrollHeight:10000,clientHeight:700,scrollTo(options){writes.push(options);this.scrollTop=options.top;}});
  const styles=new Map(),root={style:{setProperty:(key,value)=>styles.set(key,value)}};
  const window={};vm.runInNewContext(source,{window,requestAnimationFrame(fn){frames.push(fn);return frames.length;},ResizeObserver:class{constructor(fn){resize=fn;}observe(){}},matchMedia:()=>({matches:true}),performance:{now:()=>1000}});
- const controller=window.ArenalResultsScroll({root,sheet,scroll,handle,onChange:p=>changes.push(p),loadMore:()=>more++});
+ let layoutChange;const desktop={matches:isDesktop,addEventListener(type,fn){layoutChange=fn;}};
+ const controller=window.ArenalResultsScroll({root,sheet,scroll,handle,desktop,onChange:p=>changes.push(p),loadMore:()=>more++});
  const dispatch=(target,type,event={})=>handlers.get(target+':'+type)?.fn(event);
  const move=top=>{scroll.scrollTop=top;dispatch('scroll','scroll');while(frames.length)frames.shift()();};
- return {controller,scroll,sheet,styles,handlers,changes,writes,dispatch,move,resize,get more(){return more;},window};
+ return {controller,scroll,sheet,styles,handlers,changes,writes,dispatch,move,resize,switchLayout(value){desktop.matches=value;layoutChange();},get more(){return more;},window};
 }
 test('native offset raises the sheet proportionally, then moves through the list',()=>{
  const f=fixture();assert.equal(f.controller.collapsedHeight,308);
@@ -65,4 +66,22 @@ test('handle drag and keyboard can stop midway without triggering the toggle',()
 });
 test('short and landscape viewports keep usable map and list space',()=>{
  const {window}=fixture();assert.equal(window.ArenalSheetBounds(240).min,132);assert.equal(window.ArenalSheetBounds(240).max,240);
+});
+test('desktop scrolling leaves the independent map alone and still paginates',()=>{
+ const f=fixture(true);assert.equal(f.controller.collapsedHeight,0);
+ assert.equal(f.styles.get('--sheet-travel'),'0px');
+ const changes=f.changes.length;
+ for(const offset of [100,500,1200])f.move(offset);
+ assert.equal(f.changes.length,changes);assert.equal(f.writes.length,0);
+ f.controller.setExpanded(false);assert.equal(f.scroll.scrollTop,1200);
+ f.move(9000);assert.equal(f.more,1);
+ f.controller.resetList();assert.equal(f.scroll.scrollTop,0);
+});
+test('resizing between desktop and mobile preserves the content position without map reveal space',()=>{
+ const f=fixture();f.move(892); // 392px of map reveal + 500px of content.
+ f.switchLayout(true);assert.equal(f.scroll.scrollTop,500);assert.equal(f.controller.collapsedHeight,0);
+ f.switchLayout(false);assert.equal(f.scroll.scrollTop,892);assert.equal(f.controller.collapsedHeight,308);
+ f.move(100);f.switchLayout(true);assert.equal(f.scroll.scrollTop,0);
+ f.sheet.parentElement.clientHeight=600;f.resize();assert.equal(f.scroll.scrollTop,0);
+ f.switchLayout(false);assert.equal(f.scroll.scrollTop,336);
 });
