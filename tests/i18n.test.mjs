@@ -110,7 +110,7 @@ test('the real home controller keeps applied currency, saved state, pending filt
   window.HTMLSelectElement.prototype.add=function(option){this.append(option);};
   const selectValue=Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype,'value');
   Object.defineProperty(window.HTMLSelectElement.prototype,'value',{configurable:true,get:selectValue.get,set(value){for(const option of this.options)option.selected=false;[...this.options].find(option=>option.value===String(value))?.setAttribute('selected','');}});
-  const context={window,document,location:{hash:'',pathname:'/'},localStorage:{getItem:()=>null,setItem(){}},console:{error(){}},requestAnimationFrame:()=>1,ResizeObserver:class{observe(){}},matchMedia:()=>({matches:true,addEventListener(){}}),ArenalData:{load:async()=>items},ArenalHomeLoading:loading,ArenalMotion:{cancel(){},leave(node,done){done();}},ArenalResultsScroll:()=>({resetList(){},capturePosition(){return {};},restorePosition(){},setExpanded(){},collapsedHeight:250}),Option:function(label,value){const n=document.createElement('option');n.textContent=label;n.value=value;return n;},setTimeout,clearTimeout};
+  const context={window,document,location:{hash:'',pathname:'/'},localStorage:{getItem:()=>null,setItem(){}},console:{error(){}},requestAnimationFrame:()=>1,ResizeObserver:class{observe(){}},matchMedia:()=>({matches:true,addEventListener(){}}),ArenalData:{load:async()=>items},ArenalHomeLoading:loading,ArenalMotion:{cancel(){},leave(node,done){done();}},ArenalResultsScroll:()=>({setListOnly(){},resetList(){},capturePosition(){return {};},restorePosition(){},setExpanded(){},collapsedHeight:250}),Option:function(label,value){const n=document.createElement('option');n.textContent=label;n.value=value;return n;},setTimeout,clearTimeout};
   for(const file of ['ui-format.js','exchange-rate.js','pricing.js','listing-sort.js'])vm.runInNewContext(read(file),context);
   context.ArenalPricing=window.ArenalPricing;context.ArenalListing=window.ArenalListing;
   vm.runInNewContext(html.match(/<script>\s*(window\.arenalReady=[\s\S]*?)<\/script>/)[1],context);
@@ -136,7 +136,10 @@ test('the real home controller keeps applied currency, saved state, pending filt
   document.querySelector('.filter-toggle').onclick({currentTarget:document.querySelector('.filter-toggle')});
   currency.value='CRC';currency.onchange({target:currency});document.querySelector('#index-apply').onclick();
   assert.deepEqual(Array.from(window.arenalDemo.results,d=>d.id),Array.from(sorted,d=>d.id));
+  assert.equal(document.querySelector('#index-saved-count').hidden,true);
   window.arenalDemo.toggleSaved(items[0].id);document.querySelector('#index-saved').onclick();
+  assert.equal(document.querySelector('#index-saved-count').hidden,false);
+  assert.ok(document.querySelector('#arenal-index-dos').classList.contains('saved-view'));
   assert.equal(sort.value,'price-asc');
   const scroll=document.querySelector('#results-scroll');scroll.scrollTop=541;
   document.querySelector('.filter-toggle').onclick({currentTarget:document.querySelector('.filter-toggle')});

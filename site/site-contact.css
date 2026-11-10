@@ -1,15 +1,23 @@
-/* One contact entry in the existing navigation; no floating button over the map. */
-#arenal-index-dos .contact-label-desktop{display:none}
+/* Browsing has a subtle selected indicator; publishing is a separate text action. */
+#arenal-index-dos .bottom-navigation button{position:relative;background:transparent;border-radius:8px;box-shadow:none}
+#arenal-index-dos .bottom-navigation button[aria-pressed="true"]{background:transparent;color:#20533a;box-shadow:none}
+#arenal-index-dos .bottom-navigation button[aria-pressed="true"]::after{content:"";position:absolute;width:18px;height:3px;bottom:0;left:calc(50% - 9px);border-radius:3px;background:#285a3d}
+#arenal-index-dos .bottom-navigation button:active{background:#f3f5f0}
 @media(max-width:959px){
-  #arenal-index-dos .bottom-navigation{gap:4px;padding-left:8px;padding-right:8px}
-  #arenal-index-dos .bottom-navigation>button{padding-left:5px;padding-right:5px}
-  #arenal-index-dos .bottom-navigation>.language-button{flex:0 0 54px}
+  #arenal-index-dos .bottom-navigation{gap:8px;padding-left:16px;padding-right:16px}
+  #arenal-index-dos .bottom-navigation>button{padding:4px 8px 8px;flex:1}
+  #arenal-index-dos .bottom-navigation>:is(#nav-publish,.language-button){display:none}
+  #arenal-index-dos.saved-view #index-preview.results-sheet{clip-path:none;background:#fff}
+  #arenal-index-dos.saved-view :is(.results-map-space,#results-handle,#results-expand){display:none!important}
+  #arenal-index-dos.saved-view :is(#index-map-stage,.map-price-switch,.map-navigation,#map-loading){visibility:hidden;pointer-events:none}
+  #arenal-index-dos.saved-view .results-sheet-header{padding-top:12px;border-radius:0;box-shadow:none}
+  #arenal-index-dos.saved-view .results-body{min-height:0}
 }
 @media(min-width:960px){
-  #arenal-index-dos header.explore-header{grid-template-columns:minmax(0,1fr) 530px}
-  #arenal-index-dos .contact-label-mobile{display:none}
-  #arenal-index-dos .contact-label-desktop{display:inline}
-  #arenal-index-dos .bottom-navigation #nav-publish{color:#285a3d;background:#f1f5ee;white-space:nowrap}
+  #arenal-index-dos header.explore-header{grid-template-columns:minmax(0,1fr) 500px}
+  #arenal-index-dos .bottom-navigation #nav-menu{display:none}
+  #arenal-index-dos .bottom-navigation #nav-publish{margin-left:24px;background:transparent;color:#285a3d;white-space:nowrap;font-weight:500}
+  #arenal-index-dos .bottom-navigation #nav-publish:hover{background:#f3f5f0}
 }
 .site-contact{box-sizing:border-box;width:min(440px,calc(100% - 32px));max-height:calc(100dvh - 32px);margin:auto;padding:32px;border:1px solid #e4e8df;border-radius:24px;overflow:auto;background:#fff;color:#303b2c;box-shadow:0 20px 80px #0003;font:14px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .site-contact *{box-sizing:border-box}
@@ -31,3 +39,19 @@
 .site-contact-instagram{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin-top:18px;color:#697263;font-size:13px;text-decoration:none}
 .site-contact :is(a,button):focus-visible{outline:2px solid #285a3d;outline-offset:4px}
 @media(max-width:380px){.site-contact{padding:24px}.site-contact h2{font-size:24px}}
+
+/* The mobile menu groups account, contact, and language without adding another tab. */
+.site-menu-links{display:grid;gap:2px}
+.site-menu-links :is(a,button){display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:10px 0;border:0;border-radius:8px;background:transparent;text-align:left;color:#285a3d;text-decoration:none;font-family:inherit;font-size:15px;font-weight:600;line-height:1.4;cursor:pointer}
+.site-menu-links :is(a,button)>span:last-child{margin-left:auto;font:23px/1 system-ui;color:#7b8476}
+.site-menu-links :is(a,button):hover{background:#f5f7f2}
+.site-menu .site-contact-top{margin-bottom:12px}
+.site-menu-contact{margin-top:20px;padding-top:20px;border-top:1px solid #e6ebe2}
+.site-menu-contact h2{font:500 12px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:0;color:#697263;margin:0 0 4px}
+.site-menu-contact>div{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.site-menu-contact a{display:inline-flex;align-items:center;min-height:44px;color:#285a3d;font-size:14px;text-decoration:underline;text-underline-offset:4px}
+.site-menu-language{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid #e6ebe2;font-size:13px;color:#697263}
+.site-menu-language>div{display:flex;gap:4px}
+.site-menu-language button{min-height:44px;padding:8px 12px;border:1px solid transparent;border-radius:8px;background:transparent;color:#697263;font:inherit;cursor:pointer}
+.site-menu-language button[aria-pressed="true"]{color:#285a3d;border-color:#cbdac2;background:#f4f7f1}
+@media(max-width:599px){.site-menu{width:100%;max-width:480px;max-height:calc(100dvh - 24px);margin:auto auto 0;padding:24px 24px calc(24px + env(safe-area-inset-bottom,0px));border-radius:24px 24px 0 0;border-bottom:0}}

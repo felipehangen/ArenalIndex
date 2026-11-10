@@ -101,3 +101,27 @@ test('returning to a partially revealed mobile map restores its proportion',()=>
  assert.equal(f.scroll.scrollTop,168);
  assert.equal(f.styles.get('--sheet-height'),'432px');
 });
+test('Saved has no map reveal, cannot collapse, and restores Explore after viewport changes',()=>{
+ const f=fixture();f.move(196);const browse=f.controller.capturePosition();
+ f.controller.setListOnly(true);f.controller.resetList();
+ assert.equal(f.styles.get('--sheet-travel'),'0px');assert.equal(f.styles.get('--sheet-progress'),1);
+ assert.equal(f.scroll.scrollTop,0);assert.equal(f.controller.collapsedHeight,0);
+ f.controller.setExpanded(false);assert.equal(f.scroll.scrollTop,0);
+ f.dispatch('handle','pointerdown',{button:0,pointerId:1,clientY:500});
+ f.dispatch('handle','pointermove',{pointerId:1,clientY:300});assert.equal(f.scroll.scrollTop,0);
+ f.move(-20);assert.equal(f.styles.get('--sheet-height'),'700px');
+ f.sheet.parentElement.clientHeight=600;f.resize();
+ assert.equal(f.styles.get('--sheet-height'),'600px');assert.equal(f.styles.get('--sheet-travel'),'0px');
+ f.switchLayout(true);f.switchLayout(false);assert.equal(f.styles.get('--sheet-travel'),'0px');
+ f.controller.setListOnly(false);f.controller.restorePosition(browse);
+ assert.equal(f.scroll.scrollTop,168);assert.equal(f.styles.get('--sheet-height'),'432px');
+});
+test('Saved list mode preserves content position across mobile and desktop and does not reset on rerender',()=>{
+ const f=fixture();f.move(892);const browse=f.controller.capturePosition();
+ f.controller.setListOnly(true);assert.equal(f.scroll.scrollTop,500);
+ f.controller.resetList();f.move(200);f.controller.setListOnly(true);
+ assert.equal(f.scroll.scrollTop,200);
+ f.switchLayout(true);f.switchLayout(false);assert.equal(f.scroll.scrollTop,200);
+ f.controller.setListOnly(false);f.controller.restorePosition(browse);
+ assert.equal(f.scroll.scrollTop,892);assert.equal(f.styles.get('--sheet-travel'),'392px');
+});

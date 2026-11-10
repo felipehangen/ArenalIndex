@@ -161,7 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 #arenal-index-dos .results-map-space{height:var(--sheet-travel,56%);pointer-events:none}
 #arenal-index-dos #results-scroll::-webkit-scrollbar{display:none}
 #arenal-index-dos .results-sheet-header{position:sticky;top:0;pointer-events:auto;border-radius:calc(28px * (1 - var(--sheet-progress,0))) calc(28px * (1 - var(--sheet-progress,0))) 0 0;box-shadow:0 -4px 20px #173e2c16}
-#arenal-index-dos .results-body{position:relative;min-height:calc(var(--sheet-space,700px) - 72px);padding:0 18px 20px;background:#fff;pointer-events:auto}
+#arenal-index-dos .results-body{display:flow-root;position:relative;min-height:calc(var(--sheet-space,700px) - 72px);padding:0 18px 20px;background:#fff;pointer-events:auto}
 #arenal-index-dos .gallery-track{touch-action:auto;overscroll-behavior-x:contain}
 #arenal-index-dos .maplibregl-ctrl-bottom-right,#arenal-index-dos.results-expanded .maplibregl-ctrl-bottom-right{top:auto;bottom:calc(var(--sheet-height) + 4px);transition:none}
 #arenal-index-dos button#results-handle{cursor:ns-resize}

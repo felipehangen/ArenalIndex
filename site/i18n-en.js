@@ -1,5 +1,7 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Menú": "Menu",
+  "Idioma": "Language",
   "Publicar": "List property",
   "Publicar propiedad": "List your property",
   "¿Querés publicar una propiedad?": "Want to list a property?",
