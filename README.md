@@ -8,6 +8,8 @@ Este repositorio contiene el diseño aprobado del explorador de terrenos: mapa, 
 
 ## Desarrollo y publicación
 
+La nueva pestaña de administración **Estadísticas / Analytics** reúne visitas anónimas, guardados observados, actividad de fotos, interés por propiedades/localidades y evolución de propiedades reales publicadas. Consultá [las métricas, límites y despliegue](docs/analytics.md). El historial comienza cuando se despliega la medición; no se reconstruye actividad anterior.
+
 Requiere Node.js 22 o superior y Python 3 para el servidor local. Instalar las dependencias con `npm ci`.
 
 ```sh

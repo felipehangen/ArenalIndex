@@ -1,4 +1,6 @@
-export function createPublicHandler(repository,{catalog}={}){
+import {recordInventory} from '../analytics/core.mjs';
+let lastSnapshot=0;
+export function createPublicHandler(repository,{catalog,defer}={}){
   return async request=>{
     const headers={'Access-Control-Allow-Origin':'*','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
     const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{...headers,'Content-Type':'application/json'}});
@@ -17,6 +19,12 @@ export function createPublicHandler(repository,{catalog}={}){
       }
       if(url.searchParams.has('catalog')&&catalog){
         const [listings,legacy]=await Promise.all([repository.published(),catalog.published()]);
+        // At most one observation per warm instance per minute; failures never hide listings.
+        if(request.method==='GET'&&repository.analyticsSnapshot&&Date.now()-lastSnapshot>60000){
+          lastSnapshot=Date.now();
+          const work=recordInventory(repository,[...listings,...legacy]).catch(()=>{lastSnapshot=0;console.error('Inventory snapshot unavailable');});
+          if(defer)defer(work);else await work;
+        }
         return json([...listings,...legacy]);
       }
       return json(await repository.published());

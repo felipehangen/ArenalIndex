@@ -73,6 +73,7 @@
     observer.observe(mapNode); page._observer?.disconnect(); page._observer=observer;
   }
   function show(d) {
+    window.ArenalAnalytics?.track('listing_view',d);
     ArenalMotion.cancel(page);
     if(page.hidden) returnFocus=document.activeElement;
     home.inert=true;home.setAttribute('aria-hidden','true');
@@ -113,6 +114,7 @@
   function gallery() {
     const listing=current, groups = content.groups(listing);
     if(!groups.length)return;
+    window.ArenalAnalytics?.track('gallery_open',listing);
     let offset=0;
     groups.forEach(group=>{group.start=offset;offset+=group.images.length;});
     const flattenPhotos=groups=>groups.flatMap(group=>group.images.map((photo,i)=>({...photo,caption:photo.caption||group.label+' · '+(window.ArenalI18n?.t('Foto {count} de {total}',{count:i+1,total:group.images.length})||'Foto '+(i+1)+' de '+group.images.length)})));
@@ -143,12 +145,12 @@
     scroller.addEventListener('scroll',()=>{if(scrollFrame)return;scrollFrame=requestAnimationFrame(()=>{scrollFrame=0;const threshold=scroller.getBoundingClientRect().top+scroller.clientHeight*.35;let index=0;blocks.forEach((block,i)=>{if(block.getBoundingClientRect().top<=threshold)index=i;});markBlock(index);});},{passive:true});
     function updatePhoto() {Array.from(track.children).forEach((slide,i)=>slide.setAttribute('aria-hidden',String(i!==photoIndex)));node.querySelector('.pd-photo-position').textContent=(photoIndex+1)+' / '+tourPhotos.length;node.querySelector('.pd-photo-caption').textContent=tourPhotos[photoIndex].caption;previous.disabled=photoIndex===0;next.disabled=photoIndex===tourPhotos.length-1;}
     function move(delta) {const target=Math.max(0,Math.min(tourPhotos.length-1,photoIndex+delta));track.scrollTo({left:target*track.clientWidth,behavior:reduced?'auto':'smooth'});}
-    function expand(index,trigger) {photoTrigger=trigger;photoIndex=index;overview.hidden=true;viewer.hidden=false;node.classList.add('is-photo');updatePhoto();track.scrollTo({left:index*track.clientWidth,behavior:'instant'});node.querySelector('.pd-tour-return').focus({preventScroll:true});}
+    function expand(index,trigger) {window.ArenalAnalytics?.photo('photo_open',listing,tourPhotos[index].src);photoTrigger=trigger;photoIndex=index;overview.hidden=true;viewer.hidden=false;node.classList.add('is-photo');updatePhoto();track.scrollTo({left:index*track.clientWidth,behavior:'instant'});node.querySelector('.pd-tour-return').focus({preventScroll:true});}
     function returnToTour() {ArenalMotion.leave(viewer,()=>{viewer.hidden=true;overview.hidden=false;node.classList.remove('is-photo');photoTrigger?.focus({preventScroll:true});});}
     node.querySelectorAll('[data-photo]').forEach(button=>button.onclick=()=>expand(Number(button.dataset.photo),button));
     node.querySelector('.pd-tour-return').onclick=returnToTour;
     previous.onclick=()=>move(-1);next.onclick=()=>move(1);
-    track.addEventListener('scroll',()=>{if(viewer.hidden||!track.clientWidth)return;photoIndex=Math.max(0,Math.min(tourPhotos.length-1,Math.round(track.scrollLeft/track.clientWidth)));updatePhoto();},{passive:true});
+    track.addEventListener('scroll',()=>{if(viewer.hidden||!track.clientWidth)return;const nextIndex=Math.max(0,Math.min(tourPhotos.length-1,Math.round(track.scrollLeft/track.clientWidth)));if(nextIndex!==photoIndex){photoIndex=nextIndex;window.ArenalAnalytics?.photo('photo_open',listing,tourPhotos[photoIndex].src);}updatePhoto();},{passive:true});
     node.addEventListener('keydown',e=>{if(e.altKey||e.metaKey||e.ctrlKey)return;if(!viewer.hidden&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();move(e.key==='ArrowRight'?1:-1);}else if(viewer.hidden&&e.target.closest('.pd-tour-nav')&&['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const focused=links.indexOf(e.target.closest('.pd-tour-link'));const target=e.key==='Home'?0:e.key==='End'?links.length-1:Math.max(0,Math.min(links.length-1,focused+(e.key==='ArrowRight'?1:-1)));links[target].focus();jump(target);}});
     node.addEventListener('cancel',e=>{if(!viewer.hidden){e.preventDefault();returnToTour();}});
     const resize=new ResizeObserver(()=>{if(!viewer.hidden)track.scrollTo({left:photoIndex*track.clientWidth,behavior:'instant'});});resize.observe(track);
@@ -174,7 +176,7 @@
     node.addEventListener('close',()=>{window.removeEventListener('arenal-language-change',refreshLanguage);resize.disconnect();cancelAnimationFrame(scrollFrame);},{once:true});
   }
   function specs(){dialog('Ficha de la propiedad',`<div class="pd-dialog-body">${content.content(current)}</div>`);}
-  page.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(!action)return;if(action==='back')back();if(action==='photos')gallery();if(action==='contact')contact();if(action==='share')share();if(action==='specs')specs();if(action==='save'){app.toggleSaved(current.id);syncSave();}if(action==='map'){if(window.ArenalPreview)app.focusProperty(current.id);else{pendingMap=current.id;back();}}});
+  page.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(!action)return;if(action==='back')back();if(action==='photos')gallery();if(action==='contact'){window.ArenalAnalytics?.track('contact',current,{channel:'options'});contact();}if(action==='share'){window.ArenalAnalytics?.track('share',current);share();}if(action==='specs')specs();if(action==='save'){app.toggleSaved(current.id);syncSave();}if(action==='map'){window.ArenalAnalytics?.track('map_open',current);if(window.ArenalPreview)app.focusProperty(current.id);else{pendingMap=current.id;back();}}});
   page.addEventListener('keydown',e=>{if(e.key==='Escape'&&!openDialog){e.preventDefault();back();}});
   // Native scrolling and carousel swipes must never activate a listing.
   const list=document.getElementById('index-list');

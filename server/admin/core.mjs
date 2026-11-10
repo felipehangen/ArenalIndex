@@ -4,6 +4,7 @@ export {recordSummary} from '../portal/summary.mjs';
 import {createHandler} from '../intake/core.mjs';
 import {workspaceAction} from '../portal/workspace.mjs';
 import {accountAdminAction} from '../portal/accounts.mjs';
+import {analyticsReport} from '../analytics/core.mjs';
 
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const secret=()=>randomBytes(32).toString('hex');
@@ -55,6 +56,7 @@ export function createAdminHandler({repository,verifyGoogle,config,mailer,resolv
         return json({signedOut:true});
       }
       if(action==='session')return json({email:session.email,expiresAt:session.expiresAt});
+      if(action==='analytics')return json(await analyticsReport({repository,catalog,body,now:now()}));
       if(action==='health')return json({ready:config.emailReady});
       if(['create_account','owner_accounts','set_owner_password','set_owner_active'].includes(action))return json(await accountAdminAction({action,body,repository,actor:session,now}));
       if(['workspace_open','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen_owner','workspace_unlist','workspace_delete'].includes(action))return json(await workspaceAction({action,body,actor:{...session,role:'admin'},repository,config,mailer,now}));

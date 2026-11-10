@@ -4,10 +4,10 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
   <title>Administración · Arenal Index</title>
-  <script src="/i18n-en.js?v=12-qa-polish"></script><script src="/i18n.js?v=2-demo-titles"></script><script src="/config.js?v=5-managed-catalog"></script>
+  <script src="/i18n-en.js?v=13-analytics"></script><script src="/i18n.js?v=2-demo-titles"></script><script src="/config.js?v=5-managed-catalog"></script>
   <link rel="stylesheet" href="/admin/dialog.css?v=1"><link rel="stylesheet" href="/admin/style.css?v=4-workflow"><link rel="stylesheet" href="/i18n.css?v=3-header-subtitle">
-  <script type="module" src="/admin/app.mjs?v=5-listing-rules"></script>
-  <link rel="stylesheet" href="/cuenta/rules.css?v=1">
+  <script type="module" src="/admin/app.mjs?v=6-analytics"></script>
+  <link rel="stylesheet" href="/cuenta/rules.css?v=1"><link rel="stylesheet" href="/admin/analytics.css?v=1">
 </head>
 <body>
   <header class="admin-header"><a class="brand" href="/">arenal <span>INDEX</span></a><span class="admin-header-label">Administración</span><div class="header-actions"><span data-language-mount></span><button id="sign-out" class="quiet" hidden>Salir</button></div></header>
@@ -20,12 +20,13 @@
     </section>
     <section id="inbox" class="admin-workspace" hidden>
       <div class="workspace-heading"><div><p class="eyebrow">ADMINISTRACIÓN</p><h1>Anuncios</h1><p class="muted">Revisá, editá y administrá lo que se muestra en el catálogo.</p></div></div>
-      <nav class="workspace-tabs" aria-label="Administración"><button data-panel="listings" aria-current="page">Anuncios</button><button data-panel="accounts">Cuentas</button></nav>
+      <nav class="workspace-tabs" aria-label="Administración"><button data-panel="listings" aria-current="page">Anuncios</button><button data-panel="accounts">Cuentas</button><button data-panel="analytics">Estadísticas</button></nav>
       <section id="listings-panel"><div class="admin-toolbar"><label class="admin-search"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="admin-search" type="search" placeholder="Buscar por propiedad, contacto o correo" aria-label="Buscar propuestas"></label><label class="status-filter">Estado<select id="admin-status"><option value="all">Todos</option><option value="ready_for_review">Por revisar</option><option value="approved">Aprobados</option><option value="published">Publicados</option><option value="draft">Borradores</option><option value="unlisted">Retirados</option></select></label><label class="status-filter">Tipo<select id="admin-source"><option value="all">Todos</option><option value="demo">Demo</option><option value="real">Reales</option></select></label><button id="refresh" class="quiet refresh-button" title="Actualizar lista" aria-label="Actualizar lista">↻</button></div>
       <div class="results-meta"><p id="admin-count" role="status"></p><p id="admin-account" translate="no"></p></div>
       <div class="admin-table"><div class="admin-table-head" aria-hidden="true"><span>Propiedad y contacto</span><span>Precio y área</span><span>Estado</span><span>Actualización</span><span></span></div><div id="admin-records" aria-busy="true"></div></div>
       <div id="admin-empty" class="empty-state" hidden><h2>No hay propuestas en esta vista</h2><p>Cambiá el estado o la búsqueda para ver otras fichas.</p></div><p id="inbox-error" role="alert" hidden></p>
       </section><section id="accounts-panel" hidden><details open id="owner-accounts" class="account-panel"><summary>Cuentas y acceso</summary><p>Registrá el correo para habilitar el acceso con Google. Agregá una contraseña temporal si también necesita entrar con correo y contraseña. Si la cuenta ya existe, una nueva contraseña reemplaza la anterior.</p><form id="create-owner-account" class="access-form"><label>Correo electrónico<input name="email" type="email" autocomplete="off" maxlength="254" required></label><label>Contraseña temporal · opcional<input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128"></label><p>La contraseña temporal vence en 7 días y se cambia al entrar.</p><div class="password-tools"><button type="button" class="quiet" data-generate-password>Generar contraseña</button><label><input type="checkbox" data-show-password>Mostrar contraseña</label></div><button type="submit" class="quiet">Guardar acceso</button></form><output translate="no" hidden></output><p role="status"></p><div class="accounts-heading"><h2>Accesos creados</h2><button class="quiet" data-refresh-accounts>Actualizar cuentas</button></div><div data-accounts></div></details></section>
+      <section id="analytics-panel" hidden translate="no"></section>
       <footer class="admin-footer"><a href="/cuenta/">Mis anuncios</a><a href="/" target="_blank" rel="noopener">Ver catálogo público</a></footer>
     </section>
   </main>

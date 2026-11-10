@@ -1,5 +1,6 @@
 import * as blob from '@vercel/blob';
 import {createHash} from 'node:crypto';
+import {analyticsStore} from '../analytics/store.mjs';
 
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const conflict=error=>error instanceof blob.BlobPreconditionFailedError||/already exists/i.test(error.message);
@@ -32,6 +33,7 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
     return (await sdk.presignUrl(delegation,{access:'private',pathname:path,operation,validUntil,...constraints,...(file?{allowOverwrite:false,addRandomSuffix:false}:{useCache:false})})).presignedUrl;
   }
   return {
+    ...analyticsStore({read,write,list:options=>sdk.list({...auth,...options})}),
     async catalogState(){return (await read('catalog/decisions.json'))?.row||{};},
     async catalogUpdate(id,revision,decision){
       const current=await read('catalog/decisions.json');

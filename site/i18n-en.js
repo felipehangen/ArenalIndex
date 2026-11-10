@@ -1,5 +1,6 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Estadísticas": "Analytics",
   "Arenal Index · exploración de propiedades": "Arenal Index · explore properties",
   "Mapa y resultados de propiedades": "Properties and map",
   "Cargando propiedades…": "Loading properties…",
