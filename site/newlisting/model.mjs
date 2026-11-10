@@ -28,8 +28,8 @@ export const steps = [
   {id:'property',short:'La propiedad',title:'Todo empieza con el terreno.',lead:'Completá lo que sepás. Podés guardar el borrador y volver después.',fields:[
     select('buildings','¿Incluye construcciones?',[['yes','Sí'],['no','No']],{required:true}),
     text('name','Referencia privada para reconocerla',{maxLength:60,optional:true,prominent:true,placeholder:'Ej. Terreno de don Carlos',help:'Solo para identificar tu borrador y la revisión; no se muestra en el anuncio.'}),
-    text('listing_title_es','Título en español',{maxLength:45,optional:true,prominent:true,placeholder:'Ej. Lote con vista al Arenal',help:'Completá uno o ambos idiomas. Hasta 45 caracteres por título.'}),
-    text('listing_title_en','Título en inglés',{maxLength:45,optional:true,prominent:true,placeholder:'Ej. Land with Arenal views'}),
+    text('listing_title_es','Título en español',{maxLength:45,optional:true,prominent:true,inputLanguage:'es',placeholder:'Ej. Lote con vista al Arenal',help:'Completá uno o ambos idiomas. Hasta 45 caracteres por título.'}),
+    text('listing_title_en','Título en inglés',{maxLength:45,optional:true,prominent:true,inputLanguage:'en',placeholder:'e.g. Land with Arenal views'}),
     select('current_use','¿Cómo se utiliza hoy?',['Sin uso','Vivienda','Cultivos o ganadería','Recreación / descanso','Alojamiento turístico','Comercio','Otro'],{optional:true}),
     note('intro','Algún detalle que no encaje en las opciones')
   ]},

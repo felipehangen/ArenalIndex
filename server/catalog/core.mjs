@@ -32,7 +32,10 @@ export function createCatalog({repository,fetcher=fetch,now=()=>new Date(),url='
         const place=String(input.place||'').trim();if(!place||place.length>100)fail(422,'Indicá la localidad.');
         const language=titles.es?'es':'en';
         patch={...patch,name:titles[language],place,price:Number(input.price),area:Number(input.area),currency:input.currency,details:{...row.details,language,titlesReviewed:true,declaredArea:Number(input.area),documentedArea:Number(input.area),sections:row.details?.sections?.map(section=>({...section,rows:section.rows.map(fact=>fact.label==='Área del plano'?{...fact,value:new Intl.NumberFormat('es-CR').format(Number(input.area))+' m²'}:fact)})),translations:{...row.details?.translations,es:{...row.details?.translations?.es,title:titles.es},en:{...row.details?.translations?.en,title:titles.en}}}};
-      }else if(action==='catalog_delete')status='deleted';
+      }else if(action==='catalog_delete'){
+        if(!['DELETE','BORRAR'].includes(String(body.confirmation||'').trim().toUpperCase()))fail(422,'Escribí DELETE o BORRAR para confirmar.');
+        status='deleted';
+      }
       else if(action==='catalog_unlist')status='unlisted';
       else if(action==='catalog_publish')status='published';
       else fail(400,'Acción no reconocida.');

@@ -1,5 +1,17 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Escribí DELETE o BORRAR para confirmar.": "Type DELETE or BORRAR to confirm.",
+  "Más acciones": "More actions",
+  "Preparar revisión": "Prepare for review",
+  "Actualizar publicación": "Update publication",
+  "Guardá los cambios antes de revisar o publicar.": "Save your changes before reviewing or publishing.",
+  "¿Reabrir como borrador?": "Reopen as draft?",
+  "Hay cambios sin guardar. ¿Descartarlos y continuar?": "You have unsaved changes. Discard them and continue?",
+  "← Anuncios": "← Listings",
+  "EDITAR ANUNCIO": "EDIT LISTING",
+  "Publicado · Cambios en preparación": "Published · Changes in progress",
+  "Hay cambios en borrador; el anuncio publicado sigue visible.": "There are draft changes; the published listing is still visible.",
+
   "Título en español": "Title in Spanish",
   "Título en inglés": "Title in English",
   "Completá uno o ambos idiomas. Hasta 45 caracteres por título.": "Fill in one or both languages. Up to 45 characters per title.",

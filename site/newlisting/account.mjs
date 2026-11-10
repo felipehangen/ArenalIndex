@@ -10,11 +10,11 @@ export async function accountContext(search=location.search){
   if(isNew||legacy){params.delete('owner');params.set(param,id);history.replaceState(null,'','?'+params+location.hash);}
   const client=kind==='admin'?admin:owner;
   const state={expired:false};
-  const login=()=>{state.expired=true;document.getElementById('content')?.replaceChildren();location.replace(kind==='admin'?'/admin/#review='+id:'/cuenta/#edit='+id);};
+  const login=()=>{state.expired=true;document.getElementById('content')?.replaceChildren();location.replace(kind==='admin'?'/admin/#edit='+id:'/cuenta/#edit='+id);};
   let identity;try{identity=await client.request('session');}catch(error){if(error.status===401)login();throw error;}
   if(identity.requiresPasswordChange){login();throw Error('Cambiá tu contraseña temporal para continuar.');}
   const request=async(action,body={})=>{try{return await client.request(action==='health'?'health':'workspace_'+action,{id,...body});}catch(error){if(error.status===401)login();throw error;}};
-  return Object.assign(state,{kind,param,id,key:accountKey(kind,identity.email,id),email:identity.email,expiresAt:identity.expiresAt,client,request,login,back:kind==='admin'?'/admin/review/#id='+id:'/cuenta/',async read(onProgress=()=>{}){
+  return Object.assign(state,{kind,param,id,key:accountKey(kind,identity.email,id),email:identity.email,expiresAt:identity.expiresAt,client,request,login,back:kind==='admin'?'/admin/':'/cuenta/',async read(onProgress=()=>{}){
     const result=await request('open'),files=[];
     for(let offset=0;offset<result.draft.files.length;offset+=4){
       onProgress('Abriendo archivos de tu ficha…');

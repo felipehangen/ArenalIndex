@@ -6,7 +6,7 @@ Drafts can be saved with missing fields. Submitting requires the form checklist,
 
 `listing_title_es` and `listing_title_en` are explicit optional inputs. Normalization maintains the previous language/title/translation keys for publication compatibility and migrates older drafts. A missing translation falls back to the supplied title.
 
-Admin listing actions are grouped in each row. Approval/publication opens the existing review in a same-origin dialog and uses the same protected endpoints and validation. Deletion is guarded by version, edit revision, and publication revision. A deleted record becomes an inaccessible tombstone with empty payload and no publication; existing private media objects are not physically purged by this listing-management action.
+Clicking a real listing opens its editor. The editor toolbar groups save, preview and the applicable review/publication step; secondary actions live in More actions. Admin listing actions are also grouped in each row. Approval/publication opens the existing review in a same-origin dialog and uses the same protected endpoints and validation. Deletion requires typing DELETE or BORRAR (checked by the UI and server) and is guarded by version, edit revision, and publication revision. A deleted record becomes an inaccessible tombstone with empty payload and no publication; existing private media objects are not physically purged by this listing-management action.
 
 ## Demo listings
 

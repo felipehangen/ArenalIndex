@@ -1,4 +1,4 @@
-import * as M from './model.mjs?v=11-titles';
+import * as M from './model.mjs?v=12-title-examples';
 
 // Only fixed interface labels are translated. Owner-written notes and names remain literal.
 export function buyerCopy(draft,review={},language=globalThis.window?.ArenalI18n?.language||'es'){

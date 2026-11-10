@@ -53,8 +53,8 @@ test('dynamic copy translates complete phrases without translating captured owne
 test('all modeled form labels, help and options and every photo requirement have reviewed English copy',()=>{
   const {i18n}=languageFixture();const unchanged=new Set(['Español','English','No','Internet','Cable','Exterior','Interior','Kölbi','Claro','Liberty','4G','5G']);
   const check=text=>{if(text&&!unchanged.has(text))assert.notEqual(i18n.text(text),text,text);};
-  for(const step of [...M.steps,...M.photoGroups,...M.documentGroups]){for(const key of ['short','title','lead','help'])check(step[key]);for(const f of step.fields||[])for(const key of ['label','placeholder','help'])check(f[key]);}
-  for(const f of [...M.steps.flatMap(s=>s.fields),...M.buildingFields,...M.inspectionItems]){for(const key of ['label','help','placeholder'])check(f[key]);for(const [,label] of f.options||[])check(label);}
+  for(const step of [...M.steps,...M.photoGroups,...M.documentGroups]){for(const key of ['short','title','lead','help'])check(step[key]);for(const f of step.fields||[])for(const key of ['label','placeholder','help']){if(key!=='placeholder'||!f.inputLanguage)check(f[key]);}}
+  for(const f of [...M.steps.flatMap(s=>s.fields),...M.buildingFields,...M.inspectionItems]){for(const key of ['label','help','placeholder']){if(key!=='placeholder'||!f.inputLanguage)check(f[key]);}for(const [,label] of f.options||[])check(label);}
   Object.values(M.STATES).forEach(check);M.inspectionStates.forEach(([,label])=>check(label));
   const draft=M.newDraft();draft.values.buildings='yes';draft.buildings=[{id:'one',name:'Casa principal'}];for(const item of M.photoRequirements(draft)){check(item.label);check(item.detail);}
 });
@@ -152,4 +152,15 @@ test('the real home controller keeps applied currency, saved state, pending filt
   assert.equal(sort.querySelector('[value="unit-asc"]').textContent,'Lowest price per m²');
   document.querySelector('#index-cancel').onclick();document.querySelector('#nav-explore').onclick();
   assert.equal(sort.value,'price-asc');assert.deepEqual(Array.from(window.arenalDemo.results,d=>d.id),Array.from(sorted,d=>d.id));
+});
+
+test('title placeholders retain their field language while labels follow the interface',()=>{
+ const {document,i18n}=languageFixture({html:renderFields(M.steps[0].fields,{})});
+ for(const lang of ['en','es','en']){
+  i18n.setLanguage(lang);i18n.translate(document);
+  assert.equal(document.querySelector('[data-key=listing_title_es]').placeholder,'Ej. Lote con vista al Arenal');
+  assert.equal(document.querySelector('[data-key=listing_title_en]').placeholder,'e.g. Land with Arenal views');
+  assert.equal(document.querySelector('[data-key=listing_title_es]').getAttribute('lang'),'es');
+  assert.equal(document.querySelector('[for=field-listing_title_es]').textContent.includes(lang==='en'?'Title in Spanish':'Título en español'),true);
+ }
 });

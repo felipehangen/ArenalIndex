@@ -13,14 +13,14 @@ export function renderRows(records,{owner=false}={}){
   return records.map(row=>{
     const updated=row.updatedAt&&!Number.isNaN(Date.parse(row.updatedAt))?new Intl.DateTimeFormat(locale,{day:'numeric',month:'short',year:'numeric'}).format(new Date(row.updatedAt)):'—';
     const amount=row.price!=null?new Intl.NumberFormat(locale,{style:'currency',currency:row.currency,maximumFractionDigits:0}).format(row.price):'—';
-    const id=encodeURIComponent(row.id),edit=owner?'/newlisting/?cuenta='+id:'/newlisting/?admin='+id,review='/admin/review/#id='+id;
+    const id=encodeURIComponent(row.id),edit=owner?'/newlisting/?cuenta='+id:'/newlisting/?admin='+id;
     const state=row.publishedVersion?'Publicado':row.withdrawn?'Retirado':labels[row.status]||'Borrador';
     const button=(action,label,extra='')=>'<button class="row-button '+extra+'" data-row-action="'+action+'" data-id="'+esc(row.id)+'">'+t(label)+'</button>';
     let actions=owner?'<a class="row-button" href="'+edit+'">'+t('Editar')+'</a>':row.isDemo?button('demo-edit','Editar'):'<a class="row-button" href="'+edit+'">'+t('Editar')+'</a>';
     if(row.publishedVersion)actions+=owner?'<button class="row-button" data-unlist="'+esc(row.id)+'">'+t('Deslistar')+'</button>':button('unlist','Deslistar');
     else if(!owner)actions+=button(row.isDemo||row.status==='approved'?'publish':'approve',row.isDemo||row.status==='approved'?'Publicar':'Aprobar','row-primary');
     if(!owner)actions+=button('delete','Borrar','row-danger');
-    return '<article class="admin-row" data-record="'+esc(row.id)+'"><div class="admin-property">'+(row.isDemo?'<button class="admin-record-link" translate="no" data-row-action="demo-edit" data-id="'+esc(row.id)+'">'+esc(row.title)+'</button>':'<a class="admin-record-link" translate="no" href="'+(owner?edit:review)+'">'+esc(row.title)+'</a>')+(row.isDemo?'<span class="demo-badge">Demo</span>':'')+'<p translate="no">'+esc(row.contact||row.email||row.id)+'</p></div>'+
+    return '<article class="admin-row" data-record="'+esc(row.id)+'"><div class="admin-property">'+(row.isDemo?'<button class="admin-record-link" translate="no" data-row-action="demo-edit" data-id="'+esc(row.id)+'">'+esc(row.title)+'</button>':'<a class="admin-record-link" translate="no" href="'+edit+'">'+esc(row.title)+'</a>')+(row.isDemo?'<span class="demo-badge">Demo</span>':'')+'<p translate="no">'+esc(row.contact||row.email||row.id)+'</p></div>'+
       '<div class="admin-price"><strong translate="no">'+esc(amount)+'</strong><span translate="no">'+esc(row.area?new Intl.NumberFormat(locale).format(row.area)+' m²':'—')+'</span></div>'+
       '<div class="admin-state"><span class="status-badge" data-state="'+esc(row.publishedVersion?'published':row.status)+'">'+t(state)+'</span>'+
       (row.publishedVersion&&['draft','ready_for_review','changes_requested'].includes(row.status)?'<small>'+t(row.status==='ready_for_review'?'Cambios en revisión':'Borrador de cambios')+'</small>':'')+

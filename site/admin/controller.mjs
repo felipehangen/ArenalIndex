@@ -1,5 +1,5 @@
 import * as client from './client.mjs';
-import {selectRecords,renderRows} from './view.mjs?v=4-workflow';
+import {selectRecords,renderRows} from './view.mjs?v=5-editor';
 
 let googleScript;
 export function loadGoogle(){
@@ -71,9 +71,9 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     cancel(expiryTimer);expiryTimer=schedule(expire,Math.max(0,identity.expiresAt-now()));
     if(owner&&identity.requiresPasswordChange){showPassword(identity);return;}
     if($('#password-panel'))$('#password-panel').hidden=true;
-    const target=new URLSearchParams(window.location.hash.slice(1)).get(owner?'edit':'review');
-    if(owner&&(target==='new'||/^[a-zA-Z0-9-]{8,80}$/.test(target||''))){window.location.replace('/newlisting/?cuenta='+encodeURIComponent(target));return;}
-    if(/^[a-zA-Z0-9-]{8,80}$/.test(target||'')){window.location.replace('/admin/review/#id='+encodeURIComponent(target));return;}
+    const destination=new URLSearchParams(window.location.hash.slice(1)),edit=destination.get('edit'),review=destination.get('review');
+    if((owner&&edit==='new')||/^[a-zA-Z0-9-]{8,80}$/.test(edit||'')){window.location.replace('/newlisting/?'+(owner?'cuenta':'admin')+'='+encodeURIComponent(edit));return;}
+    if(!owner&&/^[a-zA-Z0-9-]{8,80}$/.test(review||'')){window.location.replace('/admin/review/#id='+encodeURIComponent(review));return;}
     $('#login-panel').hidden=true;$('#inbox').hidden=false;$('#sign-out').hidden=false;$('#admin-account').textContent=identity.email;
     await refresh();
     if(api.session()&&!$('#inbox').hidden)await onSignedIn(identity);

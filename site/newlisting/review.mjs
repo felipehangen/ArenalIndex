@@ -1,5 +1,5 @@
 import {buyerCopy,concerns as localizedConcerns} from './buyer-copy.mjs?v=9-language';
-import * as M from './model.mjs?v=11-titles';
+import * as M from './model.mjs?v=12-title-examples';
 import {renderPhotoTour} from './view.mjs';
 import * as adminClient from '../admin/client.mjs';
 const params=new URLSearchParams(location.hash.slice(1)),id=params.get('id'),token=params.get('token');

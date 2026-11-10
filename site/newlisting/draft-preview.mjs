@@ -1,4 +1,4 @@
-import {steps,buildingFields,buildingName,label,visible,photoTour,photoCaption,knownConcerns,validPoint,hasBuildings} from './model.mjs?v=11-titles';
+import {steps,buildingFields,buildingName,label,visible,photoTour,photoCaption,knownConcerns,validPoint,hasBuildings} from './model.mjs?v=12-title-examples';
 
 const positive=value=>typeof value==='string'&&value.trim()&&Number.isFinite(Number(value))&&Number(value)>0?Number(value):null;
 

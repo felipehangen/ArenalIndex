@@ -1,19 +1,21 @@
-import {buyerCopy,concerns} from './buyer-copy.mjs?v=9-language';
-import * as M from './model.mjs?v=11-titles';
+import {concerns} from './buyer-copy.mjs?v=9-language';
+import * as M from './model.mjs?v=12-title-examples';
 import {openStore,createSaver} from './local.mjs?v=2-account-save';
 import {createAPI,randomToken,submitDraft} from './api.mjs';
 import {mountMap} from './map.mjs';
-import {accountContext,saveToAccount} from './account.mjs?v=3-titles';
-import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,renderPendingItems,areaNotice} from './view.mjs?v=10-titles';
+import {accountContext,saveToAccount} from './account.mjs?v=4-editor';
+import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,renderPendingItems,areaNotice} from './view.mjs?v=11-title-examples';
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let account;try{account=await accountContext();}catch(error){$('#step-body').textContent=error.message;throw error;}
 if(!account){location.replace('/cuenta/#edit=new');throw Error('Iniciá sesión para agregar un anuncio.');}
 const api=account?{request:account.request,available:async()=>{try{return (await account.request('health')).ready;}catch{return false;}}}:createAPI();
+let adminTools;
 let draft=account?account.blank():M.newDraft(),storage,save,ready=false,busy=false,map,urls=new Map(),saveTimer,noticeTimer,cloudConflict=false,cloudProblem='';
 const status=text=>$('#save-status').textContent=text;
 const locked=()=>account?.kind==='admin'?false:!!draft.submission&&!['draft',...(account?['changes_requested']:[])].includes(draft.submission.status);
 const isReview=()=>M.steps[draft.step].id==='review';
+const canAdminReview=()=>account.kind==='admin'&&!draft.cloud?.dirty&&['ready_for_review','approved'].includes(draft.submission?.status);
 function notify(text){$('#notice').textContent=text;$('#notice').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('#notice').hidden=true,8000);}
 function confirm(title,copy){return new Promise(resolve=>{const dialog=$('#confirm-dialog');$('#confirm-title').textContent=title;$('#confirm-copy').textContent=copy;$('#confirm-ok').onclick=()=>{dialog.close();resolve(true);};$('#confirm-cancel').onclick=()=>{dialog.close();resolve(false);};dialog.oncancel=()=>resolve(false);dialog.showModal();});}
 let previous;
@@ -29,7 +31,7 @@ try{
 if(storage)status(previous?'Retomamos tu borrador':'El borrador se guarda en este navegador');
 draft.values.listing_language ||= window.ArenalI18n?.language||'es';
 save=createSaver(async snapshot=>{if(!storage)throw Error('Sin almacenamiento');await storage.write(snapshot);},()=>structuredClone(draft),status);
-function changed(){draft.updated=new Date().toISOString();if(account){draft.cloud ||= {version:0,editRevision:0};draft.cloud.dirty=true;if($('#cloud-status')&&!cloudConflict)$('#cloud-status').textContent='Hay cambios guardados solo en este navegador.';}clearTimeout(saveTimer);saveTimer=setTimeout(()=>save(),300);}
+function changed(){draft.updated=new Date().toISOString();if(account){draft.cloud ||= {version:0,editRevision:0};draft.cloud.dirty=true;if($('#cloud-status')&&!cloudConflict)$('#cloud-status').textContent='Hay cambios guardados solo en este navegador.';}adminTools?.render();clearTimeout(saveTimer);saveTimer=setTimeout(()=>save(),300);}
 function release(){map?.remove();map=null;urls.forEach(url=>URL.revokeObjectURL(url));urls.clear();}
 function objectURL(blob){if(!urls.has(blob))urls.set(blob,URL.createObjectURL(blob));return urls.get(blob);}
 const fields=items=>renderFields(items,draft.values);
@@ -65,7 +67,7 @@ function review(){
     renderPendingItems(issues)+
     (exception.length&&draft.values.photo_exception?'<p class="note">Se enviará una excepción de fotografías para revisión: '+esc(draft.values.photo_exception)+'</p>':'')+
     (areaNotice(draft.values)?'<p class="note area-note">'+esc(areaNotice(draft.values))+'</p>':'')+
-    '<h2>Vista previa del anuncio</h2><p class="map-note">Abrí el anuncio con tus fotos, datos y el diseño que verá el comprador. Esta vista es privada; el título y la localidad definitivos se preparan durante la revisión.</p><button class="secondary" type="button" data-action="buyer-preview"'+(busy?' disabled':'')+'>Ver como comprador</button><details class="review-detail" data-review-section="copy"><summary>Leer el texto preparado</summary><div class="buyer-preview" translate="no">'+esc(buyerCopy(draft))+'</div></details>'+
+    '<h2>Vista previa del anuncio</h2><p class="map-note">Abrí el anuncio con tus fotos, datos y el diseño que verá el comprador. Esta vista es privada; el título y la localidad definitivos se preparan durante la revisión.</p><button class="secondary" type="button" data-action="buyer-preview"'+(busy?' disabled':'')+'>Ver como comprador</button>'+
     (concerns(draft).length?'<details class="review-detail" data-review-section="concerns" open><summary>Condiciones que revisaremos contigo</summary><ul>'+concerns(draft).map(n=>'<li translate="no">'+esc(n)+'</li>').join('')+'</ul></details>':'')+
     (M.photoTour(draft).length?'<details class="review-detail" data-review-section="photos"><summary>Ver el recorrido de fotos</summary>'+renderPhotoTour(draft,file=>objectURL(file.blob))+'</details>':'')+
     '<details class="review-detail" data-review-section="answers"><summary>Revisar todas las respuestas</summary>'+M.steps.map(s=>'<h3>'+esc(s.short)+'</h3><dl>'+s.fields.filter(f=>f.id&&M.visible(f,draft.values)).map(f=>'<dt>'+esc(f.label)+'</dt><dd'+(!f.options&&f.type!=='checkbox'?' translate="no"':'')+'>'+esc(M.label(f,draft.values[f.id]))+'</dd>').join('')+'</dl>').join('')+'</details>'+
@@ -74,10 +76,13 @@ function review(){
     '</section>';
 }
 function submissionState(){
-  const s=draft.submission;
-  if(!s){$('#submission-state').innerHTML='<span class="draft-badge">Borrador</span>';return;}
-  const explanation=s.status==='changes_requested'?'La ficha está abierta para editar. Cuando terminés, enviala de nuevo a revisión.':s.status==='approved'?'Aprobada para preparar la publicación.':s.status==='draft'?'Enviá los cambios cuando estén listos.':'La ficha enviada se conserva como una versión para revisión.';
-  $('#submission-state').innerHTML='<section class="submission-banner"><strong>'+esc(s.publishedVersion?'Publicado':M.STATES[s.status]||s.status)+'</strong><p>'+explanation+'</p>'+(s.publishedVersion?'<p>El anuncio publicado sigue visible mientras preparás cambios.</p>':'')+(s.feedback?'<p translate="no">'+esc(s.feedback)+'</p>':'')+(s.status==='ready_for_review'&&!s.notificationSent?'<p>Tu ficha está recibida, pero el correo de aviso sigue pendiente.</p><button class="secondary" data-action="retry-email">Reintentar aviso</button>':'')+(locked()?'<button class="secondary" data-action="edit">Editar y volver a enviar</button>':'')+' <button class="quiet" data-action="refresh">Actualizar estado</button>'+(account&&s.publishedVersion?'<button class="secondary" data-action="unlist">Retirar anuncio</button>':'')+'</section>';
+  const s=draft.submission,admin=account.kind==='admin';
+  if(admin){$('#submission-state').replaceChildren();return;}
+  const editable=!s||['draft','changes_requested'].includes(s.status);
+  const state=s?.publishedVersion?'Publicado':editable?'Borrador':s.status==='approved'?'Listo para publicar':'En revisión';
+  $('#submission-state').innerHTML='<div class="editor-state"><span class="draft-badge">'+state+'</span>'+
+    (s?.publishedVersion&&editable?'<span>Hay cambios en borrador; el anuncio publicado sigue visible.</span>':'')+
+    (!editable?'<button class="text-button" data-action="edit">Editar ficha</button>':'')+'</div>';
 }
 function updateReview(){
   if(isReview()&&$('#review-summary')){
@@ -94,7 +99,8 @@ function updateReview(){
   }
   for(const [n,option] of [...$('#step-select').options].entries())option.textContent=(n+1)+' · '+M.steps[Number(option.value)].short+(M.stepComplete(draft,Number(option.value),issues)?' ✓':'');
   $('#draft-reference').setAttribute('translate','no');$('#draft-reference').textContent=M.reference(draft);
-  $('#next').disabled=busy||(isReview()&&!locked()&&(!ready||issues.length>0));
+  $('#next').disabled=busy||cloudConflict||(isReview()&&!canAdminReview()&&!locked()&&(!ready||issues.length>0));
+  if(isReview()&&account.kind==='admin')$('#next').textContent=canAdminReview()?(draft.submission.status==='approved'?'Publicar':'Revisar y aprobar'):'Enviar para revisión';
 }
 function render(focus=true){
   if(account?.expired)return;
@@ -118,7 +124,8 @@ function render(focus=true){
   $('#next').textContent=isReview()?(locked()?'Actualizar estado':'Enviar para revisión'):'Continuar →';
   for(const id of ['step-select'])$('#'+id).disabled=busy;
   submissionState();updateReview();
-  if(account){$('#cloud-save').textContent='Guardar borrador';if(isReview()&&account.kind==='admin')$('#next').textContent='Guardar y revisar';$('#cloud-save').disabled=busy||locked()||cloudConflict;$('#reload-cloud').hidden=!cloudConflict;$('#cloud-status').textContent=cloudConflict?cloudProblem||'Hay cambios más recientes en la cuenta. Tus cambios locales se conservan hasta que decidas cargar la versión actual.':draft.cloud?.dirty?'Hay cambios guardados solo en este navegador.':'La ficha está guardada en tu cuenta.';}
+  if(account){$('#cloud-save').textContent=account.kind==='admin'?'Guardar cambios':'Guardar borrador';if(isReview()&&account.kind==='admin'&&!canAdminReview())$('#next').textContent='Enviar para revisión';$('#cloud-save').disabled=busy||locked()||cloudConflict;$('#reload-cloud').hidden=!cloudConflict;$('#cloud-status').textContent=cloudConflict?cloudProblem||'Hay cambios más recientes en la cuenta. Tus cambios locales se conservan hasta que decidas cargar la versión actual.':draft.cloud?.dirty?'Hay cambios guardados solo en este navegador.':'La ficha está guardada en tu cuenta.';}
+  adminTools?.render();
   if(focus){$('#content').focus({preventScroll:true});window.scrollTo({top:0,behavior:'instant'});}
 }
 async function go(step){
@@ -171,7 +178,7 @@ async function send(){
   const issues=M.pending(draft);if(issues.length)return notify('Completá los datos indicados antes de enviar.');
   if(!await confirm('¿Enviar la ficha para revisión?','Compartirás tus respuestas y archivos de forma privada con ArenalIndex. El envío no publica el anuncio: ArenalIndex deberá revisarlo, aprobarlo y publicarlo.'))return;
   busy=true;draft.accessToken ||= randomToken();await save();render(false);
-  try {if(account){await saveToAccount(draft,account,notify);draft.submission=await account.request('submit',{version:draft.submission.version});}else draft.submission=await submitDraft(draft,api,notify);await save();notify('Ficha recibida: lista para revisión de publicación.');if(account?.kind==='admin'){busy=false;location.href=account.back;}}
+  try {if(account){await saveToAccount(draft,account,notify);draft.submission=await account.request('submit',{version:draft.submission.version});}else draft.submission=await submitDraft(draft,api,notify);await save();notify('Ficha recibida: lista para revisión de publicación.');if(account?.kind==='admin'){busy=false;render(false);}}
   catch(error){
     const received=await api.request('status',{id:draft.id},draft.accessToken).catch(()=>null);
     if(account&&received&&(received.version!==draft.cloud?.version||received.editRevision!==draft.cloud?.editRevision)){cloudConflict=true;notify('Hay cambios más recientes. Cargá la versión actual antes de enviar.');}
@@ -244,18 +251,38 @@ document.addEventListener('click',async event=>{
 });
 $('#step-select').onchange=e=>go(Number(e.target.value));
 $('#previous').onclick=()=>{const active=M.activeSteps(draft);go(active[active.indexOf(draft.step)-1]);};
-$('#next').onclick=()=>isReview()?(locked()?refresh():send()):go(M.activeSteps(draft)[M.activeSteps(draft).indexOf(draft.step)+1]);
-window.addEventListener('arenal-language-change',()=>{const copy=$('.buyer-preview');if(copy)copy.textContent=buyerCopy(draft);const list=$('[data-review-section="concerns"] ul');if(list)list.innerHTML=concerns(draft).map(n=>'<li translate="no">'+esc(n)+'</li>').join('');});
+$('#next').onclick=()=>isReview()?(canAdminReview()?adminTools.review():locked()?refresh():send()):go(M.activeSteps(draft)[M.activeSteps(draft).indexOf(draft.step)+1]);
+window.addEventListener('arenal-language-change',()=>{const list=$('[data-review-section="concerns"] ul');if(list)list.innerHTML=concerns(draft).map(n=>'<li translate="no">'+esc(n)+'</li>').join('');});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')save();});
 if(account){
+  window.addEventListener('focus',()=>{if(!busy&&!draft.cloud?.dirty&&draft.submission&&!$('#listing-dialog').open)refresh();});
   window.addEventListener('pageshow',event=>{if(event.persisted){release();$('#content').replaceChildren();location.reload();}});
   window.addEventListener('beforeunload',event=>{if(!account.expired&&(busy||draft.cloud?.dirty)){event.preventDefault();event.returnValue='';}});
   const bar=document.createElement('section');bar.className='account-bar';bar.innerHTML='<p id="cloud-status" role="status"></p><button id="reload-cloud" class="quiet" hidden>Cargar la versión actual</button>';
   $('#submission-state').before(bar);
-  $('#account-back').href=account.back;$('#account-back').textContent=account.kind==='admin'?'← Volver a revisión':'← Mis anuncios';
-  $('#cloud-save').onclick=async()=>{if(busy||locked()||cloudConflict)return;busy=true;render(false);try{await saveToAccount(draft,account,notify);await save();notify('Borrador guardado en tu cuenta.');}catch(error){notify(error.message);}finally{busy=false;render(false);}};
+  $('#account-back').href=account.back;$('#account-back').textContent=account.kind==='admin'?'← Anuncios':'← Mis anuncios';
+  $('#cloud-save').onclick=async()=>{if(busy||locked()||cloudConflict)return;if(!draft.cloud?.dirty)return notify('La ficha está guardada en tu cuenta.');busy=true;render(false);try{await saveToAccount(draft,account,notify);await save();notify('Borrador guardado en tu cuenta.');}catch(error){notify(error.message);}finally{busy=false;render(false);}};
   $('#reload-cloud').onclick=async()=>{if(busy||!await confirm('¿Cargar la versión actual?','Esto reemplazará los cambios que guardaste solo en este navegador. Cancelá para conservarlos y revisarlos primero.'))return;busy=true;try{draft=await account.read(notify);cloudConflict=false;cloudProblem='';await save();}catch(error){notify(error.message);}finally{busy=false;render(false);}};
   setTimeout(()=>{clearTimeout(saveTimer);release();account.login();},Math.max(0,account.expiresAt-Date.now()));
+}
+if(account.kind==='admin'){
+  document.body.classList.add('admin-editor');
+  $('.header-label').textContent='EDITAR ANUNCIO';
+  const {mountAdminEditor}=await import('./admin-tools.mjs?v=1');
+  adminTools=mountAdminEditor({document,window,account,getDraft:()=>draft,isBusy:()=>busy,isConflict:()=>cloudConflict,
+    onPreview:buyerPreview,onPrepare:()=>go(M.steps.length-1),
+    onChange:async event=>{
+      if(event?.action==='delete'){draft.cloud.dirty=false;location.replace('/admin/');return;}
+      try{
+        const current=await account.request('status');
+        const same=current.version===draft.cloud?.version&&current.editRevision===draft.cloud?.editRevision;
+        const reopened=event?.action==='reopen'&&current.version===draft.cloud?.version&&current.editRevision===draft.cloud?.editRevision+1;
+        if(same||reopened){draft.submission=current;draft.cloud={...draft.cloud,version:current.version,editRevision:current.editRevision};await save();}
+        else cloudConflict=true;
+        render(false);
+      }catch(error){notify(error.message);}
+    }
+  });
 }
 render(false);
 ready=await api.available();if(!account?.expired)updateReview();

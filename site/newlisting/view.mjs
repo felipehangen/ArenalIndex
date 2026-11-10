@@ -1,4 +1,4 @@
-import {visible,photoTour,photoCaption,areaDifference,photoRequirements,pending,stepIndex,steps} from './model.mjs?v=11-titles';
+import {visible,photoTour,photoCaption,areaDifference,photoRequirements,pending,stepIndex,steps} from './model.mjs?v=12-title-examples';
 
 export const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function renderField(f,values={},prefix=''){
@@ -6,7 +6,7 @@ export function renderField(f,values={},prefix=''){
   // These requirements are checked together by pending(), outside field validation.
   const required=f.required||['lat','lng','exact','authorization','location_consent','photo_permission'].includes(f.id)||(!!prefix&&f.id==='kind');
   const requirement=required?' <span class="required-label">Necesario</span>':['phone','email'].includes(f.id)?' <span class="required-label">Uno de los dos</span>':f.optional?' <span class="optional">Opcional</span>':'';
-  const attrs=' id="'+e(id)+'" data-key="'+f.id+'"'+(prefix?' data-building="'+e(prefix.slice(0,-1))+'"':'')+(required?' aria-required="true"':'');
+  const attrs=(f.inputLanguage?' lang="'+f.inputLanguage+'" translate="no"':'')+' id="'+e(id)+'" data-key="'+f.id+'"'+(prefix?' data-building="'+e(prefix.slice(0,-1))+'"':'')+(required?' aria-required="true"':'');
   if(f.type==='checkbox')return '<div class="field wide checkbox-field"><label><input type="checkbox"'+attrs+(value?' checked':'')+'><span>'+e(f.label)+requirement+'</span></label></div>';
   let control;
   if(f.options)control='<select'+attrs+'>'+f.options.filter(([v])=>!f.known||v!=='unknown'||value==='unknown').map(([v,l])=>'<option value="'+e(v)+'"'+(v===value?' selected':'')+'>'+e(l)+'</option>').join('')+'</select>';

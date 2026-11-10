@@ -26,6 +26,7 @@ export async function workspaceAction({action,body,actor,repository,config,maile
   if(!row||row.status==='deleted'||actor.role!=='admin'&&row.owner_subject!==actor.subject)fail(404,'No se encontró la ficha.');
   if(action==='workspace_delete'){
     if(actor.role!=='admin')fail(403,'Acción no autorizada.');
+    if(!['DELETE','BORRAR'].includes(String(body.confirmation||'').trim().toUpperCase()))fail(422,'Escribí DELETE o BORRAR para confirmar.');
     if(body.version!==row.version||body.editRevision!==(row.edit_revision||0)||body.publicationRevision!==(row.publication_revision||0))fail(409,'La ficha cambió. Actualizá la lista antes de borrarla.');
     const updated=await repository.update(id,{version:row.version,status:row.status,edit_revision:row.edit_revision,publication_revision:row.publication_revision},{status:'deleted',publication:null,payload:{id,values:{},buildings:[],files:[]},editorial:{},review:{},feedback:'',file_paths:{},token_hash:null,review_token_hash:null,review_token_expires:null,deleted_by:actor.email,deleted_at:now().toISOString(),edit_revision:(row.edit_revision||0)+1,publication_revision:(row.publication_revision||0)+1});
     if(!updated)fail(409,'La ficha cambió. Actualizá la lista antes de borrarla.');return {deleted:true};

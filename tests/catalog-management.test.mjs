@@ -26,7 +26,8 @@ test('demo unlisting, editing, republication and deletion govern both the admin 
  assert.equal(published.updatedBy,undefined);assert.equal(published.revision,undefined);
  const response=await createPublicHandler({...e.repository,published:async()=>[]},{catalog:e.catalog})(new Request('https://api.example/listings?catalog=1'));
  assert.equal((await response.json())[0].price,190000);
- await e.catalog.action('catalog_delete',{id:demo.id,revision:3},actor);
+ await assert.rejects(e.catalog.action('catalog_delete',{id:demo.id,revision:3},actor),{status:422});
+ await e.catalog.action('catalog_delete',{id:demo.id,revision:3,confirmation:'DELETE'},actor);
  assert.equal((await e.catalog.list()).length,0);assert.equal((await e.catalog.published()).length,0);
  await assert.rejects(e.catalog.action('catalog_publish',{id:demo.id,revision:4},actor),{status:404});
  assert.ok(e.calls.every(c=>c.options.headers.apikey.startsWith('sb_publishable_')));
@@ -47,9 +48,11 @@ test('deletion guards the current version and removes access, list rows, publica
  const session=[...e.auth.values()].find(r=>r.email==='alice@gmail.com'&&r.subject);row.owner_subject=session.subject;row.owner_email='alice@gmail.com';
  row.publication=createPublication(row,editorial,{apiURL:e.options.config.publicAPIURL});e.rows.set(row.id,row);
  const stage=await e.call('workspace_save_prepare',{draft:{...row.payload,files:[]},version:row.version,editRevision:0},admin,'admin');assert.equal(stage.status,200);
- const body={id:row.id,version:row.version,editRevision:0,publicationRevision:0};
+ const body={id:row.id,version:row.version,editRevision:0,publicationRevision:0,confirmation:'BORRAR'};
  assert.equal((await e.call('workspace_delete',body,token)).status,400);
  assert.equal((await e.call('workspace_delete',{...body,version:0},admin,'admin')).status,409);
+ assert.equal((await e.call('workspace_delete',{...body,confirmation:''},admin,'admin')).status,422);
+ assert.equal((await e.call('workspace_delete',{...body,confirmation:'yes'},admin,'admin')).status,422);
  assert.equal((await e.call('workspace_delete',body,admin,'admin')).status,200);
  assert.equal(e.rows.get(row.id).publication,null);assert.equal(e.rows.get(row.id).payload.files.length,0);
  assert.equal((await e.call('workspace_open',{id:row.id},token)).status,404);
