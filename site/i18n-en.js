@@ -1,5 +1,15 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Fuera del mapa": "Off the map",
+  "ArenalIndex · Inicio": "ArenalIndex · Home",
+  "404 · FUERA DEL MAPA": "404 · OFF THE MAP",
+  "Este camino no lleva a una propiedad.": "This trail doesn’t lead to a property.",
+  "Pero puede ser el comienzo de una buena búsqueda. Descubrí terrenos, casas y nuevas posibilidades en La Fortuna y alrededores.": "But it could be the start of a great search. Discover land, homes and new possibilities in and around La Fortuna.",
+  "Encontrá tu lugar en Arenal": "Find your place in Arenal",
+  "Explorá el mapa, compará y dejate sorprender.": "Explore the map, compare and see what you find.",
+  "Un pequeño desvío. Muchas posibilidades.": "A little detour. So many possibilities.",
+  "La página que buscás no existe o ya no está disponible.": "The page you’re looking for doesn’t exist or is no longer available.",
+
   "Vistas públicas": "Public views",
   "ArenalIndex completo": "All of ArenalIndex",
   "Explorá todas las propiedades publicadas en ArenalIndex.": "Explore all properties published on ArenalIndex.",

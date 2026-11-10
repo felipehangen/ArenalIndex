@@ -1,0 +1,35 @@
+/* A quiet trail back to the catalog, independent of the explorer layout. */
+.lost-page[hidden],.local-app[hidden]{display:none!important}
+.lost-page{position:fixed;inset:0;z-index:100;overflow:auto;display:flex;flex-direction:column;padding:0 max(28px,calc((100vw - 1240px)/2));background:#f7f6ef;color:#294533;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:light;-webkit-font-smoothing:antialiased}
+.lost-page *{box-sizing:border-box}
+.lost-page a{color:inherit}
+.lost-header{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:110px;flex-shrink:0;border-bottom:1px solid #dce1d5}
+.lost-brand{display:flex;align-items:baseline;gap:5px;font-size:32px;letter-spacing:-1.8px;text-decoration:none;font-weight:600}
+.lost-brand span{font-size:12px;letter-spacing:1px;font-weight:500}
+.lost-content{flex:1;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:clamp(32px,6vw,90px);padding:48px 0 38px}
+.lost-copy{max-width:510px}
+.lost-eyebrow{font-size:11px;letter-spacing:2.4px;font-weight:650;margin:0 0 24px;color:#627359}
+.lost-copy h1{font:normal clamp(40px,4.7vw,66px)/1.06 Georgia,"Times New Roman",serif;letter-spacing:-2px;margin:0 0 25px;text-wrap:balance;color:#294533;outline:none}
+.lost-description{max-width:410px;font-size:16px;line-height:1.8;color:#627060;margin:0 0 30px}
+.lost-page .lost-cta{display:inline-flex;align-items:center;justify-content:space-between;gap:24px;min-height:58px;max-width:100%;padding:15px 22px;border-radius:8px;background:#294f39;color:#fff;text-decoration:none;font-size:14px;font-weight:600;transition:background .2s,transform .2s}
+.lost-cta svg{width:22px;height:22px;flex-shrink:0;transition:transform .2s}
+.lost-cta:hover{background:#1b3d29;transform:translateY(-2px)}
+.lost-cta:hover svg{transform:translateX(3px)}
+.lost-cta-note{margin:13px 0 0;font-size:12px;color:#6b7665}
+.lost-art{margin:0;min-width:0;max-width:560px;justify-self:end;width:100%}
+.lost-art img{display:block;width:100%;height:auto;border-radius:24px}
+.lost-art figcaption{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;font-size:11px;color:#61715c;letter-spacing:.25px;text-align:center}
+.lost-dot{width:6px;height:6px;flex-shrink:0;border-radius:50%;background:#819879}
+.lost-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid #dce1d5;padding:22px 0 26px;font-size:11px;color:#6b7665;flex-shrink:0}
+.lost-place{font-size:9px;letter-spacing:1.8px;white-space:nowrap}
+.lost-page a:focus-visible,.lost-page button:focus-visible{outline:3px solid #ad783a;outline-offset:5px}
+@media(min-width:1500px){.lost-content{flex:0;margin:auto 0;padding:65px 0}}
+@media(max-width:700px){
+.lost-page{padding:0 24px}.lost-header{min-height:80px}.lost-brand{font-size:28px}
+.lost-content{grid-template-columns:1fr;gap:30px;padding:30px 0}.lost-copy{max-width:520px}.lost-eyebrow{margin-bottom:17px;font-size:10px}
+.lost-copy h1{font-size:clamp(36px,8.5vw,52px);letter-spacing:-1.3px;margin-bottom:19px;max-width:440px}
+.lost-description{font-size:14px;line-height:1.7;margin-bottom:23px;max-width:440px}.lost-page .lost-cta{min-height:54px;width:100%;gap:14px;font-size:13px;padding:14px 18px}.lost-cta-note{text-align:center;font-size:11px}
+.lost-art{max-width:none}.lost-art img{aspect-ratio:1.5;object-fit:cover;object-position:50% 44%;border-radius:18px}.lost-art figcaption{font-size:10px;margin-top:12px}
+.lost-footer{flex-direction:column;align-items:flex-start;gap:10px;font-size:10px;padding:18px 0 24px}
+}
+@media(prefers-reduced-motion:reduce){.lost-page .lost-cta,.lost-cta svg{transition:none;transform:none}}

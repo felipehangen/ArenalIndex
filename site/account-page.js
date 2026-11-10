@@ -10,6 +10,7 @@
   const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function render(){
     if(!active||!strip)return;
+    if(missing)window.ArenalNotFound?.show();
     strip.hidden=false;
     const name=profile?.name||t(missing?'Página no disponible':'Cargando propiedades…');
     strip.querySelector('#account-name').textContent=name;

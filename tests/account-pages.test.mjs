@@ -89,7 +89,8 @@ function browser({search='?account='+key,pathname='/properties/',status=200,rows
   const requests=[],events={};
   const window={location:{search,pathname},ArenalConfig:{listingsUrl:'https://api.example/api/listings',managedCatalog:true},addEventListener:(name,callback)=>events[name]=callback};
   const context={window,document,URL,URLSearchParams,AbortSignal,fetch:async url=>{requests.push(String(url));return Response.json({account:{key,slug:'arenal-homes',name},listings:rows},{status});}};
-  for(const file of ['account-page.js','catalog.js','property-content.js'])vm.runInNewContext(fs.readFileSync(new URL('../site/'+file,import.meta.url),'utf8'),context);
+  document.querySelector('#lost-title').focus=()=>{};
+  for(const file of ['not-found.js','account-page.js','catalog.js','property-content.js'])vm.runInNewContext(fs.readFileSync(new URL('../site/'+file,import.meta.url),'utf8'),context);
   return {window,document,requests,events};
 }
 
@@ -135,4 +136,30 @@ test('saving within an account preserves favorites belonging to other accounts',
   const c={saved:new Set(),items:[{id:'my-property'}],localStorage:{getItem:()=>stored,setItem:(_key,value)=>stored=value}};
   vm.createContext(c);vm.runInContext(initialization,c);c.saved.add('my-property');vm.runInContext(persistence,c);
   assert.deepEqual(JSON.parse(stored),['other-property','my-property']);
+});
+
+
+test('missing collections show the recovery page while connection errors retain the explorer',async()=>{
+  for(const pathname of ['/collection/asad','/collection/asad/','/collection/INVALID/']){
+    const f=browser({search:'',pathname,status:404});
+    await assert.rejects(()=>f.window.ArenalData.load());
+    assert.equal(f.document.querySelector('#arenal-not-found').hidden,false);
+    assert.equal(f.document.querySelector('.local-app').hidden,true);
+    assert.equal(f.document.querySelector('.lost-cta').getAttribute('href'),'https://arenalindex.com/');
+    assert.equal(f.document.querySelector('meta[name="robots"]').content,'noindex,follow');
+    assert.equal(f.document.title,'Fuera del mapa · ArenalIndex');
+  }
+  for(const options of [{status:503},{rows:[]},{}]){
+    const f=browser(options);
+    try{await f.window.ArenalData.load();}catch{}
+    assert.equal(f.document.querySelector('#arenal-not-found').hidden,true);
+    assert.equal(f.document.querySelector('.local-app').hidden,false);
+  }
+});
+
+test('the static 404 works without JavaScript and shares the collection recovery content',()=>{
+  const f=browser(),{document}=parseHTML(fs.readFileSync(new URL('../site/404.html',import.meta.url),'utf8'));
+  assert.equal(document.querySelector('#arenal-not-found').hidden,false);
+  assert.equal(document.querySelector('#arenal-not-found').innerHTML,f.document.querySelector('#arenal-not-found').innerHTML);
+  assert.equal(document.querySelector('.lost-cta').getAttribute('href'),'https://arenalindex.com/');
 });
