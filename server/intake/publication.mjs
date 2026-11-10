@@ -10,11 +10,14 @@ export function createPublication(row, editorial, {apiURL, date=new Date().toISO
   if(row.status!=='approved'||pending(row.payload,{publication:true,review:row.review}).length)throw Error('Aprobá esta versión antes de publicarla.');
   const name=trim(editorial.title,160),place=trim(editorial.place,100),whatsapp=trim(editorial.whatsapp,30).replace(/[\s()+-]/g,'');
   if(!name||[...name].length>45||/[\p{Extended_Pictographic}\r\n]/u.test(name)||(/\p{Ll}/u.test(name)===false&&/\p{Lu}/u.test(name)))throw Error('Usá un título de hasta 45 caracteres, sin emojis ni mayúsculas sostenidas.');
+  const language=editorial.language??row.payload.values.listing_language??'es',titleTranslation=trim(editorial.titleTranslation,160),descriptionTranslation=trim(editorial.descriptionTranslation,1200);
+  if(!['es','en'].includes(language))throw Error('Elegí Español o English como idioma del título.');
+  if(titleTranslation&&([...titleTranslation].length>45||/[\p{Extended_Pictographic}\r\n]/u.test(titleTranslation)||(!/\p{Ll}/u.test(titleTranslation)&&/\p{Lu}/u.test(titleTranslation))))throw Error('La traducción del título debe tener hasta 45 caracteres, sin emojis ni mayúsculas sostenidas.');
   if(!place)throw Error('Indicá la localidad del anuncio.');
   if(whatsapp&&!/^[1-9]\d{7,14}$/.test(whatsapp))throw Error('El WhatsApp público debe incluir el código de país.');
   const draft=row.payload,v=draft.values,r=row.review,media={};
   const answer=id=>{const f=field(id);return f&&visible(f,v)&&v[id]!==undefined&&v[id]!==''?label(f,v[id]):'';};
-  const fact=(id,title,unit='')=>{const value=answer(id);return value?{label:title||field(id).label,value:value+(value!=='No confirmado'&&unit?unit:''),source:source(v[id+'_source'])}:null;};
+  const fact=(id,title,unit='')=>{const value=answer(id);return value?{label:title||field(id).label,value:value+(value!=='No confirmado'&&unit?unit:''),source:source(v[id+'_source']),...(!field(id).options?{literal:true}:{})}:null;};
   const section=(id,title,ids)=>({id,title,rows:ids.map(item=>fact(...(Array.isArray(item)?item:[item]))).filter(Boolean)});
   const groups=photoTour(draft).map(group=>({id:group.id,title:group.title,photos:group.files.map(file=>{
     media[file.id]={path:row.id+'/'+row.version+'/'+file.id,type:file.type,size:file.size};
@@ -36,6 +39,6 @@ export function createPublication(row, editorial, {apiURL, date=new Date().toISO
   const listing={id:'ai-'+createHash('sha256').update(row.id).digest('hex').slice(0,24),name,description,place,price:Number(v.price),currency:v.currency,area:Number(r.documented_area),lat:Number(v.lat),lng:Number(v.lng),
     house:buildings.length>0,volcano:['Completa','Parcial'].includes(v.volcano),river:v.waterbody==='Colindante',water:['active','documented'].includes(v.water),electricity:v.electricity==='active',well:v.well==='yes',private_residential:v.residential==='condo',approximate:false,is_demo:false,
     images:cover?[cover,...all.filter(p=>p!==cover)].map(p=>p.src):[],
-    details:{schemaVersion:1,sections,buildings,photoGroups:groups,conditions:knownConcerns(draft,r),declaredArea:Number(v.area),documentedArea:Number(r.documented_area),areaSource:'Área del plano revisado',entrance:true,residential:v.residential||'unknown',contact:whatsapp?{whatsapp}:null,reviewedAt:row.reviewed_at,publishedAt:date}};
+    details:{schemaVersion:1,language,translations:{[language]:{title:name,description},[language==='es'?'en':'es']:{...(titleTranslation?{title:titleTranslation}:{}),...(descriptionTranslation?{description:descriptionTranslation}:{})}},sections,buildings,photoGroups:groups,conditions:knownConcerns(draft,r),declaredArea:Number(v.area),documentedArea:Number(r.documented_area),areaSource:'Área del plano revisado',entrance:true,residential:v.residential||'unknown',contact:whatsapp?{whatsapp}:null,reviewedAt:row.reviewed_at,publishedAt:date}};
   return {version:row.version,listing,media};
 }

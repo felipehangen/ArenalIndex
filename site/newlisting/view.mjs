@@ -1,4 +1,4 @@
-import {visible,photoTour,photoCaption,areaDifference,photoRequirements,pending,stepIndex,steps} from './model.mjs?v=5-pending';
+import {visible,photoTour,photoCaption,areaDifference,photoRequirements,pending,stepIndex,steps} from './model.mjs?v=9-language';
 
 export const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function renderField(f,values={},prefix=''){

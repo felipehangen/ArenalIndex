@@ -97,7 +97,7 @@ export function createHandler({repository,mailer,config,now=()=>new Date()}){
           // The discovery entry is harmless until the atomic record update succeeds.
           await repository.ensurePublishedIndex(id);
         }
-        const editorial=publication?{title:publication.listing.name,place:publication.listing.place,description:publication.listing.description,whatsapp:publication.listing.details.contact?.whatsapp||''}:row.editorial||{};
+        const editorial=publication?{title:publication.listing.name,place:publication.listing.place,description:publication.listing.description,language:publication.listing.details.language,titleTranslation:publication.listing.details.translations[publication.listing.details.language==='es'?'en':'es'].title||'',descriptionTranslation:publication.listing.details.translations[publication.listing.details.language==='es'?'en':'es'].description||'',whatsapp:publication.listing.details.contact?.whatsapp||''}:row.editorial||{};
         const updated=await repository.update(id,{version:row.version,status:row.status,review_token_hash:tokenHash,publication_revision:row.publication_revision},{publication,editorial,publication_revision:(row.publication_revision||0)+1});
         if(!updated)fail(409,'La ficha cambió. Recargá la revisión antes de publicar.');
         return respond({...summary(updated),editorial,url:publication?config.siteURL+'/#propiedad/'+publication.listing.id:null});

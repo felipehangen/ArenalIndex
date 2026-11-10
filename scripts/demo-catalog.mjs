@@ -68,10 +68,12 @@ export function demoListing(seed,index){
  const gallery=listing.details.photoGroups.flatMap(g=>g.photos);
  listing.images=[photoPath(draft.values.cover_id),...new Set(gallery.map(p=>p.src))].filter((src,i,all)=>all.indexOf(src)===i);
  // The examples follow the form, but never claim that a real property or document was reviewed.
- for(const section of listing.details.sections)for(const row of section.rows)row.source='Dato ficticio de demostración';
+ for(const section of listing.details.sections)for(const row of section.rows){row.source='Dato ficticio de demostración';delete row.literal;}
  for(const b of listing.details.buildings)for(const row of b.rows)row.source='Dato ficticio de demostración';
  listing.details.areaSource='Área de ejemplo';listing.details.entrance=false;
  delete listing.details.reviewedAt;delete listing.details.publishedAt;
+ // Keep the historical seed stable; reviewed demo translations are a separate browser asset.
+ delete listing.details.language;delete listing.details.translations;
  return {...listing,id:seed.id,is_demo:true,approximate:true,status:seed.status,sort_order:(index*37)%100+1};
 }
 export function refreshCatalog(seed){return seed.map(demoListing);}

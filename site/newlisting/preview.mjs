@@ -1,6 +1,6 @@
 import {openStore} from './local.mjs';
-import {normalizeDraft} from './model.mjs?v=5-pending';
-import {createDraftPreview} from './draft-preview.mjs?v=1';
+import {normalizeDraft} from './model.mjs?v=9-language';
+import {createDraftPreview} from './draft-preview.mjs?v=9-language';
 
 try{
   const isDraft=new URLSearchParams(location.search).get('draft')==='1';
@@ -19,5 +19,5 @@ try{
   window.arenalDemo={pricing:window.ArenalPricing.create([item]),items:[item],state:{saved,filters:{currency:'USD'}},toggleSaved(id){const index=saved.indexOf(id);if(index<0)saved.push(id);else saved.splice(index,1);},focusProperty(){if(item.coordinates)window.open('https://www.openstreetmap.org/?mlat='+item.coordinates[1]+'&mlon='+item.coordinates[0]+'#map=15/'+item.coordinates[1]+'/'+item.coordinates[0],'_blank','noopener,noreferrer');}};
   history.replaceState(null,'','#propiedad/'+item.id);
   window.arenalReady=Promise.resolve();
-  await import('/property-detail.js?v=14-contact');
+  await import('/property-detail.js?v=9-language');
 }catch(error){document.querySelector('#index-home p').textContent=error.message;}

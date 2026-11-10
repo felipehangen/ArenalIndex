@@ -13,8 +13,10 @@
   }
   function details(input){
     if(input?.schemaVersion!==1)return null;
-    const rows=value=>Array.isArray(value)?value.slice(0,50).map(row=>({label:text(row?.label,160),value:text(row?.value),source:text(row?.source,160)})).filter(row=>row.label&&row.value):[];
-    return {schemaVersion:1,
+    const literalLabels=['Indicaciones para llegar','Proveedor de agua','Proveedor eléctrico','Cuota indicada','Actividad consultada','Incluido y condiciones de venta'];
+    const rows=value=>Array.isArray(value)?value.slice(0,50).map(row=>({label:text(row?.label,160),value:text(row?.value),source:text(row?.source,160),...(row?.literal===true||literalLabels.includes(row?.label)?{literal:true}:{})})).filter(row=>row.label&&row.value):[];
+    const translations=Object.fromEntries(['es','en'].map(lang=>[lang,{title:text(input.translations?.[lang]?.title,160),description:text(input.translations?.[lang]?.description,1200)}]));
+    return {schemaVersion:1,language:input.language==='en'?'en':'es',translations,
       sections:(Array.isArray(input.sections)?input.sections:[]).slice(0,12).map(s=>({id:text(s?.id,60),title:text(s?.title,160),rows:rows(s?.rows)})),
       buildings:(Array.isArray(input.buildings)?input.buildings:[]).slice(0,30).map(b=>({id:text(b?.id,80),name:text(b?.name,120),rows:rows(b?.rows)})),
       photoGroups:(Array.isArray(input.photoGroups)?input.photoGroups:[]).slice(0,40).map(g=>({id:text(g?.id,100),title:text(g?.title,160),photos:(Array.isArray(g?.photos)?g.photos:[]).filter(p=>safeImage(p?.src)).slice(0,100).map(p=>({id:text(p.id,100),src:imagePath(p.src),caption:text(p.caption,300),perspective:p.perspective==='drone'?'drone':'ground'}))})).filter(g=>g.photos.length),

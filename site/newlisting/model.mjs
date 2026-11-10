@@ -29,6 +29,8 @@ export const steps = [
     select('buildings','¿Incluye construcciones?',[['yes','Sí'],['no','No']],{required:true}),
     text('name','Referencia privada para reconocerla',{maxLength:60,optional:true,prominent:true,placeholder:'Ej. Terreno de don Carlos',help:'Solo para identificar tu borrador y la revisión; no se muestra en el anuncio.'}),
     text('listing_title','Nombre corto sugerido para el anuncio',{maxLength:45,optional:true,prominent:true,placeholder:'Ej. Lote con vista al Arenal',help:'Hasta 45 caracteres. Describí un rasgo comprobable; evitá nombres personales, dirección exacta, precio, emojis y MAYÚSCULAS sostenidas. ArenalIndex decide el título definitivo durante la revisión.'}),
+    {id:'listing_language',label:'Idioma del título',type:'select',options:[['es','Español'],['en','English']],optional:true,prominent:true},
+    text('listing_title_translation','Traducción del título',{maxLength:45,optional:true,help:'Opcional: la versión en el otro idioma. ArenalIndex puede completarla durante la revisión.'}),
     select('current_use','¿Cómo se utiliza hoy?',['Sin uso','Vivienda','Cultivos o ganadería','Recreación / descanso','Alojamiento turístico','Comercio','Otro'],{optional:true}),
     note('intro','Algún detalle que no encaje en las opciones')
   ]},

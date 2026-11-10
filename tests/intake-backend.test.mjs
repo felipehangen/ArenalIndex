@@ -112,3 +112,15 @@ test('publication is a separate reviewer action, rejects stale edits, and keeps 
   assert.equal(e.rows.get(d.id).publication.version,version);
   assert.equal((await e.call('publish',{...body,publicationRevision:3},reviewToken,true)).status,403);
 });
+
+test('reviewed titles in both languages survive publication, preview and reviewer reload',async()=>{
+ const e=environment(),{d,version,reviewToken}=await submit(e);
+ await e.call('approve',{id:d.id,version,review:{plan_number:'A-123',documented_area:1000,plan_matches:true,copy_checked:true}},reviewToken,true);
+ const editorial={language:'en',title:'Garden lot',titleTranslation:'Lote entre jardines',description:'Original introduction',descriptionTranslation:'Introducción revisada',place:'La Fortuna',whatsapp:''};
+ const preview=await e.call('preview_publication',{id:d.id,version,publicationRevision:0,editorial},reviewToken,true);
+ assert.equal(preview.status,200);assert.equal(preview.body.listing.details.translations.es.title,'Lote entre jardines');
+ const published=await e.call('publish',{id:d.id,version,publicationRevision:0,editorial,confirmed:true},reviewToken,true);
+ assert.equal(published.status,200);assert.equal(published.body.editorial.language,'en');assert.equal(published.body.editorial.titleTranslation,'Lote entre jardines');
+ const reload=await e.call('review',{id:d.id},reviewToken,true);assert.deepEqual(reload.body.editorial,editorial);
+ assert.equal(e.rows.get(d.id).publication.listing.details.translations.en.title,'Garden lot');
+});

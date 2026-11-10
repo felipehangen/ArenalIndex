@@ -62,8 +62,9 @@
     }
     function note(){
       if(!rate)return 'Conversión no disponible. Mostramos las monedas originales; los filtros de precio están temporalmente desactivados.';
-      const date=new Intl.DateTimeFormat('es-CR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(rate.date));
+      const date=new Intl.DateTimeFormat(window.ArenalI18n?.locale||'es-CR',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(rate.date));
       const amount=new Intl.NumberFormat('en-US',{maximumFractionDigits:3}).format(midpoint);
+      if(window.ArenalI18n?.language==='en')return `${stale?'Last available rate. ':''}Estimated conversion: USD 1 = ₡${amount}. BCCR buy/sell midpoint · ${date}.`;
       return `${stale?'Último tipo disponible. ':''}Conversión estimada: USD 1 = ₡${amount}. Promedio de compra y venta del BCCR · ${date}.`;
     }
     // Prepare both currencies once; slider movement reuses these values.

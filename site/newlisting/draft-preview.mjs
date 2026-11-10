@@ -1,4 +1,4 @@
-import {steps,buildingFields,buildingName,label,visible,photoTour,photoCaption,knownConcerns,validPoint,hasBuildings} from './model.mjs?v=5-pending';
+import {steps,buildingFields,buildingName,label,visible,photoTour,photoCaption,knownConcerns,validPoint,hasBuildings} from './model.mjs?v=9-language';
 
 const positive=value=>typeof value==='string'&&value.trim()&&Number.isFinite(Number(value))&&Number(value)>0?Number(value):null;
 
@@ -10,7 +10,7 @@ export function createDraftPreview(draft,urlFor){
     const f=field(id);
     if(!f||!visible(f,v)||v[id]===undefined||v[id]==='')return null;
     const value=label(f,v[id]);
-    return {label:title||f.label,value:value+(value!=='No confirmado'?unit:''),source:v[id+'_source']==='observed'?'Observación del vendedor':v[id+'_source']==='document'?'Documento indicado por el vendedor':'Información del vendedor'};
+    return {label:title||f.label,value:value+(value!=='No confirmado'?unit:''),...(!f.options?{literal:true}:{}),source:v[id+'_source']==='observed'?'Observación del vendedor':v[id+'_source']==='document'?'Documento indicado por el vendedor':'Información del vendedor'};
   };
   const section=(id,title,ids)=>({id,title,rows:ids.map(item=>fact(...(Array.isArray(item)?item:[item]))).filter(Boolean)});
   const sections=[
@@ -28,9 +28,10 @@ export function createDraftPreview(draft,urlFor){
   const photoGroups=photoTour(draft).map(group=>({id:group.id,title:group.title,photos:group.files.map(file=>({id:file.id,src:urlFor(file),caption:photoCaption(file,draft),perspective:file.perspective}))}));
   const photos=photoGroups.flatMap(group=>group.photos),cover=photos.find(photo=>photo.id===v.cover_id),ordered=cover?[cover,...photos.filter(photo=>photo!==cover)]:photos;
   const currency=['USD','CRC'].includes(v.currency)?v.currency:null;
+  const language=v.listing_language==='en'?'en':'es',other=language==='es'?'en':'es';
   return {id:'draft-preview',name:v.listing_title?.trim()||'Título por definir',description:'',place:'Localidad por definir',draftPreview:true,
     price:positive(v.price),currency,area,coordinates:validPoint(v)?[Number(v.lng),Number(v.lat)]:null,
     house:hasBuildings(v),buildingsKnown:['yes','no'].includes(v.buildings),volcano:['Completa','Parcial'].includes(v.volcano),river:v.waterbody==='Colindante',water:['active','documented'].includes(v.water),electricity:v.electricity==='active',well:v.well==='yes',
     privateResidential:v.residential==='condo',approximate:v.exact!==true,isDemo:false,images:ordered.map(photo=>photo.src),icon:hasBuildings(v)?'house':'trees',
-    details:{schemaVersion:1,sections,buildings,photoGroups,conditions:knownConcerns(draft),declaredArea,documentedArea,areaSource:documentedArea?'Área indicada del plano · sin revisar':declaredArea?'Área declarada por el vendedor':'Área por completar',entrance:v.exact===true,residential:v.residential||'unknown',contact:null}};
+    details:{schemaVersion:1,language,translations:{[other]:{title:v.listing_title?.trim()?v.listing_title_translation?.trim()||'':''}},sections,buildings,photoGroups,conditions:knownConcerns(draft),declaredArea,documentedArea,areaSource:documentedArea?'Área indicada del plano · sin revisar':declaredArea?'Área declarada por el vendedor':'Área por completar',entrance:v.exact===true,residential:v.residential||'unknown',contact:null}};
 }

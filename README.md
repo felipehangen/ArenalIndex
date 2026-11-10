@@ -144,3 +144,14 @@ Las fotos públicas pasan por `/api/listings?id=…&photo=…&version=…`, que 
 No hacen falta nuevas variables ni una migración de Supabase. Publicar primero el servicio Vercel y comprobar `GET /api/listings`, después publicar la web. El catálogo combina la fuente anterior con las nuevas publicaciones; si una fuente falla, muestra un error recuperable en lugar de ocultar silenciosamente anuncios reales.
 
 Para inspeccionar la presentación con datos ficticios completos, ejecutar `node scripts/preview-listing.mjs` y abrir la URL local que imprime. El servidor escucha únicamente en `127.0.0.1:8767`; los ejemplos USD/CRC viven en memoria y no se envían al servicio ni al catálogo. El archivo `tests/publication-fixture.mjs` no forma parte del sitio publicado. Las imágenes de demostración existentes se reutilizan y se identifican como ilustrativas.
+
+
+## Español e inglés
+
+El selector con globo aparece junto a Explorar y Guardados en escritorio, en la navegación inferior en móvil y en el encabezado de la ficha y del anuncio. La primera visita usa el idioma del navegador (`en` para inglés, español para los demás); una elección explícita se conserva en `arenalindex.language`. La preferencia se comparte entre pestañas. Cambiar el idioma conserva filtros, moneda, selección, desplazamiento del listado y respuestas del formulario. Las medidas siguen en m².
+
+`site/i18n-en.js` contiene las traducciones revisadas de la interfaz; `site/i18n.js` traduce etiquetas y mensajes sin modificar valores de formularios ni datos canónicos del catálogo. Los nombres, localidades y respuestas libres se conservan. `site/newlisting/buyer-copy.mjs` prepara el resumen en el idioma seleccionado, separando texto fijo de respuestas del vendedor.
+
+El vendedor puede sugerir un título en español o inglés y agregar una traducción opcional. La revisión decide el título definitivo y la traducción de título/introducción antes de publicar. `details.language` identifica el original y `details.translations.es/en` contiene solo `title` y `description`; ambos títulos tienen el mismo límite de 45 caracteres. Si falta una traducción se muestra el original. No hay un servicio automático de traducción ni nuevas credenciales. Las traducciones de los 100 anuncios ficticios están en `site/demo-translations.js`; los datos originales de Supabase no se modifican.
+
+Las pruebas de idioma usan un DOM en memoria para comprobar selección, textos reversibles, datos privados, títulos revisados y conservación del estado del controlador real del catálogo. Esto no sustituye una revisión visual en escritorio e iPhone.
