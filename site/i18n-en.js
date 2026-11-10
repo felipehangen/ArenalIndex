@@ -1,5 +1,10 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Vistas públicas": "Public views",
+  "ArenalIndex completo": "All of ArenalIndex",
+  "Explorá todas las propiedades publicadas en ArenalIndex.": "Explore all properties published on ArenalIndex.",
+  "Solo esta colección": "Only this collection",
+  "Mostrá únicamente las propiedades publicadas de tu cuenta.": "Show only the published properties from your account.",
   "Demo de prueba": "Test demo",
   "Contacto ArenalIndex": "Contact ArenalIndex",
   "Propiedades de": "Properties from",

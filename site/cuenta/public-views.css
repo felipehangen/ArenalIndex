@@ -1,0 +1,8 @@
+.public-views{margin:0 0 30px}
+.public-views h2{margin:0 0 12px;font-size:14px;color:#53664a}
+.public-views-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.public-view{display:flex;flex-direction:column;gap:7px;padding:18px 20px;border:1px solid #dce4d5;border-radius:12px;background:#fff;text-decoration:none;min-width:0}
+.public-view:hover{background:#f1f5ed;border-color:#b9cbb0}
+.public-view-title{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px;font-weight:600}
+.public-view-description{font-size:13px;line-height:1.55;color:#65715f}
+@media(max-width:599px){.public-views-links{grid-template-columns:1fr}.public-view{padding:16px}}
