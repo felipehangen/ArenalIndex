@@ -1,5 +1,10 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Jardín": "Garden",
+  "Terraza": "Terrace",
+  "Piscina": "Pool",
+  "imágenes de referencia": "reference photos",
+  "Anuncio ficticio de demostración. No es una oferta de venta.": "Fictional demo listing. Not an offer for sale.",
   "Explorar propiedades": "Explore properties",
   "Para publicar": "To list a property",
   "Hola, tengo una consulta sobre ArenalIndex.": "Hi, I have a question about ArenalIndex.",

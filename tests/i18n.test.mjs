@@ -9,6 +9,7 @@ import {createDraftPreview} from '../site/newlisting/draft-preview.mjs';
 import {buyerCopy} from '../site/newlisting/buyer-copy.mjs';
 import {createPublication} from '../server/intake/publication.mjs';
 import {approvedRow,editorial} from './publication-fixture.mjs';
+import {supplementalDemos} from '../server/catalog/supplemental.mjs';
 const read=file=>fs.readFileSync(new URL('../site/'+file,import.meta.url),'utf8');
 function languageFixture({preferred='en-US',stored=null,html='',blocked=false}={}){
   const {window,document}=parseHTML('<!doctype html><html lang="es"><head></head><body>'+html+'</body></html>');
@@ -18,6 +19,20 @@ function languageFixture({preferred='en-US',stored=null,html='',blocked=false}={
   return {window,document,i18n:window.ArenalI18n,storage};
 }
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
+
+test('the new photo demo translates its title, disclosure, facts and gallery in both languages',()=>{
+  const {window,document,i18n}=languageFixture(),item=window.ArenalData.normalize(supplementalDemos[0]);
+  assert.equal(i18n.listingText(item),'Tropical garden home · demo');
+  assert.match(i18n.listingText(item,'description'),/not a property offered for sale/);
+  const groups=window.ArenalListing.groups(item);
+  assert.equal(groups[0].label,'Garden · reference photos');
+  assert.equal(groups[2].images[0].caption,'Illustrative image · Pool · Orphic Clicks / Pexels');
+  document.body.innerHTML=window.ArenalListing.content(item);i18n.translate(document);
+  assert.match(document.body.textContent,/Fictional demo listing\. Not an offer for sale\./);
+  assert.match(document.body.textContent,/Fictional demo information/);
+  i18n.setLanguage('es');assert.equal(i18n.listingText(item),'Casa entre jardines tropicales · demo');
+  assert.equal(window.ArenalListing.groups(item)[0].label,'Jardín · imágenes de referencia');
+});
 
 test('language uses a saved choice before browser preference and persists an explicit choice of the initial language',()=>{
   for(const [options,expected] of [[{preferred:'en-GB'},'en'],[{preferred:'es-CR'},'es'],[{preferred:'fr-FR'},'es'],[{preferred:'en-US',stored:'es'},'es'],[{preferred:'es',stored:'en'},'en'],[{preferred:'en',blocked:true},'en']]){

@@ -2,14 +2,19 @@ const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const columns='id,name,description,place,price,currency,area,lng,lat,house,volcano,river,water,electricity,well,private_residential,approximate,images,is_demo,details';
 // Supabase remains the public source. Private, conditional catalog decisions
 // take precedence everywhere, including deleted demos, without exposing a write key.
-export function createCatalog({repository,fetcher=fetch,now=()=>new Date(),url='https://clxntjpofnivxaxmlxui.supabase.co',key='sb_publishable_pIgUE7c7BU65lt1I5R0g7A_O5xfxDB6'}){
+export function createCatalog({repository,supplemental=[],fetcher=fetch,now=()=>new Date(),url='https://clxntjpofnivxaxmlxui.supabase.co',key='sb_publishable_pIgUE7c7BU65lt1I5R0g7A_O5xfxDB6'}){
   async function base(){
     const rows=[];for(let offset=0;;offset+=1000){
       const query=new URLSearchParams({select:columns,status:'eq.published',order:'sort_order.asc,id.asc',limit:'1000',offset:String(offset)});
       const response=await fetcher(url+'/rest/v1/arenalindex_properties?'+query,{headers:{apikey:key},signal:AbortSignal.timeout(15000),cache:'no-store'});
       if(!response.ok)fail(503,'No se pudieron cargar los anuncios de demostración. Intentá actualizar.');
-      const page=await response.json();if(!Array.isArray(page))fail(503,'No se pudo cargar el catálogo.');rows.push(...page);if(page.length<1000)return rows;
+      const page=await response.json();if(!Array.isArray(page))fail(503,'No se pudo cargar el catálogo.');rows.push(...page);if(page.length<1000)break;
     }
+    // Repository demos use the same decisions as Supabase seeds. If a seed is
+    // later migrated into Supabase, its database row becomes authoritative.
+    const ids=new Set(rows.map(row=>row.id));
+    for(const row of supplemental)if(!ids.has(row.id)){rows.push(structuredClone(row));ids.add(row.id);}
+    return rows;
   }
   const apply=(row,decision)=>({...row,...decision?.patch,details:{...row.details,...decision?.patch?.details}});
   async function read(){const [rows,state]=await Promise.all([base(),repository.catalogState()]);return {rows,state};}
