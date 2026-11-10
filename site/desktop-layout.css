@@ -7,13 +7,8 @@
   #arenal-index-dos header.explore-header{display:grid;grid-template-columns:minmax(180px,1fr) minmax(300px,420px) minmax(250px,1fr);min-height:96px;padding:18px 32px!important;gap:24px}
   #arenal-index-dos .explore-header .index-arenal{font-size:31px}
   #arenal-index-dos .explore-header .index-index{font-size:8px}
-  #arenal-index-dos .explore-header .brand small{font-size:8px;max-height:none;opacity:1;margin-top:4px}
-  #arenal-index-dos .search-row{grid-column:2;width:100%;padding:0;border:0;gap:10px}
-  #arenal-index-dos button.search-pill{border:1px solid var(--m-line);border-radius:32px;min-height:54px;padding:8px 18px;gap:14px;box-shadow:0 2px 8px #173e2c0d;background:#fff}
-  #arenal-index-dos .search-pill>svg{display:block;width:20px;height:20px;flex-shrink:0}
-  #arenal-index-dos .search-pill strong{font-size:14px}
-  #arenal-index-dos .search-pill small{font-size:11px;max-height:none;opacity:1}
-  #arenal-index-dos .search-row .filter-icon{display:none}
+  #arenal-index-dos .explore-header .browse-location{grid-column:2;grid-row:1;text-align:center;font-size:15px;line-height:1.5}
+  #arenal-index-dos .browse-tools{display:none}
   #arenal-index-dos .bottom-navigation{position:absolute;top:20px;right:32px;min-height:54px;padding:0;border:0;gap:8px;background:transparent;z-index:6}
   #arenal-index-dos .bottom-navigation :is(button,#index-saved){min-width:0;width:auto;height:48px;min-height:48px;display:flex;flex-direction:row;gap:8px;padding:10px 14px;border-radius:24px;font-size:13px}
   #arenal-index-dos .bottom-navigation button[aria-pressed=true]{background:#f0f5ee;color:#285a3d}

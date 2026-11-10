@@ -33,6 +33,14 @@ window.ArenalResultsScroll = ({root, sheet, scroll, handle, onChange, loadMore, 
     // A result/filter change returns to the first card without lowering the panel.
     if(scroll.scrollTop>travel)scroll.scrollTo({top:travel,behavior:'instant'});
   };
+  const capturePosition = () => ({
+    progress:travel>0?Math.min(1,Math.max(0,scroll.scrollTop)/travel):1,
+    contentOffset:Math.max(0,scroll.scrollTop-travel)
+  });
+  const restorePosition = position => {
+    scroll.scrollTo({top:travel*position.progress+position.contentOffset,behavior:'instant'});
+    observe();
+  };
   // Stop bubbling into the map, but never cancel a native wheel/touch gesture.
   for(const type of ['wheel','touchstart','touchmove','pointerdown','dblclick']){
     sheet.addEventListener(type,event=>event.stopPropagation(),{passive:true});
@@ -89,5 +97,5 @@ window.ArenalResultsScroll = ({root, sheet, scroll, handle, onChange, loadMore, 
   new ResizeObserver(resize).observe(sheet.parentElement);
   desktop.addEventListener?.('change',resize);
   resize();
-  return {setExpanded,resetList,get collapsedHeight(){return desktopMode?0:limits.min;}};
+  return {setExpanded,resetList,capturePosition,restorePosition,get collapsedHeight(){return desktopMode?0:limits.min;}};
 };

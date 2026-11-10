@@ -85,3 +85,19 @@ test('resizing between desktop and mobile preserves the content position without
  f.sheet.parentElement.clientHeight=600;f.resize();assert.equal(f.scroll.scrollTop,0);
  f.switchLayout(false);assert.equal(f.scroll.scrollTop,336);
 });
+test('returning from saved properties restores content position across viewport changes',()=>{
+ const f=fixture();f.move(892);
+ const position=f.controller.capturePosition();
+ f.move(0);f.switchLayout(true);f.controller.restorePosition(position);
+ assert.equal(f.scroll.scrollTop,500);
+ f.switchLayout(false);f.sheet.parentElement.clientHeight=600;f.resize();
+ f.controller.restorePosition(position);assert.equal(f.scroll.scrollTop,836);
+});
+test('returning to a partially revealed mobile map restores its proportion',()=>{
+ const f=fixture();f.move(196);
+ const position=f.controller.capturePosition();
+ f.move(1000);f.sheet.parentElement.clientHeight=600;f.resize();
+ f.controller.restorePosition(position);
+ assert.equal(f.scroll.scrollTop,168);
+ assert.equal(f.styles.get('--sheet-height'),'432px');
+});
