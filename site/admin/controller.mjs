@@ -23,6 +23,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     if($('#rules-panel')){$('#rules-panel').hidden=true;$('#rules-accept').checked=false;$('#rules-submit').disabled=true;$('#rules-status').textContent='';$('#rules-account').textContent='';$('#rules-list').replaceChildren();}
     if($('#accounts-panel')){$('#accounts-panel').hidden=true;$('#listings-panel').hidden=false;for(const tab of document.querySelectorAll('[data-panel]')){if(tab.dataset.panel==='listings')tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current');}}
     activeIdentity=null;
+    if($('#resources-panel'))$('#resources-panel').hidden=true;
     if($('#analytics-panel')){$('#analytics-panel').hidden=true;$('#analytics-panel').replaceChildren();window.dispatchEvent(new window.CustomEvent('arenal-admin-clear'));}
   }
   function loginMessage(message,retry=false){$('#login-status').textContent=t(message);$('#login-status').classList.toggle('login-error',retry&&!!message);$('#retry-login').hidden=!retry;}

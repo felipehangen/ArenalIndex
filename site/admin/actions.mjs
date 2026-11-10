@@ -8,7 +8,7 @@ export function mountListingActions({document,window,controller,api=client}){
   dialog.addEventListener('close',()=>{generation++;body.replaceChildren();});
   for(const button of document.querySelectorAll('[data-panel]'))button.onclick=()=>{
     for(const tab of document.querySelectorAll('[data-panel]')){if(tab===button)tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current');}
-    const selected=button.dataset.panel;for(const name of ['listings','accounts','analytics']){const panel=$('#'+name+'-panel');if(panel)panel.hidden=name!==selected;}$('#owner-accounts').open=selected==='accounts';window.dispatchEvent(new window.CustomEvent('arenal-admin-panel',{detail:selected}));
+    const selected=button.dataset.panel;for(const name of ['listings','accounts','analytics','resources']){const panel=$('#'+name+'-panel');if(panel)panel.hidden=name!==selected;}$('#owner-accounts').open=selected==='accounts';window.dispatchEvent(new window.CustomEvent('arenal-admin-panel',{detail:selected}));
   };
   window.addEventListener('message',event=>{
     const frame=body.querySelector('iframe');
