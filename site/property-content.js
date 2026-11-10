@@ -42,6 +42,10 @@
     if(d.details?.photoGroups?.length)return d.details.photoGroups.map(group=>({label:caption(group.title),images:group.photos.map(p=>({src:p.src,label:caption(p.caption),caption:caption(p.caption)}))})).filter(g=>g.images.length);
     return [{label:caption(d.isDemo?'Imágenes de muestra':'Fotografías de la propiedad'),images:[...new Set(d.images)].filter(src=>!src.includes('no-photo.svg')).map((src,i)=>({src,label:d.isDemo?caption('Imagen ilustrativa '+(i+1)):caption('Foto')+' '+(i+1)}))}].filter(g=>g.images.length);
   }
+  function photoAlt(photo,d){
+    const label=photo.label||'';
+    return label+(d.isDemo&&!/\b(imagen ilustrativa|illustrative image)\b/i.test(label)?' · '+(window.ArenalI18n?.t('imagen ilustrativa')||'imagen ilustrativa'):'');
+  }
   function sections(d){
     if(d.details?.schemaVersion===1)return d.details.sections||[];
     const row=(label,value)=>({label,value,source:'Información del anuncio'});
@@ -74,5 +78,5 @@
     html+='<p class="pd-source-note">'+(d.draftPreview?'Vista previa privada de tu borrador. La información, el título y la localidad están pendientes de revisión; el anuncio todavía no se ha publicado.':d.isDemo?'Anuncio de demostración · imágenes ilustrativas.':detail?'La información se atribuye al vendedor salvo donde se indique otra fuente. La revisión editorial no sustituye una verificación técnica o legal.':'Información del anuncio. Confirmá los detalles con el responsable de la venta.')+'</p>';
     return html;
   }
-  window.ArenalListing=Object.freeze({esc,price,number,rowsHTML,groups,sections,content,highlights,contactLinks,contactContent});
+  window.ArenalListing=Object.freeze({esc,price,number,rowsHTML,groups,photoAlt,sections,content,highlights,contactLinks,contactContent});
 })();

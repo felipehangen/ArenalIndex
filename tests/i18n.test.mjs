@@ -49,8 +49,9 @@ test('an open gallery switches headings, captions and accessible names without l
   scroller.scrollTop=265;
   const link=node.querySelectorAll('.pd-tour-link')[1];link.focus();
   i18n.setLanguage('en');
-  assert.equal(node.querySelector('h3').textContent,'Surroundings and views · reference photos');
-  assert.equal(node.querySelector('.pd-tour-link [translate="no"]').textContent,'Surroundings and views · reference photos');
+  for(const image of document.querySelectorAll('.pd-hero img'))assert.equal((image.alt.match(/illustrative image/gi)||[]).length,1);
+  assert.equal(node.querySelector('h3').textContent,'Approach road · reference photos');
+  assert.equal(node.querySelector('.pd-tour-link [translate="no"]').textContent,'Approach road · reference photos');
   assert.equal(scroller.scrollTop,265);assert.equal(document.activeElement,link);
   const trigger=node.querySelector('[data-photo="1"]');trigger.click();
   const returnButton=node.querySelector('.pd-tour-return');
@@ -65,10 +66,10 @@ test('an open gallery switches headings, captions and accessible names without l
     assert.equal(node.querySelector('.pd-photo-position').textContent,'2 / 3');
     assert.equal(track.scrollLeft,400);assert.equal(scroller.scrollTop,265);assert.equal(document.activeElement,returnButton);
     assert.match(node.querySelector('.pd-photo-caption').textContent,english?/^Illustrative image/:/^Imagen ilustrativa/);
-    assert.equal(node.querySelector('.pd-photo-caption').textContent,track.children[1].querySelector('img').alt.split(' · ').slice(0,-1).join(' · '));
+    assert.equal(node.querySelector('.pd-photo-caption').textContent,track.children[1].querySelector('img').alt);
     for(const button of node.querySelectorAll('[data-photo]')){
       assert.match(button.getAttribute('aria-label'),english?/^Enlarge: .*, photo \d$/:/^Ampliar: .*, foto \d$/);
-      assert.match(button.querySelector('img').alt,english?/illustrative image$/:/imagen ilustrativa$/);
+      assert.equal((button.querySelector('img').alt.match(english?/illustrative image/gi:/imagen ilustrativa/gi)||[]).length,1);
     }
     assert.equal(node.querySelector('.pd-tour-heading span').textContent,english?'1 photo':'1 foto');
   }
@@ -173,6 +174,15 @@ test('dynamic copy translates complete phrases without translating captured owne
   assert.equal(i18n.text('1 · La propiedad ✓'),'1 · The property ✓');
   assert.equal(i18n.text('Versión 3. Aprobada para preparar la publicación.'),'Version 3. Approved for publication preparation.');
   assert.equal(i18n.text('Agua de red: Conexión activa · Electricidad: Medidor activo'),'Mains/community water: Active connection · Electricity: Active meter');
+});
+
+test('map zoom names translate reversibly from their configured Spanish source',()=>{
+  const {document,i18n}=languageFixture({preferred:'es',html:'<button title="Acercar" aria-label="Acercar"></button><button title="Alejar" aria-label="Alejar"></button>'});
+  for(const lang of ['en','es','en']){
+    i18n.setLanguage(lang);
+    const expected=lang==='en'?['Zoom in','Zoom out']:['Acercar','Alejar'];
+    [...document.querySelectorAll('button')].forEach((button,i)=>{assert.equal(button.title,expected[i]);assert.equal(button.getAttribute('aria-label'),expected[i]);});
+  }
 });
 
 test('all modeled form labels, help and options and every photo requirement have reviewed English copy',()=>{
@@ -281,6 +291,30 @@ test('the real home controller keeps applied currency, saved state, pending filt
     slider.value=key==='price'?'5000':'1';slider.oninput();checkPriceLabels('USD');
     slider.value='0';slider.oninput();checkPriceLabels('USD');
   }
+  const priceMax=document.querySelector('[data-range=price] .range-amount[data-bound="1"]');
+  const unitMax=document.querySelector('[data-range=unit] .range-amount[data-bound="1"]');
+  priceMax.value='205000';priceMax.oninput();unitMax.value='53';unitMax.oninput();
+  const budget={...window.arenalDemo.state.filters,price:[0,205000],unit:[0,53]};
+  const expectedMembers=sorted.filter(item=>window.arenalDemo.pricing.matchesPrice(item,budget)).map(d=>d.id);
+  for(const target of ['CRC','USD','CRC']){
+    currency.value=target;currency.onchange({target:currency});
+    for(const [key,amount] of [['price',205000],['unit',53]]){
+      const slider=document.querySelector('[data-range="'+key+'"] input[type=range][data-bound="1"]');
+      const expected=window.arenalDemo.pricing.convert(amount,'USD',target);
+      assert.ok(Math.abs(Number(slider.value)-expected)<1e-7);
+      // Native range inputs sanitize off-step values; converted bounds must be representable.
+      assert.ok(slider.step==='any'||Math.abs((expected-Number(slider.min))/Number(slider.step)-Math.round((expected-Number(slider.min))/Number(slider.step)))<1e-9);
+      assert.equal(slider.getAttribute('aria-valuetext'),window.ArenalFormat.money(expected,target)+' '+target+(key==='unit'?'/m²':''));
+    }
+  }
+  const priceSlider=document.querySelector('[data-range=price] input[type=range][data-bound="1"]'),converted=Number(priceSlider.value);
+  let prevented=false;priceSlider.onkeydown({key:'ArrowRight',preventDefault(){prevented=true;}});
+  assert.ok(prevented);assert.equal(Number(priceSlider.value),Math.round(converted+1000000));
+  priceMax.value=String(converted);priceMax.oninput();
+  document.querySelector('#index-apply').onclick();
+  assert.deepEqual(window.arenalDemo.results.map(d=>d.id),expectedMembers);
+  document.querySelector('.filter-toggle').onclick({currentTarget:document.querySelector('.filter-toggle')});
+  document.querySelector('#index-clear').onclick();
   currency.value='CRC';currency.onchange({target:currency});checkPriceLabels('CRC');document.querySelector('#index-apply').onclick();
   assert.deepEqual(Array.from(window.arenalDemo.results,d=>d.id),Array.from(sorted,d=>d.id));
   assert.equal(document.querySelector('#index-saved-count').hidden,true);

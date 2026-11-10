@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<script src="/i18n-en.js?v=11-listing-rules"></script><script src="/demo-translations.js?v=1"></script><script src="/i18n.js?v=2-demo-titles"></script>
+<script src="/i18n-en.js?v=12-qa-polish"></script><script src="/demo-translations.js?v=1"></script><script src="/i18n.js?v=2-demo-titles"></script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -72,7 +72,7 @@
 #arenal-index-dos .landmark>svg,#arenal-index-dos .landmark>i{display:block;flex-shrink:0;width:36px;height:36px;padding:7px;border-radius:50%;border:1px solid var(--m-green);background:var(--m-paper);color:var(--m-green);box-shadow:0 1px 5px light-dark(#214b2820,#0004)}
 #arenal-index-dos .landmark .landmark-name{position:absolute;transform:translate(-50%,-50%);background:var(--m-map);color:var(--m-green);font-size:11px;line-height:18px;font-weight:500;white-space:nowrap;padding:2px 5px;border-radius:4px;pointer-events:none}
 
-</style><link rel="stylesheet" href="real-map.css?v=5-clean-filters"><link rel="stylesheet" href="results-layout.css?v=14-single-photo"><link rel="stylesheet" href="property-detail.css?v=8-map-scroll"><link rel="stylesheet" href="ui-theme.css?v=13-results-gap"><link rel="stylesheet" href="public-listing.css?v=3-contact"><link rel="stylesheet" href="home-loading.css?v=1"><link rel="stylesheet" href="desktop-layout.css?v=6-filter-overflow"><script src="config.js?v=6-site-contact"></script><script src="catalog.js?v=10-managed"></script><script src="property-content.js?v=10-gallery-language"></script><script src="ui-format.js?v=2"></script><script src="exchange-rate.js?v=1"></script><script src="pricing.js?v=9-language"></script><script src="listing-sort.js?v=1"></script><link rel="stylesheet" href="listing-sort.css?v=2-dialog"><script src="results-scroll.js?v=7-saved-list"></script><script src="map-markers.js?v=2-counts"></script><script src="panel-motion.js?v=1"></script><link rel="stylesheet" href="/i18n.css?v=3-header-subtitle"><link rel="stylesheet" href="site-contact.css?v=3-buyer-menu"></head>
+</style><link rel="stylesheet" href="real-map.css?v=5-clean-filters"><link rel="stylesheet" href="results-layout.css?v=14-single-photo"><link rel="stylesheet" href="property-detail.css?v=8-map-scroll"><link rel="stylesheet" href="ui-theme.css?v=13-results-gap"><link rel="stylesheet" href="public-listing.css?v=3-contact"><link rel="stylesheet" href="home-loading.css?v=1"><link rel="stylesheet" href="desktop-layout.css?v=6-filter-overflow"><script src="config.js?v=6-site-contact"></script><script src="catalog.js?v=10-managed"></script><script src="property-content.js?v=11-qa-polish"></script><script src="ui-format.js?v=2"></script><script src="exchange-rate.js?v=1"></script><script src="pricing.js?v=9-language"></script><script src="listing-sort.js?v=1"></script><link rel="stylesheet" href="listing-sort.css?v=2-dialog"><script src="results-scroll.js?v=7-saved-list"></script><script src="map-markers.js?v=2-counts"></script><script src="panel-motion.js?v=1"></script><link rel="stylesheet" href="/i18n.css?v=3-header-subtitle"><link rel="stylesheet" href="site-contact.css?v=3-buyer-menu"></head>
 <body>
 
 <div class="local-app"><div id="arenal-index-dos" data-screen="home" data-catalog="loading" aria-label="Arenal Index · exploración de propiedades">
@@ -277,7 +277,7 @@ const controllers=[];
   if(!map){
    ArenalHomeLoading.mapStarted();
    try{
-   map=new maplibregl.Map({container:q('#index-map'),bounds:generalBounds().toArray(),fitBoundsOptions:{padding:generalPadding(),maxZoom:12,retainPadding:false},maxZoom:20,attributionControl:false,style:{version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'osm',type:'raster',source:'osm'}]}});
+   map=new maplibregl.Map({locale:{'NavigationControl.ZoomIn':'Acercar','NavigationControl.ZoomOut':'Alejar'},container:q('#index-map'),bounds:generalBounds().toArray(),fitBoundsOptions:{padding:generalPadding(),maxZoom:12,retainPadding:false},maxZoom:20,attributionControl:false,style:{version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'osm',type:'raster',source:'osm'}]}});
    }catch(error){mapUnavailable=true;ArenalHomeLoading.mapFailed();console.error('Map unavailable',error.message);return;}
    map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
    map.addControl(new maplibregl.AttributionControl({compact:false}),'bottom-right');
@@ -330,7 +330,7 @@ const controllers=[];
   q('#currency-note').textContent=pricing.note();
   q('#unit-currency-note').textContent=draft.currency+'/m² de terreno';
   q('[data-range="price"]').hidden=!pricing.rate;q('[data-disclosure="unit"]').hidden=!pricing.rate;
-  for(const key of ['price','unit']){configs[key].max=Math.max(cap[key],draft[key][1]);configs[key].step=draft.currency==='CRC'?(key==='price'?1000000:500):(key==='price'?5000:1);const node=q('[data-range="'+key+'"]');node.querySelectorAll('input[type="range"]').forEach(input=>{input.max=configs[key].max;input.step=configs[key].step;});node.querySelectorAll('.range-value>span').forEach(span=>span.textContent=draft.currency==='CRC'?'₡':'$');node.querySelectorAll('.range-amount').forEach((input,i)=>{input.setAttribute('aria-label',(i?'Máximo':'Mínimo')+' de '+configs[key].label+' en '+draft.currency);window.ArenalI18n?.translate(input);});}
+  for(const key of ['price','unit']){configs[key].max=Math.max(cap[key],draft[key][1]);configs[key].step=draft.currency==='CRC'?(key==='price'?1000000:500):(key==='price'?5000:1);const node=q('[data-range="'+key+'"]');node.querySelectorAll('input[type="range"]').forEach(input=>{input.max=configs[key].max;input.step='any';});node.querySelectorAll('.range-value>span').forEach(span=>span.textContent=draft.currency==='CRC'?'₡':'$');node.querySelectorAll('.range-amount').forEach((input,i)=>{input.setAttribute('aria-label',(i?'Máximo':'Mínimo')+' de '+configs[key].label+' en '+draft.currency);window.ArenalI18n?.translate(input);});}
  }
  q('#index-currency').onchange=e=>{draft=pricing.switchCurrency(draft,e.target.value);updateDraft();};
  function rangeDisplay(value){return formatNumber(value)}
@@ -340,14 +340,16 @@ const controllers=[];
   node.querySelector('svg').setAttribute('aria-label','Distribución de '+c.label+' en '+items.length+' anuncios');
   for(let i=0;i<2;i++){
    const name=(i?'Máximo':'Mínimo')+' de '+c.label;
-   const slider=document.createElement('input');slider.type='range';slider.min=0;slider.max=c.max;slider.step=c.step;slider.dataset.bound=i;slider.setAttribute('aria-label',name);
+   const slider=document.createElement('input');slider.type='range';slider.min=0;slider.max=c.max;slider.step='any';slider.dataset.bound=i;slider.setAttribute('aria-label',name);
    const label=document.createElement('label');label.textContent=i?'Máximo':'Mínimo';
    const field=document.createElement('span');field.className='range-value';
    if(key!=='area'){const currency=document.createElement('span');currency.textContent='$';currency.setAttribute('aria-hidden','true');field.append(currency)}
    const num=document.createElement('input');num.type='text';num.className='range-amount';num.dataset.bound=i;num.inputMode='numeric';num.setAttribute('aria-label',name+(key==='area'?' en m²':' en '+draft.currency));window.ArenalI18n?.translate(num);
    field.append(num);label.append(field);node.querySelector('.range-track').append(slider);node.querySelector('.range-numbers').append(label);
    const commit=value=>{draft[key][i]=Math.round(Math.max(0,Math.min(c.max,value)));if(draft[key][0]>draft[key][1])draft[key][1-i]=draft[key][i];updateDraft()};
-   slider.oninput=()=>commit(Number(slider.value));
+   // Keep exact converted/typed bounds; snap only an intentional slider adjustment.
+   slider.oninput=()=>commit(Math.round(Number(slider.value)/c.step)*c.step);
+   slider.onkeydown=e=>{if(e.altKey||e.ctrlKey||e.metaKey)return;const deltas={ArrowLeft:-1,ArrowDown:-1,ArrowRight:1,ArrowUp:1,PageDown:-10,PageUp:10};if(Object.hasOwn(deltas,e.key)){e.preventDefault();commit(Number(slider.value)+deltas[e.key]*c.step);}else if(e.key==='Home'||e.key==='End'){e.preventDefault();commit(e.key==='Home'?0:c.max);}};
    num.onfocus=()=>{num.value=String(draft[key][i]);};
    num.oninput=()=>{const raw=num.value.trim().replace(/,/g,'');if(raw!==''&&/^\d*\.?\d*$/.test(raw)&&Number.isFinite(Number(raw)))commit(Number(raw));};
    num.onblur=()=>{num.value=rangeDisplay(draft[key][i]);};
@@ -401,6 +403,6 @@ const controllers=[];
 })();
 </script>
 
-<script src="listing-activation.js?v=1"></script><script src="property-detail.js?v=12-gallery-language"></script>
+<script src="listing-activation.js?v=1"></script><script src="property-detail.js?v=13-qa-polish"></script>
 </body>
 </html>

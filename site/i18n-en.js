@@ -991,6 +991,7 @@ window.ArenalEnglish=Object.freeze({
   "Precios totales": "Total prices",
   "Precios por m²": "Prices per m²",
   "Acercar": "Zoom in",
+  "Alejar": "Zoom out",
   "Ver {count} en lista": "View {count} in the list",
   "Consultá el precio de cada propiedad.": "Check each property’s price.",
   "Por m²": "Per m²",

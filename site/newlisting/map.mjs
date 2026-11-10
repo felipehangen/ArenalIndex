@@ -15,7 +15,7 @@ export function mountMap(element,values,onPoint,setStatus,lib=globalThis.maplibr
   const unavailable=()=>setStatus('Mapa no disponible. Podés ingresar las coordenadas de la entrada.');
   if(!lib){unavailable();return {update(){},remove(){},center(){}};}
   try {
-    controller.map=new lib.Map({container:element,center:valid(values)?[Number(values.lng),Number(values.lat)]:[-84.645,10.469],zoom:valid(values)?16:11,style:{version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'osm',type:'raster',source:'osm'}]}});
+    controller.map=new lib.Map({locale:{'NavigationControl.ZoomIn':'Acercar','NavigationControl.ZoomOut':'Alejar'},container:element,center:valid(values)?[Number(values.lng),Number(values.lat)]:[-84.645,10.469],zoom:valid(values)?16:11,style:{version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'osm',type:'raster',source:'osm'}]}});
     controller.map.addControl(new lib.NavigationControl({showCompass:false}));
     controller.map.on('click',e=>{const p=e.lngLat.wrap();onPoint(p.lng,p.lat,'map');});
     controller.map.on('error',unavailable);

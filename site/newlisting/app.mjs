@@ -2,7 +2,7 @@ import {concerns} from './buyer-copy.mjs?v=9-language';
 import * as M from './model.mjs?v=12-title-examples';
 import {openStore,createSaver} from './local.mjs?v=2-account-save';
 import {createAPI,randomToken,submitDraft} from './api.mjs';
-import {mountMap} from './map.mjs';
+import {mountMap} from './map.mjs?v=2-zoom-labels';
 import {accountContext,saveToAccount} from './account.mjs?v=5-listing-rules';
 import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,renderPendingItems,areaNotice} from './view.mjs?v=11-title-examples';
 const $=s=>document.querySelector(s);

@@ -127,6 +127,8 @@ test('the 25-demo collection has unique covers, credited optimized photos and co
     for(const language of ['es','en'])assert.ok(item.details.translations[language].title.length<=45);
     const photos=item.details.photoGroups.flatMap(group=>group.photos);
     assert.deepEqual(photos.map(photo=>photo.src),item.images);
+    const coverCategory=photos[0].caption.split(' · ')[1];
+    assert.equal(item.details.photoGroups[0].title,coverCategory+' · imágenes de referencia');
     for(const photo of photos){
       assert.ok(!priorPhotos.has(photo.src),'the new collection uses new photos');
       const entry=manifest.photos.find(record=>photo.src==='/photos/'+record.file);assert.ok(entry);

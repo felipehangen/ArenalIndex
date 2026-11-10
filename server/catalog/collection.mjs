@@ -884,7 +884,7 @@ export const collectionDemos=examples.map(({size,units,kind='Casa',photoIds,...d
   const buildings=(units||(size?[size]:[])).map(([area,bedrooms,bathrooms],index)=>building('building-'+(index+1),index?'Casa de huéspedes':kind==='Cabaña'?'Cabaña principal':'Casa principal',kind,area,bedrooms,bathrooms));
   const images=photoIds.map(id=>{const ref=references[id];return photo('collection-'+id,ref.label,ref.author,ref.perspective);});
   // Keep the cover first; separate indoor references from the setting where useful.
-  const groups=[group('overview',buildings.length?'Construcciones':'Entorno y vistas',[images[0]])];
+  const groups=[group('overview',references[photoIds[0]].label,[images[0]])];
   for(let i=1;i<images.length;i++){
     const label=references[photoIds[i]].label,previous=groups.at(-1);
     if(i>1&&previous.title===label+' · imágenes de referencia')previous.photos.push(images[i]);
