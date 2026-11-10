@@ -20,12 +20,12 @@ export function createCatalog({repository,supplemental=[],fetcher=fetch,now=()=>
   async function read(){const [rows,state]=await Promise.all([base(),repository.catalogState()]);return {rows,state};}
   const summary=(row,d={})=>({id:row.id,source:'demo',isDemo:true,title:row.name,contact:row.details?.contact?.name||'',email:row.details?.contact?.email||'',price:Number(row.price),area:Number(row.area),currency:row.currency||'USD',status:d.status==='unlisted'?'approved':'published',publishedVersion:d.status==='unlisted'?null:1,withdrawn:d.status==='unlisted',publicId:row.id,version:1,publicationRevision:d.revision||0,updatedAt:d.updatedAt||null});
   return {
-    async published(ownerSubject){const {rows,state}=await read();return rows.filter(r=>!['deleted','unlisted'].includes(state[r.id]?.status)&&(!ownerSubject||r.is_demo===true&&state[r.id]?.ownerSubject===ownerSubject)).map(r=>apply(r,state[r.id]));},
-    async list(ownerSubject){const {rows,state}=await read();return rows.filter(r=>r.is_demo===true&&state[r.id]?.status!=='deleted'&&(!ownerSubject||state[r.id]?.ownerSubject===ownerSubject)).map(r=>summary(apply(r,state[r.id]),state[r.id]));},
+    async published(ownerSubject){const {rows,state}=await read();return rows.filter(r=>!['deleted','unlisted','migrated'].includes(state[r.id]?.status)&&(!ownerSubject||r.is_demo===true&&state[r.id]?.ownerSubject===ownerSubject)).map(r=>apply(r,state[r.id]));},
+    async list(ownerSubject){const {rows,state}=await read();return rows.filter(r=>r.is_demo===true&&!['deleted','migrated'].includes(state[r.id]?.status)&&(!ownerSubject||state[r.id]?.ownerSubject===ownerSubject)).map(r=>summary(apply(r,state[r.id]),state[r.id]));},
     async action(action,body,actor){
       if(!/^lot-[0-9]{1,6}$/.test(body.id||''))fail(400,'Identificador inválido.');
       const {rows,state}=await read(),original=rows.find(r=>r.id===body.id&&r.is_demo===true),previous=state[body.id]||{};
-      if(!original||previous.status==='deleted')fail(404,'No se encontró el anuncio.');
+      if(!original||['deleted','migrated'].includes(previous.status))fail(404,'No se encontró el anuncio.');
       const row=apply(original,previous);
       if(action==='catalog_open')return {listing:row,revision:previous.revision||0};
       if(body.revision!==(previous.revision||0))fail(409,'El anuncio cambió. Actualizá la lista antes de continuar.');

@@ -1,5 +1,5 @@
 import * as client from './client.mjs';
-import {selectRecords,renderRows} from './view.mjs?v=6-assigned-demos';
+import {selectRecords,renderRows} from './view.mjs?v=7-workspace-demos';
 import {createGoogleLoader} from './google-loader.mjs';
 
 let googleLoader;

@@ -16,12 +16,12 @@ export function mountListingActions({document,window,controller,api=client}){
     controller.refresh();
   });
   async function mutate(action,row,extra={}){
-    return api.request(row.isDemo?'catalog_'+action:'workspace_'+(action==='reopen'?'reopen_owner':action),{id:row.id,...(row.isDemo?{revision:row.publicationRevision}:{version:row.version,editRevision:row.editRevision,publicationRevision:row.publicationRevision}),...extra});
+    return api.request((row.isDemo&&!row.isWorkspace)?'catalog_'+action:'workspace_'+(action==='reopen'?'reopen_owner':action),{id:row.id,...((row.isDemo&&!row.isWorkspace)?{revision:row.publicationRevision}:{version:row.version,editRevision:row.editRevision,publicationRevision:row.publicationRevision}),...extra});
   }
   function errorMessage(error){if(error.status===401){controller.refresh();return;}const output=body.querySelector('[role=alert]');if(output)output.textContent=t(error.message);}
   async function run(action,row){
     if(busy||!row||!api.session())return;
-    if(['approve','publish'].includes(action)&&!row.isDemo){
+    if(['approve','publish'].includes(action)&&(!row.isDemo||row.isWorkspace)){
       open(action==='approve'?'Revisar y aprobar':'Publicar anuncio','<iframe title="'+t('Revisión del anuncio')+'" src="/admin/review/#id='+encodeURIComponent(row.id)+'&focus='+action+'&embedded=1"></iframe>');return;
     }
     if(action==='demo-edit'){

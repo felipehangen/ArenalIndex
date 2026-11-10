@@ -40,5 +40,16 @@ export function createPublication(row, editorial, {apiURL, date=new Date().toISO
     house:buildings.length>0,volcano:['Completa','Parcial'].includes(v.volcano),river:v.waterbody==='Colindante',water:['active','documented'].includes(v.water),electricity:v.electricity==='active',well:v.well==='yes',private_residential:v.residential==='condo',approximate:false,is_demo:false,
     images:cover?[cover,...all.filter(p=>p!==cover)].map(p=>p.src):[],
     details:{schemaVersion:1,language,translations:{[language]:{title:name,description},[language==='es'?'en':'es']:{...(titleTranslation?{title:titleTranslation}:{}),...(descriptionTranslation?{description:descriptionTranslation}:{})}},sections,buildings,photoGroups:groups,conditions:knownConcerns(draft,r),declaredArea:Number(v.area),documentedArea:Number(r.documented_area),areaSource:'Área del plano revisado',entrance:true,residential:v.residential||'unknown',contact:whatsapp?{whatsapp}:null,reviewedAt:row.reviewed_at,publishedAt:date}};
+  if(row.is_demo===true){
+    // Trusted record metadata survives edits; submitted form fields cannot set it.
+    listing.is_demo=true;
+    if(/^lot-[0-9]{1,6}$/.test(row.demo_source_id||''))listing.id=row.demo_source_id;
+    listing.approximate=true;listing.details.entrance=false;listing.details.areaSource='Área de ejemplo';
+    delete listing.details.reviewedAt;delete listing.details.publishedAt;
+    const disclosure='Anuncio ficticio de demostración. No es una oferta de venta.';
+    listing.details.conditions=[disclosure,...listing.details.conditions];
+    for(const section of [...listing.details.sections,...listing.details.buildings])for(const fact of section.rows){fact.source='Dato ficticio de demostración';delete fact.literal;}
+    for(const group of listing.details.photoGroups)for(const photo of group.photos)photo.caption='Imagen ilustrativa · '+photo.caption;
+  }
   return {version:row.version,listing,media};
 }
