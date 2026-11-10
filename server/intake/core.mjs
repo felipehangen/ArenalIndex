@@ -1,5 +1,6 @@
 import {validateDraft,pending,buyerCopy,knownConcerns,validSignature,reference,normalizeReview} from '../../site/newlisting/model.mjs';
 import {createPublication} from './publication.mjs';
+import {shareURL} from '../sharing/links.mjs';
 export const digest=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),b=>b.toString(16).padStart(2,'0')).join('');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const summary=row=>({status:row.status,version:row.version,editRevision:row.edit_revision||0,feedback:row.feedback||'',notificationSent:row.notification_sent===true,publishedVersion:row.publication?.version||null,publicationRevision:row.publication_revision||0});
@@ -116,7 +117,7 @@ export function createHandler({repository,mailer,config,now=()=>new Date(),autho
         const editorial=publication?{title:publication.listing.name,place:publication.listing.place,description:publication.listing.description,language:publication.listing.details.language,titleTranslation:publication.listing.details.translations[publication.listing.details.language==='es'?'en':'es'].title||'',descriptionTranslation:publication.listing.details.translations[publication.listing.details.language==='es'?'en':'es'].description||'',whatsapp:publication.listing.details.contact?.whatsapp||''}:row.editorial||{};
         const updated=await repository.update(id,{version:row.version,status:row.status,...reviewGuard,publication_revision:row.publication_revision},{publication,editorial,publication_revision:(row.publication_revision||0)+1,published_by:admin?.email||config.reviewEmail,unlisted_at:action==='unpublish'?now().toISOString():null,updated_at:now().toISOString()});
         if(!updated)fail(409,'La ficha cambió. Recargá la revisión antes de publicar.');
-        return respond({...summary(updated),editorial,url:publication?config.siteURL+'/#propiedad/'+publication.listing.id:null});
+        return respond({...summary(updated),editorial,url:publication?shareURL(publication.listing.id):null});
       }
       if(['approve','request_changes'].includes(action)){
         if(body.version!==row.version||row.status!=='ready_for_review')fail(409,'Esta versión ya cambió o fue revisada. Abrí la ficha actual.');

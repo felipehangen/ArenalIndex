@@ -1,4 +1,5 @@
 import {recordInventory} from '../analytics/core.mjs';
+import {withShareURL} from '../sharing/links.mjs';
 let lastSnapshot=0;
 export function createPublicHandler(repository,{catalog,defer}={}){
   return async request=>{
@@ -25,9 +26,9 @@ export function createPublicHandler(repository,{catalog,defer}={}){
           const work=recordInventory(repository,[...listings,...legacy]).catch(()=>{lastSnapshot=0;console.error('Inventory snapshot unavailable');});
           if(defer)defer(work);else await work;
         }
-        return json([...listings,...legacy]);
+        return json([...listings,...legacy].map(withShareURL));
       }
-      return json(await repository.published());
+      return json((await repository.published()).map(withShareURL));
     }catch{return json({error:'No se pudo cargar el catálogo. Intentá de nuevo.'},503);}
   };
 }

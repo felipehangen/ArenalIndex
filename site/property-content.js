@@ -3,6 +3,7 @@
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const number=value=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(value);
   const price=(value,currency='USD')=>value===null||!Number.isFinite(value)||!['USD','CRC'].includes(currency)?'Por definir':(currency==='CRC'?'₡':'$')+number(value);
+  const publicURL=d=>d.shareUrl||'https://arenalindex.com/#propiedad/'+encodeURIComponent(d.id);
   const rowsHTML=(rows,literal=true)=>'<dl class="pd-detail-rows">'+rows.map(row=>'<div><dt>'+esc(row.label)+'</dt><dd><span'+(row.literal&&literal?' translate="no"':'')+'>'+esc(row.value)+'</span>'+(row.source?'<small>'+esc(row.source)+'</small>':'')+'</dd></div>').join('')+'</dl>';
   function highlights(d){
     const facts=d.details?.sections?.flatMap(s=>s.rows)||[],value=label=>facts.find(r=>r.label===label)?.value;
@@ -23,7 +24,7 @@
   }
   function contactLinks(d){
     if(d.draftPreview||!d.details?.contact)return null;
-    const c=d.details.contact,title=window.ArenalI18n?.listingText(d)||d.name,url='https://arenalindex.com/#propiedad/'+encodeURIComponent(d.id);
+    const c=d.details.contact,title=window.ArenalI18n?.listingText(d)||d.name,url=publicURL(d);
     const message=(window.ArenalI18n?.language==='en'?(d.isDemo?'Hello, I am asking about the demo listing ':'Hello, I am interested in '):(d.isDemo?'Hola, estoy consultando el anuncio de demostración ':'Hola, me interesa '))+title+' ('+price(d.price,d.currency)+' '+d.currency+'). '+url;
     return {name:c.name||'Contacto del anuncio',
       whatsapp:c.whatsapp?'https://wa.me/'+c.whatsapp+'?text='+encodeURIComponent(message):'',
@@ -78,5 +79,5 @@
     html+='<p class="pd-source-note">'+(d.draftPreview?'Vista previa privada de tu borrador. La información, el título y la localidad están pendientes de revisión; el anuncio todavía no se ha publicado.':d.isDemo?'Anuncio de demostración · imágenes ilustrativas.':detail?'La información se atribuye al vendedor salvo donde se indique otra fuente. La revisión editorial no sustituye una verificación técnica o legal.':'Información del anuncio. Confirmá los detalles con el responsable de la venta.')+'</p>';
     return html;
   }
-  window.ArenalListing=Object.freeze({esc,price,number,rowsHTML,groups,photoAlt,sections,content,highlights,contactLinks,contactContent});
+  window.ArenalListing=Object.freeze({esc,price,number,publicURL,rowsHTML,groups,photoAlt,sections,content,highlights,contactLinks,contactContent});
 })();

@@ -6,23 +6,27 @@
   "functions": {
     "api/admin.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/publicar/rules.mjs,site/newlisting/photo-policy.mjs}"
+      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/publicar/rules.mjs,site/newlisting/photo-policy.mjs,server/sharing/links.mjs}"
     },
     "api/owner.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/publicar/rules.mjs,site/newlisting/photo-policy.mjs}"
+      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/publicar/rules.mjs,site/newlisting/photo-policy.mjs,server/sharing/links.mjs}"
     },
     "api/listings.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/photo-policy.mjs}"
+      "includeFiles": "{server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/photo-policy.mjs,server/sharing/links.mjs}"
     },
     "api/intake.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/newlisting/photo-policy.mjs}"
+      "includeFiles": "{server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/newlisting/photo-policy.mjs,server/sharing/links.mjs}"
     },
     "api/analytics.mjs": {
       "maxDuration": 30,
       "includeFiles": "{server/intake/**,server/analytics/**,site/newlisting/photo-policy.mjs}"
+    },
+    "api/share.mjs": {
+      "maxDuration": 60,
+      "includeFiles": "{server/sharing/**,server/intake/**,server/catalog/**,server/analytics/**,site/newlisting/photo-policy.mjs}"
     }
   },
   "headers": [
@@ -93,6 +97,16 @@
           "value": "noindex, nofollow"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/p/:code/image.jpg",
+      "destination": "/api/share?code=:code&image=1"
+    },
+    {
+      "source": "/p/:code",
+      "destination": "/api/share?code=:code"
     }
   ]
 }
