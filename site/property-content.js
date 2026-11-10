@@ -40,7 +40,7 @@
   function groups(d){
     const caption=value=>window.ArenalI18n?.photoText(value,d)||value;
     if(d.details?.photoGroups?.length)return d.details.photoGroups.map(group=>({label:caption(group.title),images:group.photos.map(p=>({src:p.src,label:caption(p.caption),caption:caption(p.caption)}))})).filter(g=>g.images.length);
-    return [{label:d.isDemo?'Imágenes de muestra':'Fotografías de la propiedad',images:[...new Set(d.images)].filter(src=>!src.includes('no-photo.svg')).map((src,i)=>({src,label:(d.isDemo?'Imagen ilustrativa':'Foto')+' '+(i+1)}))}].filter(g=>g.images.length);
+    return [{label:caption(d.isDemo?'Imágenes de muestra':'Fotografías de la propiedad'),images:[...new Set(d.images)].filter(src=>!src.includes('no-photo.svg')).map((src,i)=>({src,label:d.isDemo?caption('Imagen ilustrativa '+(i+1)):caption('Foto')+' '+(i+1)}))}].filter(g=>g.images.length);
   }
   function sections(d){
     if(d.details?.schemaVersion===1)return d.details.sections||[];

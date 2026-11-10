@@ -20,6 +20,99 @@ function languageFixture({preferred='en-US',stored=null,html='',blocked=false}={
 }
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 
+async function detailFixture(row){
+  const fixture=languageFixture({preferred:'es',html:'<div id="arenal-index-dos"><div id="index-home"></div></div>'});
+  const {window,document}=fixture,item=window.ArenalData.normalize(row);
+  let focused=null;
+  Object.defineProperty(document,'activeElement',{get:()=>focused});
+  const proto=window.HTMLElement.prototype;
+  proto.focus=function(){focused=this;};
+  proto.showModal=function(){this.open=true;};
+  proto.close=function(){this.open=false;this.dispatchEvent(new window.Event('close'));};
+  proto.scrollTo=function({left,top}){if(left!==undefined)this.scrollLeft=left;if(top!==undefined)this.scrollTop=top;this.dispatchEvent(new window.Event('scroll'));};
+  const listeners=new Set(),add=window.addEventListener.bind(window),remove=window.removeEventListener.bind(window);
+  window.addEventListener=(type,fn,...args)=>{if(type==='arenal-language-change')listeners.add(fn);add(type,fn,...args);};
+  window.removeEventListener=(type,fn,...args)=>{if(type==='arenal-language-change')listeners.delete(fn);remove(type,fn,...args);};
+  window.arenalDemo={items:[item],state:{saved:[],filters:{currency:'USD'}}};
+  const context={window,document,location:{hash:'#propiedad/'+item.id},ArenalMotion:{cancel(){},leave(node,done){done();}},IntersectionObserver:class{observe(){}disconnect(){}},ResizeObserver:class{observe(){}disconnect(){}},requestAnimationFrame:()=>1,cancelAnimationFrame(){},matchMedia:()=>({matches:true})};
+  vm.runInNewContext(read('ui-format.js'),context);
+  await vm.runInNewContext(read('property-detail.js'),context);
+  const openGallery=()=>{document.querySelector('[data-action="photos"]').click();return document.querySelector('.pd-tour');};
+  return {...fixture,item,listeners,openGallery};
+}
+
+test('an open gallery switches headings, captions and accessible names without losing photo, scroll or focus',async()=>{
+  const {document,i18n,listeners,openGallery}=await detailFixture(supplementalDemos.find(d=>d.id==='lot-129'));
+  const baseline=listeners.size,node=openGallery(),scroller=node.querySelector('.pd-tour-scroll');
+  const track=node.querySelector('.pd-photo-track'),images=[...node.querySelectorAll('img')];
+  Object.defineProperty(track,'clientWidth',{value:400});
+  scroller.scrollTop=265;
+  const link=node.querySelectorAll('.pd-tour-link')[1];link.focus();
+  i18n.setLanguage('en');
+  assert.equal(node.querySelector('h3').textContent,'Surroundings and views · reference photos');
+  assert.equal(node.querySelector('.pd-tour-link [translate="no"]').textContent,'Surroundings and views · reference photos');
+  assert.equal(scroller.scrollTop,265);assert.equal(document.activeElement,link);
+  const trigger=node.querySelector('[data-photo="1"]');trigger.click();
+  const returnButton=node.querySelector('.pd-tour-return');
+  assert.equal(document.activeElement,returnButton);
+  assert.equal(node.querySelector('.pd-photo-position').textContent,'2 / 3');
+  for(const language of ['es','en','es','en']){
+    i18n.setLanguage(language);await flush();
+    const english=language==='en';
+    assert.equal(document.querySelector('.pd-tour'),node);
+    assert.deepEqual([...node.querySelectorAll('img')],images);
+    assert.equal(node.querySelector('.pd-photo-view').hidden,false);
+    assert.equal(node.querySelector('.pd-photo-position').textContent,'2 / 3');
+    assert.equal(track.scrollLeft,400);assert.equal(scroller.scrollTop,265);assert.equal(document.activeElement,returnButton);
+    assert.match(node.querySelector('.pd-photo-caption').textContent,english?/^Illustrative image/:/^Imagen ilustrativa/);
+    assert.equal(node.querySelector('.pd-photo-caption').textContent,track.children[1].querySelector('img').alt.split(' · ').slice(0,-1).join(' · '));
+    for(const button of node.querySelectorAll('[data-photo]')){
+      assert.match(button.getAttribute('aria-label'),english?/^Enlarge: .*, photo \d$/:/^Ampliar: .*, foto \d$/);
+      assert.match(button.querySelector('img').alt,english?/illustrative image$/:/imagen ilustrativa$/);
+    }
+    assert.equal(node.querySelector('.pd-tour-heading span').textContent,english?'1 photo':'1 foto');
+  }
+  returnButton.click();assert.equal(node.querySelector('.pd-photo-view').hidden,true);assert.equal(scroller.scrollTop,265);assert.equal(document.activeElement,trigger);
+  for(let i=0;i<3;i++){
+    const gallery=document.querySelector('.pd-tour'),caption=gallery.querySelector('.pd-photo-caption').textContent;
+    gallery.close();assert.equal(listeners.size,baseline);
+    i18n.setLanguage(i18n.language==='en'?'es':'en');
+    assert.equal(gallery.querySelector('.pd-photo-caption').textContent,caption,'closed galleries must stop responding');
+    openGallery();assert.equal(listeners.size,baseline+1);
+  }
+  document.querySelector('.pd-tour').close();
+});
+
+test('gallery language refresh preserves literal building names and source listing data',async()=>{
+  const row=createPublication(approvedRow(),editorial,{apiURL:'https://api.example/api/listings'}).listing;
+  const {document,i18n,item,openGallery}=await detailFixture(row),before=JSON.stringify(item),node=openGallery();
+  const block=[...node.querySelectorAll('.pd-tour-block')].find(b=>b.querySelector('h3').textContent.includes('Casa principal'));
+  assert.ok(block);block.querySelector('[data-photo]').click();
+  for(const language of ['en','es','en']){
+    i18n.setLanguage(language);await flush();
+    assert.match(block.querySelector('h3').textContent,/Casa principal/);
+    assert.match(node.querySelector('.pd-photo-caption').textContent,/Casa principal/);
+    assert.match(block.querySelector('img').alt,/Casa principal/);
+    assert.doesNotMatch(node.textContent,/Main house/);
+    assert.equal(JSON.stringify(item),before);
+  }
+  node.close();
+});
+
+test('galleries without photo groups translate generated labels and fallback captions on every switch',async()=>{
+  const row={...supplementalDemos[0],is_demo:false,details:null};
+  const {i18n,openGallery}=await detailFixture(row),node=openGallery();
+  node.querySelector('[data-photo="0"]').click();
+  for(const language of ['en','es','en']){
+    i18n.setLanguage(language);await flush();
+    const title=language==='en'?'Property photos':'Fotografías de la propiedad';
+    assert.equal(node.querySelector('h3').textContent,title);
+    assert.match(node.querySelector('.pd-photo-caption').textContent,language==='en'?/^Property photos · Photo 1 of /:/^Fotografías de la propiedad · Foto 1 de /);
+    assert.equal(node.querySelector('.pd-tour-photo img').alt,language==='en'?'Photo 1':'Foto 1');
+  }
+  node.close();
+});
+
 test('the new photo demo translates its title, disclosure, facts and gallery in both languages',()=>{
   const {window,document,i18n}=languageFixture(),item=window.ArenalData.normalize(supplementalDemos[0]);
   assert.equal(i18n.listingText(item),'Tropical garden home · demo');
@@ -147,8 +240,15 @@ test('the real home controller keeps applied currency, saved state, pending filt
   context.ArenalFilterOverflow=window.ArenalFilterOverflow;context.ArenalPricing=window.ArenalPricing;context.ArenalListing=window.ArenalListing;
   vm.runInNewContext(html.match(/<script>\s*(window\.arenalReady=[\s\S]*?)<\/script>/)[1],context);
   document.dispatchEvent(new window.Event('DOMContentLoaded'));await window.arenalReady;await flush();assert.deepEqual(events,['ready']);
+  const checkPriceLabels=(currency,language='en')=>{
+    for(const key of ['price','unit'])document.querySelectorAll('[data-range="'+key+'"] .range-amount').forEach((input,i)=>{
+      assert.equal(input.getAttribute('aria-label'),language==='en'?(i?'Maximum':'Minimum')+' '+(key==='price'?'total price':'price per m²')+' in '+currency:(i?'Máximo':'Mínimo')+' de '+(key==='price'?'precio total':'precio por m²')+' en '+currency);
+    });
+  };
+  checkPriceLabels('USD');
   for(const language of ['en','es','en']){
     i18n.setLanguage(language);
+    checkPriceLabels('USD',language);
     const area=document.querySelector('[data-range="area"]');
     assert.equal(area.querySelector('input[type=range]').getAttribute('aria-label'),language==='en'?'Minimum land area':'Mínimo de área del terreno');
     assert.equal(area.querySelector('.range-amount').getAttribute('aria-label'),language==='en'?'Minimum land area in m²':'Mínimo de área del terreno en m²');
@@ -176,7 +276,12 @@ test('the real home controller keeps applied currency, saved state, pending filt
   const currency=document.querySelector('#index-currency');
   // Open via the actual filter handler, then apply CRC.
   document.querySelector('.filter-toggle').onclick({currentTarget:document.querySelector('.filter-toggle')});
-  currency.value='CRC';currency.onchange({target:currency});document.querySelector('#index-apply').onclick();
+  for(const key of ['price','unit']){
+    const slider=document.querySelector('[data-range="'+key+'"] input[type=range]');
+    slider.value=key==='price'?'5000':'1';slider.oninput();checkPriceLabels('USD');
+    slider.value='0';slider.oninput();checkPriceLabels('USD');
+  }
+  currency.value='CRC';currency.onchange({target:currency});checkPriceLabels('CRC');document.querySelector('#index-apply').onclick();
   assert.deepEqual(Array.from(window.arenalDemo.results,d=>d.id),Array.from(sorted,d=>d.id));
   assert.equal(document.querySelector('#index-saved-count').hidden,true);
   window.arenalDemo.toggleSaved(items[0].id);document.querySelector('#index-saved').onclick();
@@ -189,10 +294,12 @@ test('the real home controller keeps applied currency, saved state, pending filt
   const draftMin=min.value;
   const before=JSON.stringify(window.arenalDemo.state),resultIDs=window.arenalDemo.results.map(d=>d.id);
   i18n.setLanguage('es');await flush();
+  checkPriceLabels('CRC','es');
   assert.equal(JSON.stringify(window.arenalDemo.state),before);assert.deepEqual(window.arenalDemo.results.map(d=>d.id),resultIDs);assert.equal(window.arenalDemo.state.filters.currency,'CRC');assert.equal(document.querySelector('#index-saved').getAttribute('aria-pressed'),'true');assert.equal(document.querySelector('[data-range=price] .range-amount'),min);assert.equal(min.value,draftMin);assert.equal(scroll.scrollTop,541);assert.equal(document.querySelector('#index-filter-page').open,true);assert.equal(document.querySelector('.listing-title-link').textContent,items[0].name);
   assert.equal(sort.value,'price-asc');assert.equal(document.querySelector('.sort-control').title,'Ordenar: Menor precio');
   assert.equal(document.querySelector('[data-sort-mode="unit-asc"]').textContent,'Menor precio por m²');
   i18n.setLanguage('en');assert.equal(document.querySelector('.listing-title-link').textContent,i18n.listingText(items[0]));
+  checkPriceLabels('CRC');
   assert.equal(document.querySelector('.sort-control').title,'Sort: Lowest price');
   assert.equal(document.querySelector('[data-sort-mode="unit-asc"]').textContent,'Lowest price per m²');
   document.querySelector('#index-cancel').onclick();document.querySelector('#nav-explore').onclick();

@@ -111,11 +111,12 @@
   }
   function share(){if(window.ArenalPreview){dialog('Vista previa privada','<div class="pd-dialog-body"><p>Esta vista solo abre en este navegador. Podrás compartir el enlace público cuando el anuncio esté publicado.</p></div>');return;}const node=dialog('Compartir propiedad',`<div class="pd-dialog-body"><p translate="no">${escape(window.ArenalI18n?.listingText(current)||current.name)}</p><p>Compartí este enlace para abrir la propiedad en Arenal Index.</p><label for="pd-url">Enlace de la propiedad</label><input id="pd-url" readonly value="${escape(location.href)}"><button class="pd-primary">Copiar enlace</button><p class="pd-dialog-status" role="status"></p></div>`);node.querySelector('.pd-primary').onclick=()=>copy(location.href,node.querySelector('[role="status"]'),node.querySelector('input'));}
   function gallery() {
-    const groups = content.groups(current);
+    const listing=current, groups = content.groups(listing);
     if(!groups.length)return;
     let offset=0;
     groups.forEach(group=>{group.start=offset;offset+=group.images.length;});
-    const tourPhotos=groups.flatMap(group=>group.images.map((photo,i)=>({...photo,caption:photo.caption||group.label+' · Foto '+(i+1)+' de '+group.images.length})));
+    const flattenPhotos=groups=>groups.flatMap(group=>group.images.map((photo,i)=>({...photo,caption:photo.caption||group.label+' · '+(window.ArenalI18n?.t('Foto {count} de {total}',{count:i+1,total:group.images.length})||'Foto '+(i+1)+' de '+group.images.length)})));
+    let tourPhotos=flattenPhotos(groups);
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const node = dialog('Recorrido fotográfico', `
       <div class="pd-tour-overview">
@@ -151,7 +152,26 @@
     node.addEventListener('keydown',e=>{if(e.altKey||e.metaKey||e.ctrlKey)return;if(!viewer.hidden&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();move(e.key==='ArrowRight'?1:-1);}else if(viewer.hidden&&e.target.closest('.pd-tour-nav')&&['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const focused=links.indexOf(e.target.closest('.pd-tour-link'));const target=e.key==='Home'?0:e.key==='End'?links.length-1:Math.max(0,Math.min(links.length-1,focused+(e.key==='ArrowRight'?1:-1)));links[target].focus();jump(target);}});
     node.addEventListener('cancel',e=>{if(!viewer.hidden){e.preventDefault();returnToTour();}});
     const resize=new ResizeObserver(()=>{if(!viewer.hidden)track.scrollTo({left:photoIndex*track.clientWidth,behavior:'instant'});});resize.observe(track);
-    node.addEventListener('close',()=>{resize.disconnect();cancelAnimationFrame(scrollFrame);},{once:true});
+    // Rebuild localized copy from the listing, preserving the open tour and its image nodes.
+    function refreshLanguage(){
+      const localized=content.groups(listing);
+      tourPhotos=flattenPhotos(localized);
+      const alt=photo=>photo.label+(listing.isDemo?' · '+(window.ArenalI18n?.t('imagen ilustrativa')||'imagen ilustrativa'):'');
+      localized.forEach((group,i)=>{
+        links[i].querySelector('[translate="no"]').textContent=group.label;
+        blocks[i].querySelector('h3').textContent=group.label;
+        blocks[i].querySelectorAll('[data-photo]').forEach((button,j)=>{
+          button.setAttribute('aria-label','Ampliar: '+group.label+', foto '+(j+1));
+          button.querySelector('img').alt=alt(group.images[j]);
+          window.ArenalI18n?.translate(button);
+        });
+      });
+      track.querySelectorAll('img').forEach((img,i)=>img.alt=alt(tourPhotos[i]));
+      updatePhoto();
+    }
+    refreshLanguage();
+    window.addEventListener('arenal-language-change',refreshLanguage);
+    node.addEventListener('close',()=>{window.removeEventListener('arenal-language-change',refreshLanguage);resize.disconnect();cancelAnimationFrame(scrollFrame);},{once:true});
   }
   function specs(){dialog('Ficha de la propiedad',`<div class="pd-dialog-body">${content.content(current)}</div>`);}
   page.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(!action)return;if(action==='back')back();if(action==='photos')gallery();if(action==='contact')contact();if(action==='share')share();if(action==='specs')specs();if(action==='save'){app.toggleSaved(current.id);syncSave();}if(action==='map'){if(window.ArenalPreview)app.focusProperty(current.id);else{pendingMap=current.id;back();}}});
@@ -170,7 +190,7 @@
     const scroll=page.querySelector('.pd-scroll').scrollTop,opened=[...page.querySelectorAll('details')].map(d=>d.open);
     render(current);page.querySelectorAll('details').forEach((d,i)=>d.open=!!opened[i]);page.querySelector('.pd-scroll').scrollTop=scroll;
     document.title=(window.ArenalI18n?.listingText(current)||current.name)+' · Arenal Index';
-    page.querySelector('[data-language-toggle]')?.focus({preventScroll:true});
+    if(!openDialog)page.querySelector('[data-language-toggle]')?.focus({preventScroll:true});
   });
   window.addEventListener('popstate',route);window.addEventListener('hashchange',route);
   window.arenalDetail={open};route();
