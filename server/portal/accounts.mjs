@@ -1,5 +1,6 @@
 import {scrypt,randomBytes,timingSafeEqual,createHash} from 'node:crypto';
 import {promisify} from 'node:util';
+import {hasAcceptedRules,rulesHash} from './listing-rules.mjs';
 const derive=promisify(scrypt),hash=value=>createHash('sha256').update(value).digest('hex');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const parameters={N:65536,r:8,p:1,maxmem:128*1024*1024};
@@ -35,7 +36,7 @@ async function ensureAccount(repository,email,actor,now){
   return {account,created};
 }
 export async function accountAdminAction({action,body,repository,actor,now}){
-  if(action==='owner_accounts')return {accounts:(await repository.ownerAccounts()).map(row=>({id:hash(row.subject),email:row.email,active:row.active,google:!!row.googleSubject,password:!!row.password,temporaryPassword:!!row.mustChangePassword}))};
+  if(action==='owner_accounts')return {accounts:(await repository.ownerAccounts()).map(row=>({id:hash(row.subject),email:row.email,active:row.active,google:!!row.googleSubject,password:!!row.password,temporaryPassword:!!row.mustChangePassword,rulesAccepted:hasAcceptedRules(row),rulesAcceptance:hasAcceptedRules(row)?{version:row.rulesAcceptances[rulesHash].version,acceptedAt:row.rulesAcceptances[rulesHash].acceptedAt,language:row.rulesAcceptances[rulesHash].language}:null}))};
   if(action==='set_owner_active'){
     if(!/^[a-f0-9]{64}$/.test(body.id||'')||typeof body.active!=='boolean')fail(400,'Cuenta inválida.');
     const account=await repository.portalGet('accounts',body.id);if(!account)fail(404,'No se encontró la cuenta.');

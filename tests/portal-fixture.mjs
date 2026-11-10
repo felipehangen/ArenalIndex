@@ -3,7 +3,7 @@ import {createOwnerHandler} from '../server/portal/core.mjs';
 import {createAdminHandler} from '../server/admin/core.mjs';
 import {png,pdf} from './intake-fixtures.mjs';
 export const hash=value=>createHash('sha256').update(value).digest('hex');
-export function portalFixture(){
+export function portalFixture({acceptRules=true}={}){
   const rows=new Map(),portal=new Map(),auth=new Map(),files=new Map(),emails=[];let clock=Date.parse('2026-11-09T12:00:00Z');
   const clone=value=>structuredClone(value);
   function update(map,key,filters,patch){const row=map.get(key);if(!row||Object.entries(filters).some(([k,v])=>row[k]!==v))return null;Object.assign(row,clone(patch));return clone(row);}
@@ -23,10 +23,13 @@ export function portalFixture(){
   }
   async function login(subject,role='owner',extra={}){
     const challenge=await call('challenge',{},undefined,role);
-    return call('login',{nonce:challenge.body.nonce,credential:subject,...extra},undefined,role);
+    const result=await call('login',{nonce:challenge.body.nonce,credential:subject,...extra},undefined,role);
+    if(acceptRules&&role==='owner'&&result.status===200)await accept(result.body.token,result.body.listingRules);
+    return result;
   }
+  async function accept(token,rules){rules||=(await call('session',{},token)).body.listingRules;const result=await call('accept_listing_rules',{accepted:true,version:rules.version,contentHash:rules.contentHash,language:'en'},token);if(result.status!==200)throw Error(JSON.stringify(result));return result;}
   async function adminSession(){const result=await login('admin','admin');return result.body.token;}
   async function register(subject,token){const result=await call('create_account',{email:subject+'@gmail.com'},token,'admin');if(result.status!==200)throw Error(JSON.stringify(result));return result;}
   function upload(prepared,payload){for(const upload of prepared.uploads){const f=payload.files.find(f=>f.id===upload.id),path=upload.url.replace('https://files.example/','');files.set(path,{size:f.size,bytes:f.type==='application/pdf'?pdf:png});}}
-  return {rows,portal,auth,files,emails,repository,options,call,login,adminSession,register,upload,advance:ms=>clock+=ms};
+  return {rows,portal,auth,files,emails,repository,options,call,login,accept,adminSession,register,upload,advance:ms=>clock+=ms};
 }

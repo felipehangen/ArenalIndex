@@ -20,6 +20,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     for(const node of document.querySelectorAll('#owner-accounts input, #password-panel input, #email-login input'))node.value='';
     for(const node of document.querySelectorAll('#owner-accounts [role=status], #password-status'))node.textContent='';
     if($('#password-panel'))$('#password-panel').hidden=true;
+    if($('#rules-panel')){$('#rules-panel').hidden=true;$('#rules-accept').checked=false;$('#rules-submit').disabled=true;$('#rules-status').textContent='';$('#rules-account').textContent='';$('#rules-list').replaceChildren();}
     if($('#accounts-panel')){$('#accounts-panel').hidden=true;$('#listings-panel').hidden=false;for(const tab of document.querySelectorAll('[data-panel]')){if(tab.dataset.panel==='listings')tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current');}}
     activeIdentity=null;
   }
@@ -52,6 +53,10 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     }catch(error){
       if(current!==epoch)return;
       if(error.status===401){expire();return;}
+      if(owner&&error.code==='listing_rules_required'){
+        try{const identity=await api.request('session');if(current===epoch)await openInbox(identity);}
+        catch{if(current===epoch)expire();}return;
+      }
       $('#admin-count').textContent='';$('#inbox-error').hidden=false;$('#inbox-error').textContent=t('No se pudieron cargar todas las propuestas. Intentá actualizar.');
     }finally{if(current===epoch){$('#refresh').disabled=false;$('#admin-records').setAttribute('aria-busy','false');}}
   }
@@ -60,6 +65,8 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     activeIdentity=identity;
     if(owner)for(const node of $('#password-panel').querySelectorAll('input'))node.value='';
     cancel(expiryTimer);expiryTimer=schedule(expire,Math.max(0,identity.expiresAt-now()));
+    if(owner&&identity.requiresRulesAcceptance){showRules(identity);return;}
+    if($('#rules-panel'))$('#rules-panel').hidden=true;
     if(owner&&identity.requiresPasswordChange){showPassword(identity);return;}
     if($('#password-panel'))$('#password-panel').hidden=true;
     const destination=new URLSearchParams(window.location.hash.slice(1)),edit=destination.get('edit'),review=destination.get('review');
@@ -68,6 +75,21 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     $('#login-panel').hidden=true;$('#inbox').hidden=false;$('#sign-out').hidden=false;$('#admin-account').textContent=identity.email;
     await refresh();
     if(api.session()&&!$('#inbox').hidden)await onSignedIn(identity);
+  }
+  function renderRules(){
+    const rules=activeIdentity?.listingRules;if(!rules||!Array.isArray(rules.clauses))return;
+    const language=window.ArenalI18n?.language==='en'?'en':'es';
+    $('#rules-list').replaceChildren();
+    for(const clause of rules.clauses){
+      const item=document.createElement('li'),title=document.createElement('strong'),body=document.createElement('p');
+      title.textContent=clause[language].title;body.textContent=clause[language].body;item.append(title,body);$('#rules-list').append(item);
+    }
+    $('#rules-consent').textContent=rules.consent[language];$('#rules-version').textContent=rules.version;
+  }
+  function showRules(identity){
+    ++epoch;$('#inbox').hidden=true;$('#login-panel').hidden=true;$('#password-panel').hidden=true;$('#rules-panel').hidden=false;$('#sign-out').hidden=false;
+    $('#rules-account').textContent=identity.email;$('#rules-accept').checked=false;$('#rules-submit').disabled=true;$('#rules-status').textContent='';renderRules();
+    $('#rules-title').focus();
   }
   function showPassword(identity){
     ++epoch;$('#inbox').hidden=true;$('#login-panel').hidden=true;$('#password-panel').hidden=false;$('#sign-out').hidden=false;
@@ -111,6 +133,18 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
   }
   $('#retry-login').onclick=start;
   if(owner){
+    $('#rules-accept').onchange=()=>{$('#rules-submit').disabled=!$('#rules-accept').checked;};
+    $('#rules-decline').onclick=()=>$('#sign-out').click();
+    $('#rules-form').onsubmit=async event=>{
+      event.preventDefault();if(!$('#rules-accept').checked)return;
+      const current=epoch,rules=activeIdentity?.listingRules,button=$('#rules-submit');if(!rules)return;button.disabled=true;$('#rules-status').textContent=t('Guardando tu aceptación…');
+      try{
+        await api.request('accept_listing_rules',{accepted:true,version:rules.version,contentHash:rules.contentHash,language:window.ArenalI18n?.language==='en'?'en':'es'});if(current!==epoch)return;
+        const identity=await api.request('session');if(current!==epoch)return;
+        await openInbox(identity);
+      }catch(error){if(current===epoch){if(error.status===401)expire();else $('#rules-status').textContent=t(error.message);}}
+      finally{if(current===epoch)button.disabled=!$('#rules-accept').checked;}
+    };
     $('#email-login').onsubmit=async event=>{
       event.preventDefault();const current=++epoch,button=$('#email-login button');button.disabled=true;$('#google-button').replaceChildren();
       const email=$('#owner-email').value.trim(),password=$('#owner-password').value;$('#owner-password').value='';loginMessage('Verificando tu cuenta…');
@@ -149,7 +183,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     try{await api.request('workspace_unlist',{id:row.id,version:row.version,publicationRevision:row.publicationRevision});await refresh();}
     catch(error){if(error.status===401)expire();else{$('#inbox-error').hidden=false;$('#inbox-error').textContent=t(error.message);button.disabled=false;}}
   };
-  window.addEventListener('arenal-language-change',()=>{render();if(!$('#login-panel').hidden&&config?.configured)prepareGoogle();});
+  window.addEventListener('arenal-language-change',()=>{render();if(owner&&!$('#rules-panel').hidden)renderRules();if(!$('#login-panel').hidden&&config?.configured)prepareGoogle();});
   window.addEventListener('pageshow',event=>{if(event.persisted)start();});
   window.addEventListener('focus',()=>{if(!$('#inbox').hidden&&!api.session())expire();});
   const ready=start();

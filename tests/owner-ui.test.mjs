@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import {parseHTML} from 'linkedom';
 import {mountAdmin} from '../site/admin/controller.mjs';
 import {mountAccounts} from '../site/admin/accounts.mjs';
+import {currentRules} from '../server/portal/listing-rules.mjs';
 const identity={token:'a'.repeat(64),email:'owner@example.com',method:'password',expiresAt:Date.now()+3600000,requiresPasswordChange:true};
 const event={preventDefault(){}};
 function setup({signedIn=false,hash='',handler,owner=true}={}){
@@ -77,4 +78,39 @@ test('Google sign-in has no invitation field or code payload, and links use the 
   assert.equal(e.$('a[href="/newlisting/?cuenta=new"]')?.textContent,'Nueva propiedad');
   await e.google.options.callback({credential:'signed-token'});
   assert.deepEqual(e.calls.find(c=>c.action==='login').body,{credential:'signed-token',nonce:'b'.repeat(64)});assert.equal(e.$('#inbox').hidden,false);e.controller.destroy();
+});
+
+test('standard rules require an unchecked explicit acceptance before listing access and direct editor redirects',async()=>{
+  let accepted=false;
+  const e=setup({signedIn:true,hash:'#edit=property-0001',handler:action=>{
+    if(action==='session')return {...identity,requiresPasswordChange:false,requiresRulesAcceptance:!accepted,listingRules:currentRules};
+    if(action==='accept_listing_rules'){accepted=true;return {accepted:true};}
+  }});await e.controller.ready;
+  assert.equal(e.$('#rules-panel').hidden,false);assert.equal(e.$('#inbox').hidden,true);assert.equal(e.$('#rules-accept').checked,false);assert.equal(e.$('#rules-submit').disabled,true);assert.equal(e.$('#rules-list').children.length,6);assert.equal(e.window.location.destination,undefined);
+  await e.$('#rules-form').onsubmit(event);assert.equal(e.calls.some(c=>c.action==='accept_listing_rules'),false);
+  e.$('#rules-accept').checked=true;e.$('#rules-accept').onchange();assert.equal(e.$('#rules-submit').disabled,false);
+  await e.$('#rules-form').onsubmit(event);
+  assert.deepEqual(e.calls.find(c=>c.action==='accept_listing_rules').body,{accepted:true,version:currentRules.version,contentHash:currentRules.contentHash,language:'es'});
+  assert.equal(e.window.location.destination,'/newlisting/?cuenta=property-0001');assert.equal(e.$('#rules-panel').hidden,true);e.controller.destroy();
+});
+
+test('acceptance errors keep listings closed and a retry is available; switching language preserves the choice',async()=>{
+  const e=setup({signedIn:true,handler:action=>{
+    if(action==='session')return {...identity,requiresPasswordChange:false,requiresRulesAcceptance:true,listingRules:currentRules};
+    if(action==='accept_listing_rules')throw Error('Could not save acceptance');
+  }});await e.controller.ready;
+  e.$('#rules-accept').checked=true;e.$('#rules-accept').onchange();
+  e.window.ArenalI18n={language:'en',t:s=>s};e.window.dispatchEvent(new e.window.Event('arenal-language-change'));
+  assert.match(e.$('#rules-list').textContent,/Authority to list/);assert.equal(e.$('#rules-accept').checked,true);
+  await e.$('#rules-form').onsubmit(event);assert.match(e.$('#rules-status').textContent,/Could not save/);assert.equal(e.$('#rules-submit').disabled,false);assert.equal(e.$('#inbox').hidden,true);assert.equal(e.calls.some(c=>c.action==='list'),false);
+  await e.$('#sign-out').onclick();assert.equal(e.$('#rules-panel').hidden,true);assert.equal(e.$('#rules-accept').checked,false);e.controller.destroy();
+});
+
+test('a delayed acceptance response cannot reopen an account after leaving the session',async()=>{
+  let resolve;const e=setup({signedIn:true,handler:action=>{
+    if(action==='session')return {...identity,requiresPasswordChange:false,requiresRulesAcceptance:true,listingRules:currentRules};
+    if(action==='accept_listing_rules')return new Promise(done=>resolve=done);
+  }});await e.controller.ready;e.$('#rules-accept').checked=true;
+  const pending=e.$('#rules-form').onsubmit(event);await e.$('#sign-out').onclick();resolve({accepted:true});await pending;
+  assert.equal(e.$('#inbox').hidden,true);assert.equal(e.api.session(),null);e.controller.destroy();
 });

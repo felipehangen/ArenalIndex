@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" fill="none">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" stroke="#fff" stroke-opacity=".25"/></pattern>
+    <g id="tree"><ellipse cy="19" rx="24" ry="12" fill="#1f533a" opacity=".1"/><path d="M0 7v22" stroke="#687651" stroke-width="5"/><circle cy="-8" r="25" fill="#588363"/><circle cx="-7" cy="-15" r="16" fill="#719673"/></g>
+  </defs>
+  <path fill="#e5edde" d="M0 0h640v520H0z"/><path fill="url(#grid)" d="M0 0h640v520H0z"/>
+  <path d="M-50 80Q110 12 235 60T680 5M-40 109Q110 41 235 89T680 34M-40 138Q110 70 235 118T680 63" stroke="#cddcc5" stroke-width="2"/>
+  <path d="m168 169 232-58 142 172-167 157-214-95Z" fill="#c8dab5"/>
+  <path d="m161 345 214 95 167-157-13 38-154 147-214-91Z" fill="#afc799"/>
+  <path d="m168 169 232-58 142 172-167 157-214-95Z" stroke="#fff" stroke-width="3" stroke-dasharray="9 8"/>
+  <path d="M-30 322C106 310 151 461 321 461S508 363 685 415" stroke="#d2cdbb" stroke-width="64"/>
+  <path d="M-30 322C106 310 151 461 321 461S508 363 685 415" stroke="#f7f3e8" stroke-width="50"/>
+  <path d="M-30 322C106 310 151 461 321 461S508 363 685 415" stroke="#c9be9e" stroke-width="2" stroke-dasharray="12 12"/>
+  <path d="M315 439Q335 360 380 289" stroke="#eee4c9" stroke-width="25"/>
+  <path d="m334 247 51-30 62 31v53l-52 31-61-31Z" fill="#aeae8b" opacity=".18"/>
+  <path d="m323 229 52-30 61 30v52l-52 31-61-31Z" fill="#fcfaf0"/>
+  <path d="m384 259 52-30v52l-52 31Z" fill="#e1d9c3"/>
+  <path d="m310 232 52-69 88 64-66 39Z" fill="#39684d"/>
+  <path d="m362 163 31 33 57 31-66 39Z" fill="#28553f"/>
+  <path d="m343 263 16 8v26l-16-8Z" fill="#ae8962"/><path d="m397 267 17-10v16l-17 10Z" fill="#8eaaa2"/>
+  <use href="#tree" x="211" y="222"/><use href="#tree" x="245" y="306"/><use href="#tree" x="454" y="343"/><use href="#tree" x="283" y="154"/><use href="#tree" x="492" y="183"/>
+  <use href="#tree" x="53" y="237"/><use href="#tree" x="574" y="340"/><use href="#tree" x="560" y="98"/>
+  <path d="m289 420 1-25m54 14 1-25" stroke="#857453" stroke-width="7" stroke-linecap="round"/>
+  <ellipse cx="319" cy="417" rx="29" ry="11" fill="#244631" opacity=".15"/>
+  <path d="M319 416s-32-35-32-56a32 32 0 0 1 64 0c0 21-32 56-32 56Z" fill="#c66044" stroke="#fff" stroke-width="4"/>
+  <circle cx="319" cy="360" r="11" fill="#fff"/>
+  <circle cx="54" cy="66" r="24" fill="#fff" fill-opacity=".8"/><path d="m54 51 8 24-8-5-8 5Z" fill="#40684f"/>
+</svg>

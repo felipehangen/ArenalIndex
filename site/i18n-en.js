@@ -1235,5 +1235,22 @@ window.ArenalEnglish=Object.freeze({
   "La ficha cambió mientras guardabas. Volvé a abrirla.": "The property changed while you were saving. Open it again.",
   "La ficha cambió. Volvé a abrirla.": "The property has changed. Open it again.",
   "Abrí esta ficha desde Mis anuncios e iniciá sesión.": "Open this property from My listings and sign in.",
-  "Esta ficha cambió en ArenalIndex. Abrila desde Mis anuncios para continuar con la versión actual.": "This property was updated in ArenalIndex. Open it from My listings to continue with the current version."
+  "Esta ficha cambió en ArenalIndex. Abrila desde Mis anuncios para continuar con la versión actual.": "This property was updated in ArenalIndex. Open it from My listings to continue with the current version.",
+  "Conocé los requisitos y contactá a ArenalIndex para coordinar tu anuncio y habilitar tu cuenta.": "Read the requirements and contact ArenalIndex to arrange your listing and enable your account.",
+  "Ver requisitos para publicar": "See listing requirements",
+  "Antes de entrar: conocé las reglas para publicar": "Before you sign in: read the listing rules",
+  "ANTES DE ABRIR TUS ANUNCIOS": "BEFORE OPENING YOUR LISTINGS",
+  "Reglas claras, desde el principio": "Clear rules, from the start",
+  "Leé las reglas de publicación y confirmá tu aceptación para continuar. Las condiciones comerciales se acuerdan por separado.": "Read the listing rules and confirm your acceptance to continue. Commercial conditions are agreed separately.",
+  "Ver la guía con ejemplos": "View the guide with examples",
+  "Al aceptar, guardamos en tu cuenta la versión de las reglas, su texto, el idioma y la fecha. La aceptación no publica una propiedad.": "When you accept, we save the rule version, text, language, and date in your account. Acceptance does not publish a property.",
+  "Aceptar y continuar": "Accept and continue",
+  "Ahora no, salir": "Not now, sign out",
+  "Guardando tu aceptación…": "Saving your acceptance…",
+  "Marcá la casilla para aceptar las reglas de publicación.": "Check the box to accept the listing rules.",
+  "Las reglas cambiaron. Volvé a cargar la página para leer la versión actual.": "The rules have changed. Reload the page to read the current version.",
+  "Elegí español o inglés para registrar la aceptación.": "Choose Spanish or English to record your acceptance.",
+  "Aceptá las reglas de publicación antes de abrir tus anuncios.": "Accept the listing rules before opening your listings.",
+  "Reglas: aceptación pendiente": "Rules: acceptance pending",
+  "Reglas aceptadas": "Rules accepted"
 });

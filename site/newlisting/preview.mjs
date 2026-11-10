@@ -1,5 +1,5 @@
 import {openStore} from './local.mjs';
-import {accountContext} from './account.mjs?v=4-editor';
+import {accountContext} from './account.mjs?v=5-listing-rules';
 import {normalizeDraft} from './model.mjs?v=12-title-examples';
 import {createDraftPreview} from './draft-preview.mjs?v=11-title-examples';
 

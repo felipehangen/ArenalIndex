@@ -2,6 +2,7 @@ import {randomBytes,createHash} from 'node:crypto';
 import {recordSummary} from './summary.mjs';
 import {workspaceAction} from './workspace.mjs';
 import {findAccount,googleAccount,normalizeEmail,verifyPassword,changePassword} from './accounts.mjs';
+import {rulesIdentity,hasAcceptedRules,acceptListingRules} from './listing-rules.mjs';
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const secret=()=>randomBytes(32).toString('hex');
@@ -22,7 +23,7 @@ export function createOwnerHandler({repository,verifyGoogle,config,mailer,now=()
       const startSession=async(account,method)=>{
         const token=secret(),expiresAt=now().getTime()+8*3600000;
         await repository.authCreate('owner-session',hash(token),{subject:account.subject,email:account.email,method,passwordVersion:method==='password'?account.password_version:null,accountVersion:account.session_version||0,role:'owner',expiresAt,revoked:false});
-        return json({token,email:account.email,expiresAt,method,requiresPasswordChange:method==='password'&&!!account.mustChangePassword});
+        return json({token,email:account.email,expiresAt,method,requiresPasswordChange:method==='password'&&!!account.mustChangePassword,...rulesIdentity(account)});
       };
       if(['challenge','login','login_password'].includes(action)){
         const ip=request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'unknown';
@@ -52,7 +53,7 @@ export function createOwnerHandler({repository,verifyGoogle,config,mailer,now=()
       const account=await repository.portalGet('accounts',hash(session.subject));
       if(!account?.active||(session.accountVersion||0)!==(account.session_version||0)||session.method==='password'&&(session.passwordVersion!==account.password_version||account.mustChangePassword&&account.passwordExpiresAt<=now().getTime()))fail(401,'Tu sesión venció. Volvé a entrar.');
       if(!await repository.allow('owner-session:'+hash(token),300))fail(429,'Demasiadas solicitudes. Intentá más tarde.');
-      if(action==='session')return json({email:session.email,expiresAt:session.expiresAt,method:session.method,requiresPasswordChange:session.method==='password'&&!!account.mustChangePassword});
+      if(action==='session')return json({email:session.email,expiresAt:session.expiresAt,method:session.method,requiresPasswordChange:session.method==='password'&&!!account.mustChangePassword,...rulesIdentity(account)});
       if(action==='logout'){
         const revoked=await repository.authUpdate('owner-session',hash(token),{revoked:false},{revoked:true});
         if(!revoked&&!(await repository.authGet('owner-session',hash(token)))?.revoked)fail(503,'No se pudo cerrar la sesión. Intentá de nuevo.');return json({signedOut:true});
@@ -61,7 +62,9 @@ export function createOwnerHandler({repository,verifyGoogle,config,mailer,now=()
         if(!await repository.allow('owner-change-password:'+hash(session.subject),12))fail(429,'Demasiados intentos. Intentá más tarde.');
         return json(await changePassword({repository,account,session,tokenHash:hash(token),body}));
       }
+      if(action==='accept_listing_rules')return json(await acceptListingRules({repository,account,session,body,now}));
       if(session.method==='password'&&account.mustChangePassword)fail(403,'Cambiá tu contraseña temporal para continuar.');
+      if(!hasAcceptedRules(account))return json({error:'Aceptá las reglas de publicación antes de abrir tus anuncios.',code:'listing_rules_required'},403);
       if(action==='health')return json({ready:config.emailReady});
       if(action==='list'){
         if(body.cursor!==undefined&&(typeof body.cursor!=='string'||body.cursor.length>2000))fail(400,'Página inválida.');

@@ -5,11 +5,17 @@ export function mountAccounts({document=globalThis.document,window=globalThis.wi
   const t=text=>window.ArenalI18n?.t(text)||text,token=api.session()?.token,valid=()=>token&&api.session()?.token===token;
   const form=panel.querySelector('form'),email=form.querySelector('[name=email]'),password=form.querySelector('[name=password]'),output=panel.querySelector('output'),message=panel.querySelector('[role=status]'),list=panel.querySelector('[data-accounts]');
   let loaded=false,loading=false;
+  const acceptance=row=>{
+    if(!row.rulesAccepted||!row.rulesAcceptance)return '<span class="rules-receipt">'+t('Reglas: aceptación pendiente')+'</span>';
+    const receipt=row.rulesAcceptance,date=new Date(receipt.acceptedAt);
+    const when=Number.isFinite(date.getTime())?new Intl.DateTimeFormat(window.ArenalI18n?.language==='en'?'en-US':'es-CR',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Costa_Rica'}).format(date):receipt.acceptedAt;
+    return '<span class="rules-receipt" data-accepted="true">'+t('Reglas aceptadas')+' · <span translate="no">'+esc(receipt.version)+' · '+esc(when)+' (Costa Rica) · '+esc(receipt.language.toUpperCase())+'</span></span>';
+  };
   async function refresh(){
     if(loading||!valid())return;loading=true;list.setAttribute('aria-busy','true');
     try{
       const {accounts}=await api.request('owner_accounts');if(!valid())return;
-      list.innerHTML=accounts.map(row=>'<div class="account-row"><div><strong translate="no">'+esc(row.email)+'</strong><span>'+['Google',row.password?t(row.temporaryPassword?'Contraseña temporal':'Contraseña'):''].filter(Boolean).join(' · ')+'</span></div><span>'+t(row.active?'Activa':'Desactivada')+'</span><button class="quiet" data-account="'+esc(row.id)+'" data-active="'+!row.active+'">'+t(row.active?'Desactivar':'Activar')+'</button></div>').join('')||'<p>'+t('Todavía no hay cuentas registradas.')+'</p>';loaded=true;
+      list.innerHTML=accounts.map(row=>'<div class="account-row"><div><strong translate="no">'+esc(row.email)+'</strong><span>'+['Google',row.password?t(row.temporaryPassword?'Contraseña temporal':'Contraseña'):''].filter(Boolean).join(' · ')+'</span>'+acceptance(row)+'</div><span>'+t(row.active?'Activa':'Desactivada')+'</span><button class="quiet" data-account="'+esc(row.id)+'" data-active="'+!row.active+'">'+t(row.active?'Desactivar':'Activar')+'</button></div>').join('')||'<p>'+t('Todavía no hay cuentas registradas.')+'</p>';loaded=true;
     }catch(error){if(valid())message.textContent=t(error.message);}finally{loading=false;list.setAttribute('aria-busy','false');}
   }
   panel.ontoggle=()=>{if(panel.open&&!loaded)refresh();};

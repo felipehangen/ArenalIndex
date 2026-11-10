@@ -5,7 +5,7 @@ import {createOwnerHandler} from '../server/portal/core.mjs';
 const temporary='Temporary password 48',permanent='My private password 72';
 async function setup(){const e=portalFixture(),admin=await e.adminSession();return {...e,admin};}
 async function create(e,email='owner-a@gmail.com',password=temporary){const result=await e.call('set_owner_password',{email,password},e.admin,'admin');assert.equal(result.status,200,JSON.stringify(result.body));return result;}
-const login=(e,email='owner-a@gmail.com',password=temporary)=>e.call('login_password',{email,password});
+const login=async(e,email='owner-a@gmail.com',password=temporary)=>{const result=await e.call('login_password',{email,password});if(result.status===200)await e.accept(result.body.token);return result;};
 
 test('admin-created temporary password requires replacement before any owner data is available',async()=>{
   const e=await setup();await create(e,' Owner-A@Gmail.com ');
