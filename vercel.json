@@ -6,7 +6,11 @@
   "functions": {
     "api/admin.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/admin/**,server/intake/**,site/newlisting/model.mjs}"
+      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,site/newlisting/model.mjs}"
+    },
+    "api/owner.mjs": {
+      "maxDuration": 60,
+      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,site/newlisting/model.mjs}"
     },
     "api/listings.mjs": {
       "maxDuration": 60,
@@ -18,6 +22,14 @@
     }
   },
   "headers": [
+    {
+      "source": "/owner/(.*)",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store"},
+        {"key": "Referrer-Policy", "value": "no-referrer"},
+        {"key": "X-Robots-Tag", "value": "noindex, nofollow"}
+      ]
+    },
     {
       "source": "/admin/(.*)",
       "headers": [

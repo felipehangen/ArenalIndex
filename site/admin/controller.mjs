@@ -14,24 +14,33 @@ export function loadGoogle(){
   return googleScript;
 }
 
-export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,schedule=setTimeout,cancel=clearTimeout,now=Date.now}){
+export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,schedule=setTimeout,cancel=clearTimeout,now=Date.now,owner=false,onSignedIn=()=>{}}){
   const $=selector=>document.querySelector(selector);
   const t=(text,values)=>window.ArenalI18n?.t(text,values)||text.replace(/\{(\w+)\}/g,(_,key)=>values?.[key]??'');
-  let epoch=0,expiryTimer,records=[],loaded=false,google,config;
+  let epoch=0,expiryTimer,records=[],loaded=false,google,config,activeIdentity;
   function clearPrivate(){
     cancel(expiryTimer);records=[];loaded=false;$('#admin-records').replaceChildren();$('#admin-account').textContent='';$('#admin-count').textContent='';
     $('#admin-search').value='';$('#inbox').hidden=true;$('#sign-out').hidden=true;$('#inbox-error').hidden=true;$('#admin-empty').hidden=true;
+    if($('#invitations output'))$('#invitations output').textContent='';if($('[data-invites]'))$('[data-invites]').replaceChildren();
+    if($('[data-accounts]'))$('[data-accounts]').replaceChildren();
+    if($('#owner-accounts output')){$('#owner-accounts output').textContent='';$('#owner-accounts output').hidden=true;}
+    for(const panel of document.querySelectorAll('#invitations, #owner-accounts'))panel.open=false;
+    for(const node of document.querySelectorAll('#owner-accounts input, #password-panel input, #email-login input, #invitation'))node.value='';
+    for(const node of document.querySelectorAll('#owner-accounts [role=status], #invitations [role=status], #import-status, #password-status'))node.textContent='';
+    if($('#password-panel'))$('#password-panel').hidden=true;
+    if($('#import-browser-draft')){$('#import-browser-draft').hidden=true;$('#import-browser-draft').onclick=null;}
+    activeIdentity=null;
   }
   function loginMessage(message,retry=false){$('#login-status').textContent=t(message);$('#retry-login').hidden=!retry;}
   function showLogin(message){
     ++epoch;clearPrivate();$('#login-panel').hidden=false;$('#google-button').replaceChildren();loginMessage(message,true);
   }
-  function expire(){api.clearSession();showLogin('Tu sesión venció. Volvé a entrar con Google.');}
+  function expire(){api.clearSession();showLogin(owner?'Tu sesión venció. Volvé a entrar.':'Tu sesión venció. Volvé a entrar con Google.');}
   function render(){
     if(!loaded)return;
     const shown=selectRecords(records,{status:$('#admin-status').value,query:$('#admin-search').value});
-    $('#admin-records').innerHTML=renderRows(shown);$('#admin-empty').hidden=shown.length>0;
-    $('#admin-count').textContent=t('{shown} de {total} propuestas',{shown:shown.length,total:records.length});
+    $('#admin-records').innerHTML=renderRows(shown,{owner});$('#admin-empty').hidden=shown.length>0;
+    $('#admin-count').textContent=t(owner?'{shown} de {total} fichas':'{shown} de {total} propuestas',{shown:shown.length,total:records.length});
   }
   async function refresh(){
     const current=++epoch;loaded=false;records=[];$('#admin-records').replaceChildren();$('#admin-empty').hidden=true;$('#inbox-error').hidden=true;
@@ -56,11 +65,25 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
   }
   async function openInbox(identity){
     if(!api.session()){expire();return;}
-    const target=new URLSearchParams(window.location.hash.slice(1)).get('review');
+    activeIdentity=identity;
+    if(owner)for(const node of $('#password-panel').querySelectorAll('input'))node.value='';
+    cancel(expiryTimer);expiryTimer=schedule(expire,Math.max(0,identity.expiresAt-now()));
+    if(owner&&identity.requiresPasswordChange){showPassword(identity);return;}
+    if($('#password-panel'))$('#password-panel').hidden=true;
+    const target=new URLSearchParams(window.location.hash.slice(1)).get(owner?'edit':'review');
+    if(owner&&(target==='new'||/^[a-zA-Z0-9-]{8,80}$/.test(target||''))){window.location.replace('/newlisting/?owner='+encodeURIComponent(target));return;}
     if(/^[a-zA-Z0-9-]{8,80}$/.test(target||'')){window.location.replace('/admin/review/#id='+encodeURIComponent(target));return;}
     $('#login-panel').hidden=true;$('#inbox').hidden=false;$('#sign-out').hidden=false;$('#admin-account').textContent=identity.email;
-    cancel(expiryTimer);expiryTimer=schedule(expire,Math.max(0,identity.expiresAt-now()));
     await refresh();
+    if(api.session()&&!$('#inbox').hidden)await onSignedIn(identity);
+  }
+  function showPassword(identity){
+    ++epoch;$('#inbox').hidden=true;$('#login-panel').hidden=true;$('#password-panel').hidden=false;$('#sign-out').hidden=false;
+    $('#password-note').textContent=t(identity.requiresPasswordChange?'Elegí una contraseña personal para reemplazar la temporal y abrir tus fichas.':'Usá al menos 12 caracteres. Podés combinar varias palabras.');
+    $('#current-password-label').hidden=identity.requiresPasswordChange||identity.method!=='password';
+    $('#current-password').required=!$('#current-password-label').hidden;
+    $('#password-back').hidden=!!identity.requiresPasswordChange;$('#password-status').textContent='';
+    for(const node of $('#password-panel').querySelectorAll('input'))node.value='';
   }
   async function prepareGoogle(){
     const current=++epoch;
@@ -75,7 +98,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
           if(current!==epoch)return;
           const attempt=++epoch;$('#google-button').replaceChildren();loginMessage('Verificando tu cuenta…');
           try{
-            const identity=await api.request('login',{credential:response.credential,nonce:challenge.nonce},false);
+            const identity=await api.request('login',{credential:response.credential,nonce:challenge.nonce,...(owner?{invitation:$('#invitation').value.trim()}:{})},false);
             if(attempt!==epoch)return;
             api.saveSession(identity);await openInbox(identity);
           }catch(error){if(attempt===epoch)loginMessage(error.message,true);}
@@ -94,12 +117,44 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     await prepareGoogle();
   }
   $('#retry-login').onclick=start;
+  if(owner){
+    $('#email-login').onsubmit=async event=>{
+      event.preventDefault();const current=++epoch,button=$('#email-login button');button.disabled=true;$('#google-button').replaceChildren();
+      const email=$('#owner-email').value.trim(),password=$('#owner-password').value;$('#owner-password').value='';loginMessage('Verificando tu cuenta…');
+      try{
+        const identity=await api.request('login_password',{email,password},false);if(current!==epoch)return;
+        api.saveSession(identity);await openInbox(identity);
+      }catch(error){if(current===epoch)loginMessage(error.message,true);}finally{button.disabled=false;}
+    };
+    $('#change-password').onclick=()=>showPassword(activeIdentity);
+    $('#password-back').onclick=()=>openInbox(activeIdentity);
+    $('#password-form').onsubmit=async event=>{
+      event.preventDefault();const current=epoch,password=$('#new-password').value;
+      if(password!==$('#confirm-password').value){$('#password-status').textContent=t('Las contraseñas no coinciden.');return;}
+      const button=$('#password-form button[type=submit]'),currentPassword=$('#current-password').value;button.disabled=true;
+      try{
+        await api.request('change_password',{password,currentPassword});if(current!==epoch)return;
+        const identity=await api.request('session');if(current!==epoch)return;
+        for(const node of $('#password-panel').querySelectorAll('input'))node.value='';
+        await openInbox(identity);
+      }catch(error){if(current===epoch){if(error.status===401)expire();else $('#password-status').textContent=t(error.message);}}
+      finally{button.disabled=false;}
+    };
+  }
   $('#sign-out').onclick=async()=>{
     showLogin('Cerrando sesión…');$('#retry-login').hidden=true;const current=epoch;
     try{await api.logout();google?.disableAutoSelect();if(current===epoch)await prepareGoogle();}
     catch{if(current===epoch)loginMessage('Se cerró el acceso en esta pestaña, pero no se pudo revocar la sesión en el servidor. Vence en un máximo de 8 horas.',true);}
   };
   $('#refresh').onclick=refresh;$('#admin-search').oninput=render;$('#admin-status').onchange=render;
+  if(owner)$('#admin-records').onclick=async event=>{
+    const button=event.target.closest('[data-unlist]');if(!button)return;
+    const row=records.find(row=>row.id===button.dataset.unlist);if(!row)return;
+    if(!window.confirm(t('¿Retirar este anuncio del catálogo público? La ficha y sus documentos se conservan.')))return;
+    button.disabled=true;
+    try{await api.request('workspace_unlist',{id:row.id,version:row.version,publicationRevision:row.publicationRevision});await refresh();}
+    catch(error){if(error.status===401)expire();else{$('#inbox-error').hidden=false;$('#inbox-error').textContent=t(error.message);button.disabled=false;}}
+  };
   window.addEventListener('arenal-language-change',()=>{render();if(!$('#login-panel').hidden&&google&&config?.configured)prepareGoogle();});
   window.addEventListener('pageshow',event=>{if(event.persisted)start();});
   window.addEventListener('focus',()=>{if(!$('#inbox').hidden&&!api.session())expire();});

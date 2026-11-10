@@ -3,21 +3,32 @@ import * as M from './model.mjs?v=9-language';
 import {openStore,createSaver} from './local.mjs';
 import {createAPI,randomToken,submitDraft} from './api.mjs';
 import {mountMap} from './map.mjs';
+import {accountContext,saveToAccount} from './account.mjs';
 import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,renderPendingItems,areaNotice} from './view.mjs?v=9-language';
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const api=createAPI();
-let draft=M.newDraft(),storage,save,ready=false,busy=false,map,urls=new Map(),saveTimer,noticeTimer;
+let account;try{account=await accountContext();}catch(error){$('#step-body').textContent=error.message;throw error;}
+const api=account?{request:account.request,available:async()=>{try{return (await account.request('health')).ready;}catch{return false;}}}:createAPI();
+let draft=account?account.blank():M.newDraft(),storage,save,ready=false,busy=false,map,urls=new Map(),saveTimer,noticeTimer,cloudConflict=false,cloudProblem='';
 const status=text=>$('#save-status').textContent=text;
-const locked=()=>!!draft.submission&&draft.submission.status!=='draft';
+const locked=()=>account?.kind==='admin'?false:!!draft.submission&&!['draft',...(account?['changes_requested']:[])].includes(draft.submission.status);
 const isReview=()=>M.steps[draft.step].id==='review';
 function notify(text){$('#notice').textContent=text;$('#notice').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('#notice').hidden=true,8000);}
 function confirm(title,copy){return new Promise(resolve=>{const dialog=$('#confirm-dialog');$('#confirm-title').textContent=title;$('#confirm-copy').textContent=copy;$('#confirm-ok').onclick=()=>{dialog.close();resolve(true);};$('#confirm-cancel').onclick=()=>{dialog.close();resolve(false);};dialog.oncancel=()=>resolve(false);dialog.showModal();});}
-try {storage=await openStore();const previous=await storage.read();if(previous)draft=M.normalizeDraft(previous);draft.values.listing_language ||= previous?'es':(window.ArenalI18n?.language||'es');status(previous?'Retomamos tu borrador':'El borrador se guarda en este navegador');}
-catch {status('Sin guardado automático. Descargá una copia antes de salir.');}
+try {storage=await openStore(account?.key);const previous=await storage.read();if(previous)draft=M.normalizeDraft(previous);
+  if(account){
+    try{const remote=await account.request('status');
+      const same=previous&&draft.cloud?.version===remote.version&&draft.cloud?.editRevision===remote.editRevision;
+      if(previous&&draft.cloud?.dirty&&!same)cloudConflict=true;
+      else if(same)draft.submission=remote;
+      else draft=await account.read(status);
+    }catch(error){if(error.status!==404)throw error;}
+  }
+  draft.values.listing_language ||= previous?'es':(window.ArenalI18n?.language||'es');status(previous?'Retomamos tu borrador':'El borrador se guarda en este navegador');}
+catch(error) {if(account){cloudConflict=true;cloudProblem=error.message;notify(error.message);}status('Sin guardado automático. Descargá una copia antes de salir.');}
 draft.values.listing_language ||= window.ArenalI18n?.language||'es';
 save=createSaver(async snapshot=>{if(!storage)throw Error('Sin almacenamiento');await storage.write(snapshot);},()=>structuredClone(draft),status);
-function changed(){draft.updated=new Date().toISOString();clearTimeout(saveTimer);saveTimer=setTimeout(()=>save(),300);}
+function changed(){draft.updated=new Date().toISOString();if(account){draft.cloud ||= {version:0,editRevision:0};draft.cloud.dirty=true;if($('#cloud-status')&&!cloudConflict)$('#cloud-status').textContent='Hay cambios guardados solo en este navegador.';}clearTimeout(saveTimer);saveTimer=setTimeout(()=>save(),300);}
 function release(){map?.remove();map=null;urls.forEach(url=>URL.revokeObjectURL(url));urls.clear();}
 function objectURL(blob){if(!urls.has(blob))urls.set(blob,URL.createObjectURL(blob));return urls.get(blob);}
 const fields=items=>renderFields(items,draft.values);
@@ -64,7 +75,8 @@ function review(){
 function submissionState(){
   const s=draft.submission;
   if(!s){$('#submission-state').innerHTML='<span class="draft-badge">Borrador</span>';return;}
-  $('#submission-state').innerHTML='<section class="submission-banner"><strong>'+esc(M.STATES[s.status]||s.status)+'</strong><p>Versión '+s.version+'. '+(s.status==='approved'?'Aprobada para preparar la publicación.':s.status==='draft'?'La versión anterior se retiró de revisión. Enviá los cambios cuando estén listos.':'La ficha enviada se conserva como una versión para revisión.')+'</p>'+(s.feedback?'<p translate="no">'+esc(s.feedback)+'</p>':'')+(s.status==='ready_for_review'&&!s.notificationSent?'<p>Tu ficha está recibida, pero el correo de aviso sigue pendiente.</p><button class="secondary" data-action="retry-email">Reintentar aviso</button>':'')+(locked()?'<button class="secondary" data-action="edit">Editar y volver a enviar</button>':'')+' <button class="quiet" data-action="refresh">Actualizar estado</button></section>';
+  const explanation=s.status==='changes_requested'?'ArenalIndex reabrió la ficha para vos. Revisá las instrucciones, corregí los datos y volvé a enviarla.':s.status==='approved'?'Aprobada para preparar la publicación.':s.status==='draft'?'Enviá los cambios cuando estén listos.':'La ficha enviada se conserva como una versión para revisión.';
+  $('#submission-state').innerHTML='<section class="submission-banner"><strong>'+esc(s.publishedVersion?'Publicado':M.STATES[s.status]||s.status)+'</strong><p>'+explanation+'</p>'+(s.publishedVersion?'<p>El anuncio publicado sigue visible mientras preparás cambios.</p>':'')+(s.feedback?'<p translate="no">'+esc(s.feedback)+'</p>':'')+(s.status==='ready_for_review'&&!s.notificationSent?'<p>Tu ficha está recibida, pero el correo de aviso sigue pendiente.</p><button class="secondary" data-action="retry-email">Reintentar aviso</button>':'')+(locked()?'<button class="secondary" data-action="edit">Editar y volver a enviar</button>':'')+' <button class="quiet" data-action="refresh">Actualizar estado</button>'+(account&&s.publishedVersion?'<button class="secondary" data-action="unlist">Retirar anuncio</button>':'')+'</section>';
 }
 function updateReview(){
   if(isReview()&&$('#review-summary')){
@@ -84,6 +96,7 @@ function updateReview(){
   $('#next').disabled=busy||(isReview()&&!locked()&&(!ready||issues.length>0));
 }
 function render(focus=true){
+  if(account?.expired)return;
   release();const s=M.steps[draft.step],active=M.activeSteps(draft);
   $('#steps').innerHTML=active.map((i,n)=>'<button class="nav-step" data-step="'+i+'"'+(i===draft.step?' aria-current="step"':'')+'><span class="step-number">'+(n+1)+'</span>'+esc(M.steps[i].short)+'<span class="step-complete" aria-label="Completado" hidden>✓</span></button>').join('');
   $('#step-select').innerHTML=active.map((i,n)=>'<option value="'+i+'"'+(i===draft.step?' selected':'')+'>'+(n+1)+' · '+esc(M.steps[i].short)+'</option>').join('');
@@ -104,6 +117,7 @@ function render(focus=true){
   $('#next').textContent=isReview()?(locked()?'Actualizar estado':'Enviar para revisión'):'Continuar →';
   for(const id of ['backup','restore','new-draft','step-select'])$('#'+id).disabled=busy;
   submissionState();updateReview();
+  if(account){$('#cloud-save').textContent=account.kind==='admin'?'Guardar cambios':'Guardar en mi cuenta';if(isReview()&&account.kind==='admin')$('#next').textContent='Guardar y revisar';$('#cloud-save').disabled=busy||locked()||cloudConflict;$('#reload-cloud').hidden=!cloudConflict;$('#cloud-status').textContent=cloudConflict?cloudProblem||'Hay cambios más recientes en la cuenta. Guardá una copia de tus cambios antes de cargar la versión actual.':draft.cloud?.dirty?'Hay cambios guardados solo en este navegador.':'La ficha está guardada en tu cuenta.';}
   if(focus){$('#content').focus({preventScroll:true});window.scrollTo({top:0,behavior:'instant'});}
 }
 async function go(step){
@@ -148,7 +162,7 @@ async function backup(){
   try {
     await save();const snapshot=structuredClone(draft);
     const files=await Promise.all(snapshot.files.map(async({blob,...f})=>({...f,data:await dataURL(blob)})));
-    const {submission,accessToken,...portable}=snapshot;
+    const {submission,accessToken,cloud,...portable}=snapshot;
     download(new Blob([JSON.stringify({...portable,format:'arenalindex-intake',files},null,2)],{type:'application/json'}),'arenalindex-'+draft.id.slice(0,8)+'.json');
     notify('Copia preparada. Guardá el archivo para restaurar una copia del borrador.');
   }catch{notify('No se pudo preparar la copia. Conservá esta página e intentá de nuevo.');}
@@ -168,35 +182,37 @@ async function buyerPreview(){
   if(!preview)return notify('Permití abrir una pestaña nueva para ver el anuncio.');
   try{
     if(!await save())throw Error('No pudimos guardar la ficha para abrir la vista previa. Intentá de nuevo.');
-    preview.opener=null;preview.location.replace('/newlisting/preview/?draft=1');
+    preview.opener=null;preview.location.replace('/newlisting/preview/?draft=1'+(account?'&'+account.kind+'='+account.id:''));
   }catch(error){preview.close();notify(error.message);}
 }
 async function restore(file){
-  if(!file||busy)return;if(file.size>90*1024*1024)return notify('La copia supera 90 MB.');
+  if(!file||busy||account&&locked())return;if(file.size>90*1024*1024)return notify('La copia supera 90 MB.');
   busy=true;render(false);
   try {
     const restored=M.importBackup(JSON.parse(await file.text()),crypto.randomUUID());
     for(const f of restored.files)await verifyFile(f.blob);
-    if(await confirm('¿Restaurar esta copia?','Reemplazará el borrador de este navegador. La ficha enviada, si existe, se conserva en ArenalIndex.')){draft=restored;await save();}
+    if(await confirm('¿Restaurar esta copia?','Reemplazará el borrador de este navegador. La ficha enviada, si existe, se conserva en ArenalIndex.')){if(account)Object.assign(restored,{id:account.id,submission:draft.submission,cloud:{...draft.cloud,dirty:true}});draft=restored;await save();}
   }catch(error){notify(error.message||'No se pudo restaurar la copia.');}
   finally{busy=false;$('#restore-file').value='';render();}
 }
 async function send(){
   if(busy||locked()||!ready)return;
+  if(cloudConflict)return notify('Hay cambios más recientes. Cargá la versión actual antes de enviar.');
   const issues=M.pending(draft);if(issues.length)return notify('Completá los datos indicados antes de enviar.');
   if(!await confirm('¿Enviar la ficha para revisión?','Compartirás tus respuestas y archivos de forma privada con ArenalIndex. El envío no publica el anuncio: ArenalIndex deberá revisarlo, aprobarlo y publicarlo.'))return;
   busy=true;draft.accessToken ||= randomToken();await save();render(false);
-  try {draft.submission=await submitDraft(draft,api,notify);await save();notify('Ficha recibida: lista para revisión de publicación.');}
+  try {if(account){await saveToAccount(draft,account,notify);draft.submission=await account.request('submit',{version:draft.submission.version});}else draft.submission=await submitDraft(draft,api,notify);await save();notify('Ficha recibida: lista para revisión de publicación.');if(account?.kind==='admin'){busy=false;location.href=account.back;}}
   catch(error){
     const received=await api.request('status',{id:draft.id},draft.accessToken).catch(()=>null);
-    if(received&&received.status!=='draft'){draft.submission=received;await save();notify('La ficha ya está recibida. Actualizamos su estado.');}
+    if(account&&received&&(received.version!==draft.cloud?.version||received.editRevision!==draft.cloud?.editRevision)){cloudConflict=true;notify('Hay cambios más recientes. Cargá la versión actual antes de enviar.');}
+    else if(received&&received.status!=='draft'){draft.submission=received;await save();notify('La ficha ya está recibida. Actualizamos su estado.');}
     else notify(error.message+' Tu borrador se conserva; podés reintentar.');
   }
   finally{busy=false;render(false);}
 }
 async function refresh(){
-  if(busy||!draft.accessToken)return;busy=true;
-  try {draft.submission=await api.request('status',{id:draft.id},draft.accessToken);await save();}
+  if(busy||!account&&!draft.accessToken)return;busy=true;
+  try {const current=await api.request('status',{id:draft.id},draft.accessToken);if(account&&(current.version!==draft.cloud?.version||current.editRevision!==draft.cloud?.editRevision))cloudConflict=true;else draft.submission=current;await save();}
   catch(error){notify(error.message);}finally{busy=false;render(false);}
 }
 async function retryEmail(){
@@ -208,7 +224,7 @@ async function edit(){
   if(busy||!draft.submission)return;
   if(!await confirm('¿Editar la ficha enviada?','La aprobación anterior quedará invalidada. Tendrás que enviar los cambios para una nueva revisión.'))return;
   busy=true;
-  try {draft.submission=await api.request('reopen',{id:draft.id,version:draft.submission.version},draft.accessToken);await save();}
+  try {draft.submission=await api.request('reopen',{id:draft.id,version:draft.submission.version,...(account?{editRevision:draft.cloud?.editRevision||0}:{})},draft.accessToken);if(account)draft.cloud={version:draft.submission.version,editRevision:draft.submission.editRevision,dirty:false};await save();}
   catch(error){notify(error.message);}finally{busy=false;render(false);}
 }
 document.addEventListener('input',event=>{
@@ -246,6 +262,7 @@ document.addEventListener('click',async event=>{
   if(button.dataset.removeBuilding&&!locked()&&await confirm('¿Quitar esta construcción?','Sus fotos se conservan para que podás reasignarlas o quitarlas.')){draft.buildings=draft.buildings.filter(b=>b.id!==button.dataset.removeBuilding);changed();render(false);}
   const action=button.dataset.action;
   if(action==='buyer-preview')buyerPreview();
+  if(action==='unlist'&&account){if(await confirm('¿Retirar este anuncio del catálogo público?','La ficha y sus documentos se conservan. Para volver a publicarlo, contactá a ArenalIndex.')){busy=true;try{draft.submission=await account.request('unlist',{version:draft.submission.version,publicationRevision:draft.submission.publicationRevision});await save();notify('El anuncio fue retirado del catálogo.');}catch(error){notify(error.message);}finally{busy=false;render(false);}}}
   if(action==='authorizations')$('#review-authorizations')?.scrollIntoView({behavior:'smooth',block:'start'});
   if(action==='add-building'&&!locked()){if(draft.buildings.length>=30)return notify('Se admite un máximo de 30 construcciones.');draft.buildings.push({id:crypto.randomUUID(),kind:'',name:''});changed();render(false);}
   if(action==='backup')backup();if(action==='summary')summary();if(action==='refresh')refresh();if(action==='edit')edit();if(action==='retry-email')retryEmail();
@@ -258,9 +275,18 @@ $('#step-select').onchange=e=>go(Number(e.target.value));
 $('#previous').onclick=()=>{const active=M.activeSteps(draft);go(active[active.indexOf(draft.step)-1]);};
 $('#next').onclick=()=>isReview()?(locked()?refresh():send()):go(M.activeSteps(draft)[M.activeSteps(draft).indexOf(draft.step)+1]);
 $('#backup').onclick=backup;$('#restore').onclick=()=>$('#restore-file').click();$('#restore-file').onchange=e=>restore(e.target.files[0]);
-$('#new-draft').onclick=async()=>{if(!busy&&await confirm('¿Empezar otra propiedad?','Guardá una copia si querés conservar este borrador en tu dispositivo. Las fichas enviadas se conservan en ArenalIndex.')){draft=M.newDraft();draft.values.listing_language=window.ArenalI18n?.language||'es';await save();render();}};
+$('#new-draft').onclick=async()=>{if(account){if(!busy)location.href='/newlisting/?'+account.kind+'=new';return;}if(!busy&&await confirm('¿Empezar otra propiedad?','Guardá una copia si querés conservar este borrador en tu dispositivo. Las fichas enviadas se conservan en ArenalIndex.')){draft=M.newDraft();draft.values.listing_language=window.ArenalI18n?.language||'es';await save();render();}};
 window.addEventListener('arenal-language-change',()=>{const copy=$('.buyer-preview');if(copy)copy.textContent=buyerCopy(draft);const list=$('[data-review-section="concerns"] ul');if(list)list.innerHTML=concerns(draft).map(n=>'<li translate="no">'+esc(n)+'</li>').join('');});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')save();});
+if(account){
+  window.addEventListener('pageshow',event=>{if(event.persisted){release();$('#content').replaceChildren();location.reload();}});
+  window.addEventListener('beforeunload',event=>{if(!account.expired&&(busy||draft.cloud?.dirty)){event.preventDefault();event.returnValue='';}});
+  const bar=document.createElement('section');bar.className='account-bar';bar.innerHTML='<a href="'+account.back+'">'+(account.kind==='admin'?'← Volver a revisión':'← Mis anuncios')+'</a><p id="cloud-status" role="status"></p><button id="cloud-save" class="secondary">Guardar en mi cuenta</button><button id="reload-cloud" class="quiet" hidden>Cargar la versión actual</button>';
+  $('#submission-state').before(bar);
+  $('#cloud-save').onclick=async()=>{if(busy||locked()||cloudConflict)return;busy=true;render(false);try{await saveToAccount(draft,account,notify);await save();notify('Borrador guardado en tu cuenta.');}catch(error){notify(error.message);}finally{busy=false;render(false);}};
+  $('#reload-cloud').onclick=async()=>{if(busy||!await confirm('¿Cargar la versión actual?','Los cambios locales se reemplazarán. Usá Guardar copia antes si querés conservarlos.'))return;busy=true;try{draft=await account.read(notify);cloudConflict=false;cloudProblem='';await save();}catch(error){notify(error.message);}finally{busy=false;render(false);}};
+  setTimeout(()=>{clearTimeout(saveTimer);release();account.login();},Math.max(0,account.expiresAt-Date.now()));
+}
 render(false);
-ready=await api.available();updateReview();
-if(draft.accessToken)refresh();
+ready=await api.available();if(!account?.expired)updateReview();
+if(draft.accessToken&&!account)refresh();

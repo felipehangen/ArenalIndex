@@ -86,3 +86,13 @@ test('administrator record pages include only intake records and support more th
   const second=await repository.records(first.cursor);assert.equal(second.records.length,3);assert.equal(second.cursor,null);
   assert.equal(new Set([...first.records,...second.records].map(r=>r.id)).size,53);
 });
+test('owner indexes cannot expose other owners records, and account and invitation records use conditional writes',async()=>{
+  const {repository}=setup(),id='a'.repeat(64);
+  await repository.create({id:'owned-property-a',owner_subject:'owner-a'});await repository.create({id:'owned-property-b',owner_subject:'owner-b'});
+  await repository.ensureOwnerIndex('owner-a','owned-property-a');await repository.ensureOwnerIndex('owner-a','owned-property-b');
+  assert.deepEqual((await repository.ownerRecords('owner-a')).records.map(r=>r.id),['owned-property-a']);
+  await repository.portalCreate('invites',id,{id,active:true,label:'Test'});
+  const changes=await Promise.all([1,2].map(()=>repository.portalUpdate('invites',id,{active:true},{active:false})));
+  assert.equal(changes.filter(Boolean).length,1);assert.equal((await repository.invitations())[0].active,false);
+  await assert.rejects(()=>repository.portalGet('../records',id));assert.equal(await repository.portalCreate('invites',id,{}),null);
+});

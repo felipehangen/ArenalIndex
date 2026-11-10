@@ -1,12 +1,12 @@
-export async function openStore() {
+export async function openStore(key='current') {
   const db=await new Promise((resolve,reject)=>{
     const request=indexedDB.open('arenalindex-intake-v1',1);
     request.onupgradeneeded=()=>request.result.createObjectStore('drafts');
     request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);request.onblocked=()=>reject(Error('Almacenamiento bloqueado.'));
   });
   return {
-    read:()=>new Promise((resolve,reject)=>{const r=db.transaction('drafts').objectStore('drafts').get('current');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);}),
-    write:value=>new Promise((resolve,reject)=>{const t=db.transaction('drafts','readwrite');t.objectStore('drafts').put(value,'current');t.oncomplete=()=>resolve();t.onerror=t.onabort=()=>reject(t.error);})
+    read:()=>new Promise((resolve,reject)=>{const r=db.transaction('drafts').objectStore('drafts').get(key);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);}),
+    write:value=>new Promise((resolve,reject)=>{const t=db.transaction('drafts','readwrite');t.objectStore('drafts').put(value,key);t.oncomplete=()=>resolve();t.onerror=t.onabort=()=>reject(t.error);})
   };
 }
 // Coalesce edits while a save is running. A successful final save is always the newest draft.

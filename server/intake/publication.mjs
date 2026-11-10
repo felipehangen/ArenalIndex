@@ -20,7 +20,7 @@ export function createPublication(row, editorial, {apiURL, date=new Date().toISO
   const fact=(id,title,unit='')=>{const value=answer(id);return value?{label:title||field(id).label,value:value+(value!=='No confirmado'&&unit?unit:''),source:source(v[id+'_source']),...(!field(id).options?{literal:true}:{})}:null;};
   const section=(id,title,ids)=>({id,title,rows:ids.map(item=>fact(...(Array.isArray(item)?item:[item]))).filter(Boolean)});
   const groups=photoTour(draft).map(group=>({id:group.id,title:group.title,photos:group.files.map(file=>{
-    media[file.id]={path:row.id+'/'+row.version+'/'+file.id,type:file.type,size:file.size};
+    media[file.id]={path:row.file_paths?.[file.id]||row.id+'/'+row.version+'/'+file.id,type:file.type,size:file.size};
     const url=new URL(apiURL);url.search=new URLSearchParams({id:row.id,photo:file.id,version:String(row.version)}).toString();
     return {id:file.id,src:url.href,caption:photoCaption(file,draft),perspective:file.perspective};
   })}));

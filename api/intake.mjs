@@ -1,13 +1,15 @@
 import {createHandler} from '../server/intake/core.mjs';
 import {createRepository} from '../server/intake/blob.mjs';
 import {createMailer} from '../server/intake/services.mjs';
+import {createLocalityResolver} from '../server/intake/locality.mjs';
 
 export function application(env=process.env){
   const storeId=env.BLOB_STORE_ID,token=env.BLOB_READ_WRITE_TOKEN;
   const emailKey=env.RESEND_API_KEY||'',from=env.INTAKE_EMAIL_FROM||'',to=env.INTAKE_REVIEW_EMAIL||'';
   const reviewSecret=env.INTAKE_REVIEW_SECRET||'';
+  const repository=createRepository({storeId,token});
   return createHandler({
-    repository:createRepository({storeId,token}),
+    repository,resolveLocality:createLocalityResolver({repository}),
     mailer:createMailer({key:emailKey,from,to}),
     config:{siteURL:'https://arenalindex.com',publicAPIURL:'https://arenalindex-intake.vercel.app/api/listings',reviewEmail:to,reviewSecret,rateSalt:reviewSecret,emailReady:!!(storeId||token)&&!!emailKey&&!!from&&!!to&&reviewSecret.length>=32}
   });

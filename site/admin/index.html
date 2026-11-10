@@ -4,9 +4,9 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
   <title>Administración · Arenal Index</title>
-  <script src="/i18n-en.js?v=3-admin"></script><script src="/i18n.js?v=1"></script><script src="/config.js?v=4-demo-contact"></script>
-  <link rel="stylesheet" href="/admin/style.css?v=1"><link rel="stylesheet" href="/i18n.css?v=3-header-subtitle">
-  <script type="module" src="/admin/app.mjs?v=1"></script>
+  <script src="/i18n-en.js?v=4-portal"></script><script src="/i18n.js?v=1"></script><script src="/config.js?v=4-demo-contact"></script>
+  <link rel="stylesheet" href="/admin/style.css?v=2-portal"><link rel="stylesheet" href="/i18n.css?v=3-header-subtitle">
+  <script type="module" src="/admin/app.mjs?v=2-portal"></script>
 </head>
 <body>
   <header class="admin-header"><a class="brand" href="/">arenal <span>INDEX</span></a><span class="admin-header-label">Administración</span><div class="header-actions"><span data-language-mount></span><button id="sign-out" class="quiet" hidden>Salir</button></div></header>
@@ -19,11 +19,13 @@
     </section>
     <section id="inbox" class="admin-workspace" hidden>
       <div class="workspace-heading"><div><p class="eyebrow">ADMINISTRACIÓN</p><h1>Propuestas y anuncios</h1><p class="muted">Fichas recibidas desde el formulario de propiedades.</p></div><button id="refresh" class="quiet">Actualizar</button></div>
-      <div class="admin-toolbar"><label class="admin-search"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="admin-search" type="search" placeholder="Buscar por propiedad, contacto o correo" aria-label="Buscar propuestas"></label><label class="status-filter">Estado<select id="admin-status"><option value="ready_for_review">Por revisar</option><option value="approved">Aprobados</option><option value="changes_requested">Cambios solicitados</option><option value="published">Publicados</option><option value="draft">En preparación</option><option value="all">Todos</option></select></label></div>
+      <div class="admin-toolbar"><label class="admin-search"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="admin-search" type="search" placeholder="Buscar por propiedad, contacto o correo" aria-label="Buscar propuestas"></label><label class="status-filter">Estado<select id="admin-status"><option value="ready_for_review">Por revisar</option><option value="approved">Aprobados</option><option value="changes_requested">Esperando al propietario</option><option value="published">Publicados</option><option value="draft">En preparación</option><option value="all">Todos</option></select></label></div>
       <div class="results-meta"><p id="admin-count" role="status"></p><p id="admin-account" translate="no"></p></div>
       <div class="admin-table"><div class="admin-table-head" aria-hidden="true"><span>Propiedad y contacto</span><span>Precio y área</span><span>Estado</span><span>Actualización</span><span></span></div><div id="admin-records" aria-busy="true"></div></div>
       <div id="admin-empty" class="empty-state" hidden><h2>No hay propuestas en esta vista</h2><p>Cambiá el estado o la búsqueda para ver otras fichas.</p></div><p id="inbox-error" role="alert" hidden></p>
-      <footer class="admin-footer"><a href="/newlisting/">Abrir formulario de propiedad</a><a href="/" target="_blank" rel="noopener">Ver catálogo público</a></footer>
+      <details id="invitations" class="invite-panel"><summary>Invitaciones para propietarios</summary><p>Un código permite activar varias cuentas de Google. Cada persona verá únicamente sus propias fichas. Desactivarlo impide nuevas altas; las cuentas ya activadas conservan su acceso.</p><label>Nombre del código<input maxlength="80" placeholder="Por ejemplo, Propietarios de La Fortuna"></label><button class="quiet" data-create-invite>Crear código reutilizable</button><output translate="no" hidden></output><p role="status"></p><div data-invites></div></details>
+      <details id="owner-accounts" class="invite-panel"><summary>Cuentas y contraseñas de propietarios</summary><p>Creá acceso con cualquier correo, sin necesidad de Google. Si la cuenta ya existe, esta acción restablece su contraseña. La contraseña temporal vence en 7 días y se cambia al entrar.</p><form id="create-owner-account" class="access-form"><label>Correo electrónico<input name="email" type="email" autocomplete="off" maxlength="254" required></label><label>Contraseña temporal<input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><div class="password-tools"><button type="button" class="quiet" data-generate-password>Generar contraseña</button><label><input type="checkbox" data-show-password>Mostrar contraseña</label></div><button type="submit" class="quiet">Guardar contraseña temporal</button></form><output translate="no" hidden></output><p role="status"></p><div class="accounts-heading"><h2>Accesos creados</h2><button class="quiet" data-refresh-accounts>Actualizar cuentas</button></div><div data-accounts></div></details>
+      <footer class="admin-footer"><a href="/newlisting/">Abrir formulario de propiedad</a><a href="/owner/">Abrir portal de propietarios</a><a href="/" target="_blank" rel="noopener">Ver catálogo público</a></footer>
     </section>
   </main>
 </body>

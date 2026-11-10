@@ -1,20 +1,16 @@
 import {randomBytes,createHash} from 'node:crypto';
-import {reference} from '../../site/newlisting/model.mjs';
+import {recordSummary} from '../portal/summary.mjs';
+export {recordSummary} from '../portal/summary.mjs';
 import {createHandler} from '../intake/core.mjs';
+import {workspaceAction} from '../portal/workspace.mjs';
+import {invitationAction} from '../portal/core.mjs';
+import {accountAdminAction} from '../portal/accounts.mjs';
 
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const secret=()=>randomBytes(32).toString('hex');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const reviewActions=new Set(['review','approve','request_changes','preview_publication','publish','unpublish']);
-export function recordSummary(row){
-  const values=row.payload?.values||{};
-  return {id:row.id,title:row.editorial?.title||values.listing_title||reference(row.payload),
-    contact:values.contact||'',email:values.email||'',price:Number(values.price)||null,currency:values.currency||'USD',
-    area:Number(values.area)||null,status:row.status,version:row.version,updatedAt:row.updated_at||null,
-    publishedVersion:row.publication?.version||null,publicId:row.publication?.listing?.id||null,
-    notificationSent:row.notification_sent===true};
-}
-export function createAdminHandler({repository,verifyGoogle,config,now=()=>new Date()}){
+export function createAdminHandler({repository,verifyGoogle,config,mailer,resolveLocality,now=()=>new Date()}){
   const origins=new Set(config.origins||['https://arenalindex.com','https://www.arenalindex.com']);
   const allowed=new Set((config.adminEmails||[]).map(email=>email.trim().toLowerCase()).filter(Boolean));
   const configured=!!config.googleClientId&&allowed.size>0;
@@ -60,6 +56,10 @@ export function createAdminHandler({repository,verifyGoogle,config,now=()=>new D
         return json({signedOut:true});
       }
       if(action==='session')return json({email:session.email,expiresAt:session.expiresAt});
+      if(action==='health')return json({ready:config.emailReady});
+      if(['invitations','create_invitation','revoke_invitation'].includes(action))return json(await invitationAction({action,body,repository,actor:session,now}));
+      if(['owner_accounts','set_owner_password','set_owner_active'].includes(action))return json(await accountAdminAction({action,body,repository,actor:session,now}));
+      if(['workspace_open','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen_owner','workspace_unlist'].includes(action))return json(await workspaceAction({action,body,actor:{...session,role:'admin'},repository,config,mailer,now}));
       if(action==='list'){
         if(body.cursor!==undefined&&(typeof body.cursor!=='string'||body.cursor.length>2000))fail(400,'Página inválida.');
         const page=await repository.records(body.cursor);
@@ -67,7 +67,7 @@ export function createAdminHandler({repository,verifyGoogle,config,now=()=>new D
       }
       if(reviewActions.has(action)){
         // Identity is passed through a server-only closure; headers cannot grant this privilege.
-        const handler=createHandler({repository,config,now,authorizeReview:async()=>session});
+        const handler=createHandler({repository,config,now,resolveLocality,authorizeReview:async()=>session});
         const delegated=new Request(request.url,{method:'POST',headers:request.headers,body:raw});
         const response=await handler(delegated);
         for(const [key,value] of Object.entries(headers))response.headers.set(key,value);

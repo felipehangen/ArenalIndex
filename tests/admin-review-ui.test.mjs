@@ -12,7 +12,7 @@ function environment({authenticated=true,legacy=false,draft=false}={}){
   window.ArenalConfig=globalThis.ArenalConfig={intakeUrl:'https://backend.example/api/intake'};
   client.clearSession();const identity={token:'a'.repeat(64),email:'felipehangen@gmail.com',expiresAt:Date.now()+3600000};if(authenticated)client.saveSession(identity);
   const row=approvedRow(),calls=[];let resultStatus=200;
-  const record={id:row.id,version:row.version,status:draft?'draft':'approved',draft:{...row.payload,files:draft?[]:row.payload.files.map(f=>({...f,url:'https://files.example/'+f.id}))},review:row.review,editorial,publishedVersion:draft?1:null,publicationRevision:0};
+  const record={id:row.id,version:row.version,status:draft?'draft':'approved',draft:{...row.payload,files:draft?[]:row.payload.files.map(f=>({...f,url:'https://files.example/'+f.id}))},review:row.review,editorial,locality:{place:'El Castillo · La Fortuna'},publishedVersion:draft?1:null,publicationRevision:0};
   globalThis.fetch=async(url,options)=>{
     const body=JSON.parse(options.body);calls.push({url,headers:options.headers,...body});
     const result=body.action==='session'?identity:body.action==='review'?record:body.action==='logout'?{signedOut:true}:body.action==='unpublish'?{status:record.status,version:record.version,publishedVersion:null,publicationRevision:1}:{};
@@ -29,7 +29,7 @@ test('administrator review uses a server session and withdrawal of a reopened dr
   const e=environment({draft:true});await e.open();
   assert.deepEqual(e.calls.map(c=>c.action),['session','review']);
   for(const call of e.calls){assert.equal(call.url,'https://backend.example/api/admin');assert.equal(call.headers.Authorization,'Bearer '+'a'.repeat(64));assert.ok(!call.headers['X-Review-Token']);}
-  assert.match(e.document.querySelector('#review-content').textContent,/sigue en preparación/);
+  assert.match(e.document.querySelector('#review-content').textContent,/está en borrador/);
   await e.document.querySelector('#public-unpublish').onclick();
   assert.match(e.document.querySelector('#review-message').textContent,/retirado del catálogo/);
   await e.document.querySelector('#sign-out').onclick();assert.equal(e.document.querySelector('#review-content').textContent,'');assert.equal(client.session(),null);
@@ -39,6 +39,13 @@ test('an expired administrator session clears an open review and redirects to lo
   // Publication confirms on the server; this exercises a protected request with an expired session.
   await e.document.querySelector('#public-publish').onclick();
   assert.equal(e.location.destination,'/admin/#review=test-property-01');assert.equal(e.document.querySelector('#review-content').textContent,'');
+});
+test('administrator review links to direct editing and offers an owner reopening action with explicit instructions',async()=>{
+  const e=environment();await e.open();
+  assert.equal(e.document.querySelector('.review-admin-tools a').getAttribute('href'),'/newlisting/?admin=test-property-01');
+  assert.match(e.document.querySelector('#reopen-owner').textContent,/Reabrir para el propietario/);
+  assert.match(e.document.querySelector('#public-place').parentElement.textContent,/Sugerida a partir del pin/);
+  await e.document.querySelector('#sign-out').onclick();
 });
 test('existing email review links continue to use their review token without requiring Google',async()=>{
   const e=environment({authenticated:false,legacy:true});await e.open();

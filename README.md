@@ -101,7 +101,9 @@ El navegador recibe el snapshot como un pequeño archivo estático de ArenalInde
 
 ### Administración con Google
 
-`https://arenalindex.com/admin/` reúne las fichas recibidas desde `/newlisting/`. Permite buscar por propiedad/contacto/correo, filtrar por estado y abrir la revisión privada. Aprobar, pedir cambios, preparar la vista del comprador, publicar y retirar reutilizan las mismas validaciones de versión que los enlaces por correo. Las fichas todavía en preparación no muestran archivos sin verificar. El catálogo demo anterior sigue administrándose en Supabase; no se mezcla con esta bandeja de captación.
+`https://arenalindex.com/admin/` reúne las fichas recibidas desde `/newlisting/` y los borradores guardados en las cuentas de propietarios. Permite buscar, filtrar por estado, abrir la revisión y **Editar ficha** directamente. **Reabrir para el propietario** pide instrucciones concretas y muestra «Esperando al propietario». La persona ve «Necesita tus cambios» en su portal. Guardar una edición invalida la aprobación anterior; se vuelve a enviar, revisar y publicar. La última versión publicada permanece visible hasta actualizarla o retirarla. El catálogo demo anterior sigue administrándose en Supabase; no se mezcla con esta bandeja de captación.
+
+La localidad se sugiere automáticamente desde el pin de entrada mediante Nominatim/OpenStreetMap. Solo se usa el nombre de la comunidad/distrito, no una dirección postal. Hay caché de siete días y una exclusión compartida para limitar consultas. Si no hay cobertura o el servicio falla, el administrador puede escribir o corregir el nombre. Mover el pin al guardar una ficha elimina la localidad editorial anterior para obtener una nueva sugerencia.
 
 Configurar en Vercel Production `ADMIN_GOOGLE_CLIENT_ID` con el ID público de un cliente OAuth **Web application** y `ADMIN_EMAILS` con los correos autorizados, separados por comas. Si no se indica `ADMIN_EMAILS`, se usa `INTAKE_REVIEW_EMAIL`. El cliente Google permite los orígenes `https://arenalindex.com` y `https://www.arenalindex.com`, sin URI de redirección; usa Google Identity Services con callback JavaScript. No requiere un client secret. En modo Testing, agregar al administrador como usuario de prueba de Google Auth Platform.
 
@@ -112,6 +114,23 @@ Los desafíos y sesiones del servidor caducan en almacenamiento al día siguient
 La API responde con `no-store` y `noindex`; las páginas HTML son únicamente la interfaz sin datos privados. GitHub Pages no permite configurar encabezados HTTP por ruta, por lo que estas páginas incluyen metadatos `noindex,nofollow` y `no-referrer`. El estado privado se borra al vencer la sesión y se vuelve a comprobar al recuperar una página desde el historial.
 
 Publicar primero el servicio Vercel y después el frontend. Para verificar Google de extremo a extremo, el administrador debe iniciar sesión desde `/admin/`; las pruebas automatizadas usan claves RSA y registros en memoria, sin otorgar permisos reales ni publicar fichas.
+
+### Portal de propietarios y acceso
+
+`https://arenalindex.com/owner/` ofrece dos formas de entrar:
+
+- **Google + código reutilizable:** el administrador crea un código en «Invitaciones para propietarios». El código se pide solo para activar una cuenta nueva. Se muestra una sola vez y en el servidor se guarda únicamente su hash. Desactivarlo bloquea nuevas altas, sin quitar acceso a quienes ya entraron.
+- **Correo y contraseña:** en «Cuentas y contraseñas de propietarios», el administrador ingresa el correo y crea o genera una contraseña temporal de 12–128 caracteres. Puede usar cualquier proveedor de correo. La contraseña vence en siete días; el propietario debe reemplazarla antes de abrir sus fichas. El administrador copia y comparte el acceso en privado; esta operación no envía correos. Restablecer una contraseña invalida las sesiones anteriores que entraron con contraseña. No se puede consultar la contraseña existente.
+
+Ambos métodos se vinculan a la misma cuenta si coinciden con el correo verificado por Google. El identificador de propietario se conserva, sin duplicar ni transferir fichas. Una contraseña creada para un correo no verificado por el sistema es acceso concedido por el administrador; este debe comprobar que lo entrega a la persona correcta. Google usa el mismo cliente OAuth de la administración. Revisar la configuración de audiencia de Google Auth Platform antes de invitar cuentas externas. El acceso de administrador sigue dependiendo de Google y de `ADMIN_EMAILS`; una contraseña de propietario nunca otorga permisos administrativos.
+
+Las contraseñas se almacenan con scrypt (N=65536, r=8, p=1), sal aleatoria y comparación de tiempo constante. Los intentos se limitan por IP y correo. Las sesiones de propietario duran ocho horas, usan un espacio de claves independiente de administración y solo guardan el hash del token en Blob. La API exige el cambio de contraseña temporal, comprueba acceso activo y versión de contraseña en cada operación. Desactivar una cuenta revoca ambas formas de acceso y las sesiones viejas no se reactivan al volver a habilitarla.
+
+La bandeja del propietario muestra borradores, fichas en revisión, las que necesitan cambios, publicadas y retiradas. «Guardar en mi cuenta» guarda respuestas y archivos aunque falten requisitos. Los cambios también se guardan localmente mientras se escribe; deben guardarse en la cuenta para aparecer en otros dispositivos. «Enviar para revisión» guarda y envía. El propietario puede reabrir su ficha o retirar su anuncio del catálogo, pero solo ArenalIndex puede aprobar y publicar. Retirar conserva la ficha y los documentos.
+
+Cada guardado en la cuenta usa una preparación privada con vencimiento, carga solo archivos nuevos y valida firmas/tamaños antes de cambiar la versión de trabajo. Las escrituras condicionales impiden sobrescribir cambios recientes de otra pestaña o del administrador. Los archivos de la última publicación no se sustituyen durante una edición. Ante un conflicto, el navegador conserva los cambios locales y ofrece guardar una copia antes de cargar la versión actual.
+
+El formulario anónimo de `/newlisting/` continúa funcionando. «Agregar la ficha de este navegador» permite incorporarla a una cuenta: una ficha ya enviada requiere su token privado original; coincidir con el correo de contacto no concede acceso. Las copias locales se separan por cuenta y ficha. Los documentos nunca se incluyen en el catálogo público.
 
 ### Servicio en Vercel y variables
 

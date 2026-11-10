@@ -2,7 +2,7 @@ export const VERSION = 3;
 export const MAX_FILE = 12 * 1024 * 1024;
 export const MAX_TOTAL = 60 * 1024 * 1024;
 export const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-export const STATES = {draft:'Borrador', ready_for_review:'Lista para revisión de publicación', changes_requested:'Cambios solicitados', approved:'Aprobada para publicar', published:'Publicada'};
+export const STATES = {draft:'Borrador', ready_for_review:'Lista para revisión de publicación', changes_requested:'Esperando cambios del propietario', approved:'Aprobada para publicar', published:'Publicada'};
 const options = rows => [['','Elegí una respuesta'], ...rows.map(row => Array.isArray(row) ? row : [row,row]), ['unknown','No confirmado']];
 const select = (id,label,rows,extra={}) => ({id,label,type:'select',options:options(rows),...extra});
 const text = (id,label,extra={}) => ({id,label,type:'text',maxLength:120,...extra});

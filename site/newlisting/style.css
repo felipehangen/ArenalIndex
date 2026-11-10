@@ -81,3 +81,5 @@
 
 /* Public editorial fields follow the same rhythm as the review form. */
 .publication-panel{border-top:1px solid var(--line);padding-top:28px}.publication-panel>label{display:block;font-size:13px;font-weight:550;margin:22px 0 8px}.publication-panel>.approval-checks{margin-top:24px}.publication-panel>p{font-size:14px;line-height:1.7}.publication-panel>p.map-note{font-size:12px}.publication-panel .form-grid{margin-top:24px}
+.account-bar,.review-admin-tools{border:1px solid var(--line);border-radius:13px;padding:18px;margin:0 0 24px;background:#fff}.account-bar p,.review-admin-tools p{font-size:12px;color:var(--muted)}.account-bar a,.review-admin-tools a{display:inline-flex;align-items:center;font-size:13px}.account-bar button,.review-admin-tools button{margin:6px 8px 0 0}.review-admin-tools label{display:block;font-size:13px;margin-top:12px}.review-admin-tools textarea{margin-top:6px}.account-bar .secondary{font-size:13px}
+.reopen-panel{margin-top:14px}.reopen-panel summary{cursor:pointer;font-size:13px;min-height:32px;color:var(--green)}.review-admin-tools #owner-message:empty{display:none}

@@ -1,4 +1,5 @@
 import {openStore} from './local.mjs';
+import {accountContext} from './account.mjs';
 import {normalizeDraft} from './model.mjs?v=9-language';
 import {createDraftPreview} from './draft-preview.mjs?v=9-language';
 
@@ -6,7 +7,8 @@ try{
   const isDraft=new URLSearchParams(location.search).get('draft')==='1';
   let item;
   if(isDraft){
-    const draft=await(await openStore()).read();
+    const account=await accountContext();
+    const draft=await(await openStore(account?.key)).read();
     if(!draft)throw Error('No hay un borrador en este navegador. Volvé a la ficha para preparar tu anuncio.');
     item=createDraftPreview(normalizeDraft(draft),file=>URL.createObjectURL(file.blob));
   }else{

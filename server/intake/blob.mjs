@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const conflict=error=>error instanceof blob.BlobPreconditionFailedError||/already exists/i.test(error.message);
 const authPath=(kind,id)=>{
-  if(!['challenge','session'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid auth key');
+  if(!['challenge','session','owner-challenge','owner-session'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid auth key');
   return 'admin/'+kind+'/'+id+'.json';
 };
 // Fresh reads plus conditional writes keep approvals tied to one immutable version.
@@ -32,6 +32,36 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
     return (await sdk.presignUrl(delegation,{access:'private',pathname:path,operation,validUntil,...constraints,...(file?{allowOverwrite:false,addRandomSuffix:false}:{useCache:false})})).presignedUrl;
   }
   return {
+    async portalGet(kind,id){return (await read(portalPath(kind,id)))?.row||null;},
+    async portalCreate(kind,id,row,ttlDays){return write(portalPath(kind,id),row,null,ttlDays?{ttlDays}:{});},
+    async portalUpdate(kind,id,filters,patch){
+      const path=portalPath(kind,id),current=await read(path);
+      if(!current||Object.entries(filters).some(([key,value])=>current.row[key]!==value))return null;
+      return write(path,{...current.row,...patch},current.etag);
+    },
+    async invitations(){
+      const records=[];let cursor;
+      do{const page=await sdk.list({...auth,prefix:'portal/invites/',limit:100,...(cursor?{cursor}:{})});
+        for(const entry of page.blobs){const row=await read(entry.pathname);if(row)records.push(row.row);}
+        cursor=page.hasMore?page.cursor:null;
+      }while(cursor);return records;
+    },
+    async ownerAccounts(){
+      const records=[];let cursor;
+      do{const page=await sdk.list({...auth,prefix:'portal/accounts/',limit:100,...(cursor?{cursor}:{})});
+        for(let offset=0;offset<page.blobs.length;offset+=10){const rows=await Promise.all(page.blobs.slice(offset,offset+10).map(entry=>read(entry.pathname)));records.push(...rows.filter(Boolean).map(result=>result.row));}
+        cursor=page.hasMore?page.cursor:null;
+      }while(cursor);return records;
+    },
+    async ensureOwnerIndex(subject,id){await write('owners/'+hash(subject)+'/'+id+'.json',{id});},
+    async ownerRecords(subject,cursor){
+      const prefix='owners/'+hash(subject)+'/',page=await sdk.list({...auth,prefix,limit:50,...(cursor?{cursor}:{})});
+      const ids=page.blobs.map(entry=>entry.pathname.slice(prefix.length).match(/^([a-zA-Z0-9-]{8,80})\.json$/)?.[1]).filter(Boolean);
+      const records=[];for(let offset=0;offset<ids.length;offset+=10){
+        const batch=await Promise.all(ids.slice(offset,offset+10).map(async id=>(await read('records/'+id+'.json'))?.row));
+        records.push(...batch.filter(row=>row?.owner_subject===subject));
+      }return {records,cursor:page.hasMore?page.cursor:null};
+    },
     async authCreate(kind,id,row){
       const result=await write(authPath(kind,id),row,null,{ttlDays:1});
       if(!result)throw Error('Could not create auth record');return result;
@@ -101,4 +131,8 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
       return {size:result.blob.size,bytes:bytes.subarray(0,length)};
     }
   };
+}
+function portalPath(kind,id){
+  if(!['accounts','emails','invites','stages','geocodes'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid portal key');
+  return 'portal/'+kind+'/'+id+'.json';
 }

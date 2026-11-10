@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+  <title>Mis anuncios · Arenal Index</title>
+  <script src="/i18n-en.js?v=4-portal"></script><script src="/i18n.js?v=1"></script><script src="/config.js?v=4-demo-contact"></script>
+  <link rel="stylesheet" href="/admin/style.css?v=2-portal"><link rel="stylesheet" href="/i18n.css?v=3-header-subtitle">
+  <script type="module" src="/owner/app.mjs?v=1"></script>
+</head>
+<body>
+  <header class="admin-header"><a class="brand" href="/">arenal <span>INDEX</span></a><span class="admin-header-label">Mis anuncios</span><div class="header-actions"><span data-language-mount></span><button id="sign-out" class="quiet" hidden>Salir</button></div></header>
+  <main>
+    <section id="login-panel" class="login-panel">
+      <span class="lock-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></span>
+      <p class="eyebrow">ACCESO PRIVADO</p><h1>Tus propiedades, en un solo lugar</h1><p class="muted">Guardá borradores, enviá tus fichas a revisión y administrá tus anuncios publicados.</p>
+      <details class="google-invite"><summary>¿Primera vez con Google?</summary><label class="invite-label">Código de invitación<input id="invitation" autocomplete="off" spellcheck="false" maxlength="40"></label><p class="login-note">Usalo una vez para activar tu cuenta. Si ArenalIndex ya te creó una cuenta con ese correo, no necesitás código.</p></details>
+      <div id="google-button"></div><div class="login-divider"><span>o con tu correo</span></div>
+      <form id="email-login" class="access-form"><label>Correo electrónico<input id="owner-email" type="email" autocomplete="username" required maxlength="254"></label><label>Contraseña<input id="owner-password" type="password" autocomplete="current-password" required maxlength="128"></label><button type="submit" class="primary">Entrar</button></form>
+      <p id="login-status" role="status">Comprobando acceso…</p><button id="retry-login" class="quiet" hidden>Reintentar</button>
+      <p class="login-note">Para obtener acceso o restablecer tu contraseña, contactá a la persona que te invitó a ArenalIndex.</p>
+    </section>
+    <section id="password-panel" class="login-panel" hidden><p class="eyebrow">TU CUENTA</p><h1>Cambiar contraseña</h1><p id="password-note" class="muted"></p><form id="password-form" class="access-form"><label id="current-password-label">Contraseña actual<input id="current-password" type="password" autocomplete="current-password" maxlength="128"></label><label>Nueva contraseña<input id="new-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><label>Repetir contraseña<input id="confirm-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><button type="submit" class="primary">Guardar contraseña</button></form><p id="password-status" role="alert"></p><button id="password-back" class="quiet" hidden>Volver a mis anuncios</button></section>
+    <section id="inbox" class="admin-workspace" hidden>
+      <div class="workspace-heading"><div><p class="eyebrow">MIS ANUNCIOS</p><h1>Mis anuncios</h1><p class="muted">Borradores, fichas en revisión y anuncios publicados.</p></div><a class="quiet" href="/newlisting/?owner=new">Nueva propiedad</a><button id="refresh" class="quiet">Actualizar</button></div>
+      <div class="admin-toolbar"><label class="admin-search"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="admin-search" type="search" placeholder="Buscar por propiedad, contacto o correo" aria-label="Buscar propuestas"></label><label class="status-filter">Estado<select id="admin-status"><option value="all">Todos</option><option value="ready_for_review">En revisión</option><option value="approved">Listos para publicar</option><option value="changes_requested">Necesita tus cambios</option><option value="published">Publicados</option><option value="draft">Borradores</option><option value="unlisted">Retirados</option></select></label></div>
+      <div class="results-meta"><p id="admin-count" role="status"></p><p id="admin-account" translate="no"></p></div>
+      <div class="admin-table"><div class="admin-table-head" aria-hidden="true"><span>Propiedad y contacto</span><span>Precio y área</span><span>Estado</span><span>Actualización</span><span></span></div><div id="admin-records" aria-busy="true"></div></div>
+      <div id="admin-empty" class="empty-state" hidden><h2>No hay propuestas en esta vista</h2><p>Cambiá el estado o la búsqueda para ver otras fichas.</p></div><p id="inbox-error" role="alert" hidden></p>
+      <button id="import-browser-draft" class="quiet" hidden>Agregar la ficha de este navegador</button><p id="import-status" role="status"></p><footer class="admin-footer"><a href="/newlisting/?owner=new">Nueva propiedad</a><a href="/" target="_blank" rel="noopener">Ver catálogo público</a><button id="change-password" class="quiet">Cambiar contraseña</button></footer>
+    </section>
+  </main>
+</body>
+</html>
