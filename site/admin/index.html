@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+  <title>Administración · Arenal Index</title>
+  <script src="/i18n-en.js?v=3-admin"></script><script src="/i18n.js?v=1"></script><script src="/config.js?v=4-demo-contact"></script>
+  <link rel="stylesheet" href="/admin/style.css?v=1"><link rel="stylesheet" href="/i18n.css?v=3-header-subtitle">
+  <script type="module" src="/admin/app.mjs?v=1"></script>
+</head>
+<body>
+  <header class="admin-header"><a class="brand" href="/">arenal <span>INDEX</span></a><span class="admin-header-label">Administración</span><div class="header-actions"><span data-language-mount></span><button id="sign-out" class="quiet" hidden>Salir</button></div></header>
+  <main>
+    <section id="login-panel" class="login-panel">
+      <span class="lock-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></span>
+      <p class="eyebrow">ACCESO PRIVADO</p><h1>Administrá los anuncios</h1><p class="muted">Revisá las propuestas, sus documentos y su publicación en un solo lugar.</p>
+      <div id="google-button"></div><p id="login-status" role="status">Comprobando acceso…</p><button id="retry-login" class="quiet" hidden>Reintentar</button>
+      <p class="login-note">Solo las cuentas autorizadas pueden acceder.</p>
+    </section>
+    <section id="inbox" class="admin-workspace" hidden>
+      <div class="workspace-heading"><div><p class="eyebrow">ADMINISTRACIÓN</p><h1>Propuestas y anuncios</h1><p class="muted">Fichas recibidas desde el formulario de propiedades.</p></div><button id="refresh" class="quiet">Actualizar</button></div>
+      <div class="admin-toolbar"><label class="admin-search"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="admin-search" type="search" placeholder="Buscar por propiedad, contacto o correo" aria-label="Buscar propuestas"></label><label class="status-filter">Estado<select id="admin-status"><option value="ready_for_review">Por revisar</option><option value="approved">Aprobados</option><option value="changes_requested">Cambios solicitados</option><option value="published">Publicados</option><option value="draft">En preparación</option><option value="all">Todos</option></select></label></div>
+      <div class="results-meta"><p id="admin-count" role="status"></p><p id="admin-account" translate="no"></p></div>
+      <div class="admin-table"><div class="admin-table-head" aria-hidden="true"><span>Propiedad y contacto</span><span>Precio y área</span><span>Estado</span><span>Actualización</span><span></span></div><div id="admin-records" aria-busy="true"></div></div>
+      <div id="admin-empty" class="empty-state" hidden><h2>No hay propuestas en esta vista</h2><p>Cambiá el estado o la búsqueda para ver otras fichas.</p></div><p id="inbox-error" role="alert" hidden></p>
+      <footer class="admin-footer"><a href="/newlisting/">Abrir formulario de propiedad</a><a href="/" target="_blank" rel="noopener">Ver catálogo público</a></footer>
+    </section>
+  </main>
+</body>
+</html>

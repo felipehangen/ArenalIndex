@@ -99,7 +99,21 @@ GitHub Pages actualiza el snapshot a las **06:17 de Costa Rica**, con otro inten
 
 El navegador recibe el snapshot como un pequeño archivo estático de ArenalIndex; no consulta al BCCR ni cambia el tipo durante la sesión. No hacen falta credenciales nuevas, otra base de datos ni cambios en la API de captación. Los feeds de la portada del BCCR pueden cambiar de ruta; en ese caso el aviso de Actions y la fecha visible permiten detectar el fallo y actualizar las URLs en `scripts/lib/exchange-rate.mjs`.
 
-### Servicio en Vercel
+### Administración con Google
+
+`https://arenalindex.com/admin/` reúne las fichas recibidas desde `/newlisting/`. Permite buscar por propiedad/contacto/correo, filtrar por estado y abrir la revisión privada. Aprobar, pedir cambios, preparar la vista del comprador, publicar y retirar reutilizan las mismas validaciones de versión que los enlaces por correo. Las fichas todavía en preparación no muestran archivos sin verificar. El catálogo demo anterior sigue administrándose en Supabase; no se mezcla con esta bandeja de captación.
+
+Configurar en Vercel Production `ADMIN_GOOGLE_CLIENT_ID` con el ID público de un cliente OAuth **Web application** y `ADMIN_EMAILS` con los correos autorizados, separados por comas. Si no se indica `ADMIN_EMAILS`, se usa `INTAKE_REVIEW_EMAIL`. El cliente Google permite los orígenes `https://arenalindex.com` y `https://www.arenalindex.com`, sin URI de redirección; usa Google Identity Services con callback JavaScript. No requiere un client secret. En modo Testing, agregar al administrador como usuario de prueba de Google Auth Platform.
+
+`POST /api/admin` comprueba firma, emisor, audiencia, vigencia, correo verificado y nonce de Google, y luego aplica la lista de correos autorizados en el servidor. El desafío dura diez minutos y se consume una sola vez mediante escritura condicional. La sesión aleatoria dura ocho horas, se guarda en `sessionStorage` de la pestaña y solo su hash se almacena en Blob privado. Salir revoca la sesión en el servidor y borra los datos visibles. Una falla de red al salir se informa expresamente; se borra la copia local pero la sesión del servidor conserva su vencimiento original. Quitar un correo de la lista y volver a desplegar revoca su acceso aunque la sesión no haya vencido.
+
+Los desafíos y sesiones del servidor caducan en almacenamiento al día siguiente. La API no almacena el token de identidad Google ni permite otorgar permisos mediante encabezados de identidad. La bandeja entrega resúmenes paginados de 50 registros y carga todas las páginas antes de filtrar; los documentos se firman solamente al abrir una ficha. Las decisiones registran el correo del administrador y conservan las comprobaciones de concurrencia del expediente. No existe una ruta de prueba que omita autenticación.
+
+La API responde con `no-store` y `noindex`; las páginas HTML son únicamente la interfaz sin datos privados. GitHub Pages no permite configurar encabezados HTTP por ruta, por lo que estas páginas incluyen metadatos `noindex,nofollow` y `no-referrer`. El estado privado se borra al vencer la sesión y se vuelve a comprobar al recuperar una página desde el historial.
+
+Publicar primero el servicio Vercel y después el frontend. Para verificar Google de extremo a extremo, el administrador debe iniciar sesión desde `/admin/`; las pruebas automatizadas usan claves RSA y registros en memoria, sin otorgar permisos reales ni publicar fichas.
+
+### Servicio en Vercel y variables
 
 Proyecto `arenalindex-intake`, endpoint `https://arenalindex-intake.vercel.app/api/intake`. GitHub Pages sigue sirviendo el sitio público y Supabase conserva el catálogo anterior. Los anuncios nuevos publicados se leen desde `GET /api/listings` en este mismo servicio. La recepción de fichas usa Vercel Blob privado (`arenalindex-intake-private`) y Resend; no requiere credenciales administrativas de Supabase.
 

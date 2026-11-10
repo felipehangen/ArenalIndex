@@ -4,6 +4,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
+    "api/admin.mjs": {
+      "maxDuration": 60,
+      "includeFiles": "{server/admin/**,server/intake/**,site/newlisting/model.mjs}"
+    },
     "api/listings.mjs": {
       "maxDuration": 60,
       "includeFiles": "server/intake/**"
@@ -14,6 +18,14 @@
     }
   },
   "headers": [
+    {
+      "source": "/admin/(.*)",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store"},
+        {"key": "Referrer-Policy", "value": "no-referrer"},
+        {"key": "X-Robots-Tag", "value": "noindex, nofollow"}
+      ]
+    },
     {
       "source": "/newlisting/review/(.*)",
       "headers": [

@@ -5,7 +5,7 @@ import {createRepository} from '../server/intake/blob.mjs';
 function setup(){
   const rows=new Map(),calls=[];let sequence=0;
   const sdk={
-    async list({prefix}){return {blobs:[...rows.keys()].filter(path=>path.startsWith(prefix)).map(path=>({pathname:path})),hasMore:false};},
+    async list({prefix,limit=1000,cursor}){const paths=[...rows.keys()].filter(path=>path.startsWith(prefix)),start=Number(cursor||0);return {blobs:paths.slice(start,start+limit).map(path=>({pathname:path})),hasMore:paths.length>start+limit,cursor:String(start+limit)};},
     async get(path,options){
       assert.equal(options.access,'private');assert.equal(options.useCache,false);
       const data=rows.get(path);if(!data)return null;
@@ -67,4 +67,22 @@ test('the discovery index exposes only committed public snapshots and withdrawal
   assert.deepEqual(await repository.published(),[{id:'public-1',name:'Approved title'}]);
   await repository.update('listing-private',{version:1},{publication:null});
   assert.deepEqual(await repository.published(),[]);
+});
+test('auth challenges are consumed atomically, sessions revoke atomically, and invalid auth paths fail',async()=>{
+  const {repository}=setup(),id='a'.repeat(64);
+  await repository.authCreate('challenge',id,{used:false,expiresAt:200000});
+  const results=await Promise.all([1,2].map(()=>repository.authUpdate('challenge',id,{used:false},{used:true})));
+  assert.equal(results.filter(Boolean).length,1);assert.equal((await repository.authGet('challenge',id)).used,true);
+  await repository.authCreate('session',id,{revoked:false});await repository.authUpdate('session',id,{revoked:false},{revoked:true});
+  assert.equal((await repository.authGet('session',id)).revoked,true);
+  await assert.rejects(()=>repository.authCreate('session',id,{}));
+  for(const method of ['authGet','authCreate','authUpdate'])await assert.rejects(()=>repository[method]('../records','bad',{},{}));
+});
+test('administrator record pages include only intake records and support more than 50 submissions',async()=>{
+  const {repository}=setup();
+  for(let i=0;i<53;i++)await repository.create({id:'property-'+String(i).padStart(3,'0'),status:'draft'});
+  await repository.authCreate('session','a'.repeat(64),{email:'private@example.com'});
+  const first=await repository.records();assert.equal(first.records.length,50);assert.ok(first.cursor);
+  const second=await repository.records(first.cursor);assert.equal(second.records.length,3);assert.equal(second.cursor,null);
+  assert.equal(new Set([...first.records,...second.records].map(r=>r.id)).size,53);
 });

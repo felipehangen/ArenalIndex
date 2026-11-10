@@ -1,10 +1,21 @@
 import {buyerCopy,concerns as localizedConcerns} from './buyer-copy.mjs?v=9-language';
 import * as M from './model.mjs?v=9-language';
 import {renderPhotoTour} from './view.mjs';
+import * as adminClient from '../admin/client.mjs';
 const params=new URLSearchParams(location.hash.slice(1)),id=params.get('id'),token=params.get('token');
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let record,busy=false;
+const isAdmin=location.pathname.startsWith('/admin/');
+let record,busy=false,closed=false,expiryTimer;
+function requireLogin(){
+  closed=true;record=null;clearTimeout(expiryTimer);adminClient.clearSession();
+  $('#review-content').replaceChildren();if($('#sign-out'))$('#sign-out').hidden=true;
+  location.replace(adminClient.loginURL(id));
+}
 async function request(action,body={}){
+  if(isAdmin){
+    try{const result=await adminClient.request(action,{id,...body});if(closed)throw Error('Iniciá sesión para continuar.');return result;}
+    catch(error){if(error.status===401)requireLogin();throw error;}
+  }
   const response=await fetch(ArenalConfig.intakeUrl||'/api/intake',{method:'POST',headers:{'Content-Type':'application/json','X-Review-Token':token},body:JSON.stringify({action,id,...body}),signal:AbortSignal.timeout(30000)});
   const result=await response.json();if(!response.ok)throw Error(result.error||'No se pudo completar la revisión.');return result;
 }
@@ -28,7 +39,8 @@ function render(){
   const gallery=M.photoTour(d).flatMap(section=>section.files);
   const documents=d.files.filter(f=>!gallery.includes(f));
   $('#review-content').innerHTML='<p class="eyebrow">VERSIÓN '+record.version+'</p><h1 translate="no">'+esc(M.reference(d))+'</h1><p class="review-status">'+esc(M.STATES[record.status])+'</p><p>La aprobación corresponde a esta versión. Si el vendedor reabre la ficha, deberá enviarla nuevamente.</p>'+
-    '<section class="field-section"><h2>Contacto para aclaraciones</h2><p translate="no">'+esc(d.values.contact)+' · '+esc(d.values.phone||d.values.email)+'</p><p>'+esc(d.values.email||'')+'</p><p><a target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/?mlat='+encodeURIComponent(d.values.lat)+'&mlon='+encodeURIComponent(d.values.lng)+'#map=17/'+encodeURIComponent(d.values.lat)+'/'+encodeURIComponent(d.values.lng)+'">Ver la entrada en el mapa</a></p></section>'+
+    (record.status==='draft'?'<p class="map-note">Esta ficha sigue en preparación. Los archivos se mostrarán cuando el vendedor complete el envío.</p>':'')+
+    '<section class="field-section"><h2>Contacto para aclaraciones</h2><p translate="no">'+esc(d.values.contact)+' · '+esc(d.values.phone||d.values.email)+'</p><p translate="no">'+esc(d.values.email||'')+'</p><p><a target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/?mlat='+encodeURIComponent(d.values.lat)+'&mlon='+encodeURIComponent(d.values.lng)+'#map=17/'+encodeURIComponent(d.values.lat)+'/'+encodeURIComponent(d.values.lng)+'">Ver la entrada en el mapa</a></p></section>'+
     '<section class="field-section"><h2>Anuncio preparado</h2><div class="buyer-preview" id="buyer-copy" translate="no">'+esc(buyerCopy(d,r))+'</div><p class="map-note">El nombre corto, si se indicó, es una sugerencia del vendedor. Decidí el título definitivo al preparar la ficha pública. La información se atribuye al vendedor salvo las observaciones que ArenalIndex registre expresamente. Recibir documentos y aprobar la publicación no constituyen una verificación profesional.</p></section>'+
     '<section class="field-section"><h2>Condiciones y excepciones</h2><div id="review-concerns">'+(concerns.length?'<ul>'+concerns.map(n=>'<li translate="no">'+esc(n)+'</li>').join('')+'</ul>':'<p>No se agregaron notas de condiciones.</p>')+'</div>'+(d.values.photo_exception?'<p><strong>Fotos pendientes:</strong> <span translate="no">'+esc(d.values.photo_exception)+'</span></p>':'')+'<p translate="no">'+esc(d.values.documents_notes||'')+'</p></section>'+
     '<section class="field-section"><h2>Recorrido de fotografías</h2>'+renderPhotoTour(d)+'</section>'+
@@ -60,8 +72,8 @@ async function decide(action){
   try{
     const result=await request(action,{version:record.version,review,feedback});
     record={...record,...result,review:M.normalizeReview(review)};render();$('#review-message').textContent=action==='approve'?'Versión aprobada para publicar.':'Se guardó la solicitud de cambios. El vendedor la verá al actualizar el estado de su ficha.';
-  }catch(error){$('#review-message').textContent=error.message;}
-  finally{busy=false;if(record.status==='ready_for_review'){$('#review-form fieldset').disabled=false;updateChecks();$('#request-changes').disabled=false;}}
+  }catch(error){if(!closed)$('#review-message').textContent=error.message;}
+  finally{busy=false;if(!closed&&record.status==='ready_for_review'){$('#review-form fieldset').disabled=false;updateChecks();$('#request-changes').disabled=false;}}
 }
 
 function editorial(){return {title:$('#public-title').value,place:$('#public-place').value,description:$('#public-description').value,whatsapp:$('#public-whatsapp').value,language:$('#public-language').value,titleTranslation:$('#public-title-translation').value,descriptionTranslation:$('#public-description-translation').value};}
@@ -83,13 +95,25 @@ async function publishAction(action){
   try{
     const result=await request(action,{version:record.version,publicationRevision:record.publicationRevision||0,editorial:editorial(),confirmed:$('#public-confirm').checked});
     if(preview){preview.sessionStorage.setItem('arenalindex.public-preview',JSON.stringify(result.listing));preview.opener=null;preview.location.replace('/newlisting/preview/');$('#public-message').textContent='Vista previa abierta. Volvé aquí para publicar.';}
-    else {record={...record,...result};render();$('#public-message').textContent=action==='unpublish'?'El anuncio fue retirado del catálogo.':'El anuncio está publicado.';if(result.url){const a=document.createElement('a');a.href=result.url;a.target='_blank';a.rel='noopener';a.textContent=' Abrir anuncio';$('#public-message').append(a);}}
-  }catch(error){preview?.close();$('#public-message').textContent=error.message;}
+    else {record={...record,...result};render();const message=$('#public-message')||$('#review-message');message.textContent=action==='unpublish'?'El anuncio fue retirado del catálogo.':'El anuncio está publicado.';if(result.url){const a=document.createElement('a');a.href=result.url;a.target='_blank';a.rel='noopener';a.textContent=' Abrir anuncio';message.append(a);}}
+  }catch(error){preview?.close();if(!closed)($('#public-message')||$('#review-message')).textContent=error.message;}
   finally{busy=false;document.querySelectorAll('.publication-panel button').forEach(b=>b.disabled=false);if($('#public-publish'))$('#public-publish').disabled=!$('#public-confirm').checked||record.status!=='approved';if($('#public-preview'))$('#public-preview').disabled=record.status!=='approved';}
 }
 
 window.addEventListener('arenal-language-change',()=>{if(!record)return;const review=record.status==='ready_for_review'?checks():record.review||{};const copy=$('#buyer-copy');if(copy)copy.textContent=buyerCopy(record.draft,review);const notes=localizedConcerns(record.draft,review);$('#review-concerns').innerHTML=notes.length?'<ul>'+notes.map(n=>'<li translate="no">'+esc(n)+'</li>').join('')+'</ul>':'<p>No se agregaron notas de condiciones.</p>';});
 try{
-  if(!id||!/^[a-f0-9]{64}$/.test(token||''))throw Error('Abrí el enlace privado que recibiste en el correo de revisión.');
+  if(!/^[a-zA-Z0-9-]{8,80}$/.test(id||''))throw Error('No se encontró la ficha.');
+  if(isAdmin){
+    const identity=await request('session');
+    expiryTimer=setTimeout(requireLogin,Math.max(0,identity.expiresAt-Date.now()));
+    $('#sign-out').hidden=false;
+    $('#sign-out').onclick=async()=>{
+      closed=true;record=null;clearTimeout(expiryTimer);$('#review-content').replaceChildren();$('#sign-out').hidden=true;
+      try{await adminClient.logout();location.replace('/admin/');}
+      catch{$('#review-content').innerHTML='<p>Se cerró el acceso en esta pestaña, pero no se pudo revocar la sesión en el servidor. Vence en un máximo de 8 horas.</p><a href="/admin/">Volver al acceso</a>';}
+    };
+    window.addEventListener('pageshow',event=>{if(event.persisted){$('#review-content').replaceChildren();location.reload();}});
+    window.addEventListener('focus',()=>{if(!adminClient.session())requireLogin();});
+  }else if(!/^[a-f0-9]{64}$/.test(token||''))throw Error('Abrí el enlace privado que recibiste en el correo de revisión.');
   record=await request('review');render();
-}catch(error){$('#review-content').innerHTML='<h1>No se pudo abrir esta revisión.</h1><p>'+esc(error.message)+'</p>';}
+}catch(error){if(!closed)$('#review-content').innerHTML='<h1>No se pudo abrir esta revisión.</h1><p>'+esc(error.message)+'</p>';}

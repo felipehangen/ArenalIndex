@@ -3,7 +3,7 @@ import {createPublication} from './publication.mjs';
 export const digest=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),b=>b.toString(16).padStart(2,'0')).join('');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const summary=row=>({status:row.status,version:row.version,feedback:row.feedback||'',notificationSent:row.notification_sent===true,publishedVersion:row.publication?.version||null,publicationRevision:row.publication_revision||0});
-export function createHandler({repository,mailer,config,now=()=>new Date()}){
+export function createHandler({repository,mailer,config,now=()=>new Date(),authorizeReview}){
   const origins=new Set(config.origins||['https://arenalindex.com','https://www.arenalindex.com']);
   return async request=>{
     const origin=request.headers.get('Origin');
@@ -18,16 +18,21 @@ export function createHandler({repository,mailer,config,now=()=>new Date()}){
       const body=JSON.parse(raw),action=body.action;
       if(action==='health')return respond({ready:!!config.emailReady&&await repository.health()});
       const reviewAction=['review','approve','request_changes','publish','unpublish','preview_publication'].includes(action);
+      const admin=reviewAction&&authorizeReview?await authorizeReview(request):null;
       const token=request.headers.get(reviewAction?'X-Review-Token':'X-Intake-Token')||'';
-      if(!/^[a-f0-9]{64}$/.test(token))fail(401,'El enlace o la autorización no son válidos.');
-      const tokenHash=await digest(token);
+      if(!admin&&!/^[a-f0-9]{64}$/.test(token))fail(401,'El enlace o la autorización no son válidos.');
+      const tokenHash=admin?null:await digest(token);
       const id=action==='prepare'?body.draft?.id:body.id;
       if(!/^[a-zA-Z0-9-]{8,80}$/.test(id||''))fail(400,'Identificador inválido.');
       let row=await repository.get(id);
-      if(reviewAction){
+      if(admin){if(!row)fail(404,'No se encontró la ficha.');}
+      else if(reviewAction){
         if(!row||row.review_token_hash!==tokenHash||!row.review_token_expires||new Date(row.review_token_expires)<=now())fail(403,'El enlace de revisión venció o fue reemplazado por una nueva versión.');
       }else if(row&&row.token_hash!==tokenHash)fail(403,'No se puede acceder a esta ficha.');
-      if(!await repository.allow('token:'+tokenHash,80))fail(429,'Demasiadas solicitudes. Intentá más tarde.');
+      if(!admin&&!await repository.allow('token:'+tokenHash,80))fail(429,'Demasiadas solicitudes. Intentá más tarde.');
+      // Also compare the review-token revision for admins, so a seller reopening
+      // a record cannot race an approval or publication of the old version.
+      const reviewGuard={review_token_hash:admin?row?.review_token_hash:tokenHash};
       if(action==='prepare'){
         if(!config.emailReady)fail(503,'El envío todavía no está habilitado.');
         let payload;
@@ -78,7 +83,8 @@ export function createHandler({repository,mailer,config,now=()=>new Date()}){
         }
       }
       if(action==='review'){
-        const files=await Promise.all(row.payload.files.map(async file=>({...file,url:await repository.downloadURL(id+'/'+row.version+'/'+file.id)})));
+        // Prepared uploads are unverified until submit finishes; do not sign them for review.
+        const files=row.status==='draft'?[]:await Promise.all(row.payload.files.map(async file=>({...file,url:await repository.downloadURL(id+'/'+row.version+'/'+file.id)})));
         return respond({...summary(row),id,draft:{...row.payload,files},review:row.review,editorial:row.editorial||{},copy:buyerCopy(row.payload,row.review),concerns:knownConcerns(row.payload,row.review)});
       }
       if(['publish','unpublish','preview_publication'].includes(action)){
@@ -98,7 +104,7 @@ export function createHandler({repository,mailer,config,now=()=>new Date()}){
           await repository.ensurePublishedIndex(id);
         }
         const editorial=publication?{title:publication.listing.name,place:publication.listing.place,description:publication.listing.description,language:publication.listing.details.language,titleTranslation:publication.listing.details.translations[publication.listing.details.language==='es'?'en':'es'].title||'',descriptionTranslation:publication.listing.details.translations[publication.listing.details.language==='es'?'en':'es'].description||'',whatsapp:publication.listing.details.contact?.whatsapp||''}:row.editorial||{};
-        const updated=await repository.update(id,{version:row.version,status:row.status,review_token_hash:tokenHash,publication_revision:row.publication_revision},{publication,editorial,publication_revision:(row.publication_revision||0)+1});
+        const updated=await repository.update(id,{version:row.version,status:row.status,...reviewGuard,publication_revision:row.publication_revision},{publication,editorial,publication_revision:(row.publication_revision||0)+1,published_by:admin?.email||config.reviewEmail,updated_at:now().toISOString()});
         if(!updated)fail(409,'La ficha cambió. Recargá la revisión antes de publicar.');
         return respond({...summary(updated),editorial,url:publication?config.siteURL+'/#propiedad/'+publication.listing.id:null});
       }
@@ -108,14 +114,14 @@ export function createHandler({repository,mailer,config,now=()=>new Date()}){
         const review=normalizeReview(body.review);
         if(action==='request_changes'){
           if(!feedback)fail(422,'Indicá los cambios necesarios.');
-          const updated=await repository.update(id,{version:row.version,status:'ready_for_review',review_token_hash:tokenHash},{status:'changes_requested',review,feedback,reviewed_at:now().toISOString(),reviewed_by:config.reviewEmail});
+          const updated=await repository.update(id,{version:row.version,status:'ready_for_review',...reviewGuard},{status:'changes_requested',review,feedback,reviewed_at:now().toISOString(),reviewed_by:admin?.email||config.reviewEmail,updated_at:now().toISOString()});
           if(!updated)fail(409,'La ficha cambió durante la revisión.');
           return respond(summary(updated));
         }
 
         const issues=pending(row.payload,{publication:true,review});
         if(issues.length)fail(422,'Antes de aprobar: '+issues.map(i=>i.label).join(', '));
-        const updated=await repository.update(id,{version:row.version,status:'ready_for_review',review_token_hash:tokenHash},{status:'approved',review,feedback,reviewed_at:now().toISOString(),reviewed_by:config.reviewEmail,updated_at:now().toISOString()});
+        const updated=await repository.update(id,{version:row.version,status:'ready_for_review',...reviewGuard},{status:'approved',review,feedback,reviewed_at:now().toISOString(),reviewed_by:admin?.email||config.reviewEmail,updated_at:now().toISOString()});
         if(!updated)fail(409,'La ficha cambió durante la revisión.');
         return respond(summary(updated));
       }

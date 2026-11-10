@@ -3,6 +3,10 @@ import {createHash} from 'node:crypto';
 
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const conflict=error=>error instanceof blob.BlobPreconditionFailedError||/already exists/i.test(error.message);
+const authPath=(kind,id)=>{
+  if(!['challenge','session'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid auth key');
+  return 'admin/'+kind+'/'+id+'.json';
+};
 // Fresh reads plus conditional writes keep approvals tied to one immutable version.
 export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
   const auth={...(storeId?{storeId}:{}),...(token?{token}:{})};
@@ -28,6 +32,26 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now}={}){
     return (await sdk.presignUrl(delegation,{access:'private',pathname:path,operation,validUntil,...constraints,...(file?{allowOverwrite:false,addRandomSuffix:false}:{useCache:false})})).presignedUrl;
   }
   return {
+    async authCreate(kind,id,row){
+      const result=await write(authPath(kind,id),row,null,{ttlDays:1});
+      if(!result)throw Error('Could not create auth record');return result;
+    },
+    async authGet(kind,id){return (await read(authPath(kind,id)))?.row||null;},
+    async authUpdate(kind,id,filters,patch){
+      const path=authPath(kind,id),current=await read(path);
+      if(!current||Object.entries(filters).some(([key,value])=>current.row[key]!==value))return null;
+      return write(path,{...current.row,...patch},current.etag,{ttlDays:1});
+    },
+    async records(cursor){
+      const page=await sdk.list({...auth,prefix:'records/',limit:50,...(cursor?{cursor}:{})});
+      const ids=page.blobs.map(item=>item.pathname.match(/^records\/([a-zA-Z0-9-]{8,80})\.json$/)?.[1]).filter(Boolean);
+      const records=[];
+      for(let offset=0;offset<ids.length;offset+=10){
+        const batch=await Promise.all(ids.slice(offset,offset+10).map(async id=>(await read('records/'+id+'.json'))?.row));
+        records.push(...batch.filter(Boolean));
+      }
+      return {records,cursor:page.hasMore?page.cursor:null};
+    },
     async ensurePublishedIndex(id){
       const path='published/'+id+'.json';
       if(await read(path))return;

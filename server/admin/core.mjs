@@ -1,0 +1,81 @@
+import {randomBytes,createHash} from 'node:crypto';
+import {reference} from '../../site/newlisting/model.mjs';
+import {createHandler} from '../intake/core.mjs';
+
+const hash=value=>createHash('sha256').update(value).digest('hex');
+const secret=()=>randomBytes(32).toString('hex');
+const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
+const reviewActions=new Set(['review','approve','request_changes','preview_publication','publish','unpublish']);
+export function recordSummary(row){
+  const values=row.payload?.values||{};
+  return {id:row.id,title:row.editorial?.title||values.listing_title||reference(row.payload),
+    contact:values.contact||'',email:values.email||'',price:Number(values.price)||null,currency:values.currency||'USD',
+    area:Number(values.area)||null,status:row.status,version:row.version,updatedAt:row.updated_at||null,
+    publishedVersion:row.publication?.version||null,publicId:row.publication?.listing?.id||null,
+    notificationSent:row.notification_sent===true};
+}
+export function createAdminHandler({repository,verifyGoogle,config,now=()=>new Date()}){
+  const origins=new Set(config.origins||['https://arenalindex.com','https://www.arenalindex.com']);
+  const allowed=new Set((config.adminEmails||[]).map(email=>email.trim().toLowerCase()).filter(Boolean));
+  const configured=!!config.googleClientId&&allowed.size>0;
+  return async request=>{
+    const origin=request.headers.get('Origin');
+    const headers={'Content-Type':'application/json','Cache-Control':'no-store','Vary':'Origin','X-Content-Type-Options':'nosniff','X-Robots-Tag':'noindex, nofollow'};
+    if(origin&&origins.has(origin))headers['Access-Control-Allow-Origin']=origin;
+    const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
+    if(origin&&!origins.has(origin))return json({error:'Origen no autorizado.'},403);
+    if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'content-type,authorization'}});
+    if(request.method!=='POST')return json({error:'Método no permitido.'},405);
+    try{
+      const raw=await request.text();if(raw.length>250000)fail(413,'Solicitud demasiado grande.');
+      const body=JSON.parse(raw);if(!body||typeof body!=='object'||Array.isArray(body))fail(400,'Solicitud inválida.');
+      const {action}=body;
+      if(action==='config')return json({configured,clientId:configured?config.googleClientId:null});
+      if(!configured)fail(503,'El acceso con Google todavía no está configurado.');
+      if(action==='challenge'||action==='login'){
+        const ip=request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'unknown';
+        if(!await repository.allow('admin-login:'+hash(ip+config.rateSalt),30))fail(429,'Demasiados intentos. Intentá más tarde.');
+        if(action==='challenge'){
+          const nonce=secret();await repository.authCreate('challenge',hash(nonce),{used:false,expiresAt:now().getTime()+10*60000});
+          return json({nonce});
+        }
+        if(!/^[a-f0-9]{64}$/.test(body.nonce||'')||typeof body.credential!=='string'||body.credential.length>10000)fail(401,'No se pudo verificar el acceso con Google.');
+        const challenge=await repository.authGet('challenge',hash(body.nonce));
+        if(!challenge||challenge.used||challenge.expiresAt<=now().getTime())fail(401,'El inicio de sesión venció. Intentá de nuevo.');
+        let identity;try{identity=await verifyGoogle(body.credential,body.nonce);}catch{fail(401,'No se pudo verificar el acceso con Google.');}
+        if(!allowed.has(identity.email))fail(403,'Esta cuenta no tiene acceso de administrador.');
+        if(!await repository.authUpdate('challenge',hash(body.nonce),{used:false},{used:true}))fail(401,'El inicio de sesión ya se utilizó. Intentá de nuevo.');
+        const token=secret(),expiresAt=now().getTime()+8*3600000;
+        await repository.authCreate('session',hash(token),{...identity,expiresAt,revoked:false});
+        return json({token,email:identity.email,expiresAt});
+      }
+      const token=request.headers.get('Authorization')?.match(/^Bearer ([a-f0-9]{64})$/)?.[1];
+      if(!token)fail(401,'Iniciá sesión para continuar.');
+      const session=await repository.authGet('session',hash(token));
+      if(!session||session.revoked||session.expiresAt<=now().getTime()||!allowed.has(session.email))fail(401,'Tu sesión venció. Volvé a entrar con Google.');
+      if(!await repository.allow('admin-session:'+hash(token),300))fail(429,'Demasiadas solicitudes. Intentá más tarde.');
+      if(action==='logout'){
+        const revoked=await repository.authUpdate('session',hash(token),{revoked:false},{revoked:true});
+        if(!revoked&&!(await repository.authGet('session',hash(token)))?.revoked)fail(503,'No se pudo cerrar la sesión. Intentá de nuevo.');
+        return json({signedOut:true});
+      }
+      if(action==='session')return json({email:session.email,expiresAt:session.expiresAt});
+      if(action==='list'){
+        if(body.cursor!==undefined&&(typeof body.cursor!=='string'||body.cursor.length>2000))fail(400,'Página inválida.');
+        const page=await repository.records(body.cursor);
+        return json({records:page.records.map(recordSummary),cursor:page.cursor});
+      }
+      if(reviewActions.has(action)){
+        // Identity is passed through a server-only closure; headers cannot grant this privilege.
+        const handler=createHandler({repository,config,now,authorizeReview:async()=>session});
+        const delegated=new Request(request.url,{method:'POST',headers:request.headers,body:raw});
+        const response=await handler(delegated);
+        for(const [key,value] of Object.entries(headers))response.headers.set(key,value);
+        return response;
+      }
+      fail(400,'Acción no reconocida.');
+    }catch(error){
+      return json({error:error.status?error.message:error instanceof SyntaxError?'Solicitud inválida.':'No se pudo completar la operación. Intentá de nuevo.'},error.status||(error instanceof SyntaxError?400:500));
+    }
+  };
+}
