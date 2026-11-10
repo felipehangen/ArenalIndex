@@ -20,7 +20,7 @@ export function createPublicHandler(repository,{catalog,defer}={}){
         return new Response(null,{status:307,headers:{...headers,Location:location}});
       }
       if(url.searchParams.has('account')){
-        const page=await publicAccountPage(repository,url.searchParams.get('account'));
+        const page=await publicAccountPage(repository,url.searchParams.get('account'),{catalog});
         return page?json(page):json({error:'Esta página no está disponible.'},404);
       }
       if(url.searchParams.has('catalog')&&catalog){

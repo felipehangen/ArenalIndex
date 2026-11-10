@@ -20,8 +20,8 @@ export function createCatalog({repository,supplemental=[],fetcher=fetch,now=()=>
   async function read(){const [rows,state]=await Promise.all([base(),repository.catalogState()]);return {rows,state};}
   const summary=(row,d={})=>({id:row.id,source:'demo',isDemo:true,title:row.name,contact:row.details?.contact?.name||'',email:row.details?.contact?.email||'',price:Number(row.price),area:Number(row.area),currency:row.currency||'USD',status:d.status==='unlisted'?'approved':'published',publishedVersion:d.status==='unlisted'?null:1,withdrawn:d.status==='unlisted',publicId:row.id,version:1,publicationRevision:d.revision||0,updatedAt:d.updatedAt||null});
   return {
-    async published(){const {rows,state}=await read();return rows.filter(r=>!['deleted','unlisted'].includes(state[r.id]?.status)).map(r=>apply(r,state[r.id]));},
-    async list(){const {rows,state}=await read();return rows.filter(r=>r.is_demo===true&&state[r.id]?.status!=='deleted').map(r=>summary(apply(r,state[r.id]),state[r.id]));},
+    async published(ownerSubject){const {rows,state}=await read();return rows.filter(r=>!['deleted','unlisted'].includes(state[r.id]?.status)&&(!ownerSubject||r.is_demo===true&&state[r.id]?.ownerSubject===ownerSubject)).map(r=>apply(r,state[r.id]));},
+    async list(ownerSubject){const {rows,state}=await read();return rows.filter(r=>r.is_demo===true&&state[r.id]?.status!=='deleted'&&(!ownerSubject||state[r.id]?.ownerSubject===ownerSubject)).map(r=>summary(apply(r,state[r.id]),state[r.id]));},
     async action(action,body,actor){
       if(!/^lot-[0-9]{1,6}$/.test(body.id||''))fail(400,'Identificador inválido.');
       const {rows,state}=await read(),original=rows.find(r=>r.id===body.id&&r.is_demo===true),previous=state[body.id]||{};
@@ -29,8 +29,15 @@ export function createCatalog({repository,supplemental=[],fetcher=fetch,now=()=>
       const row=apply(original,previous);
       if(action==='catalog_open')return {listing:row,revision:previous.revision||0};
       if(body.revision!==(previous.revision||0))fail(409,'El anuncio cambió. Actualizá la lista antes de continuar.');
-      let patch=previous.patch||{},status=previous.status||'published';
-      if(action==='catalog_update'){
+      let patch=previous.patch||{},status=previous.status||'published',assignment={};
+      if(action==='catalog_assign'){
+        if(!/^[a-f0-9]{64}$/.test(body.accountId||''))fail(400,'Cuenta inválida.');
+        const account=await repository.portalGet('accounts',body.accountId);
+        if(!account?.active||!account.name?.trim())fail(422,'La cuenta debe estar activa y tener nombre.');
+        if(previous.ownerSubject&&previous.ownerSubject!==account.subject)fail(409,'El anuncio ya está asignado a otra cuenta.');
+        assignment={ownerSubject:account.subject,assignedAt:now().toISOString(),assignedBy:actor.email};
+      }
+      else if(action==='catalog_update'){
         const input=body.listing||{},titles={es:String(input.titleEs||'').trim(),en:String(input.titleEn||'').trim()};
         if(!titles.es&&!titles.en||Object.values(titles).some(t=>t.length>45))fail(422,'Agregá un título de hasta 45 caracteres.');
         if(!['USD','CRC'].includes(input.currency)||!Number.isFinite(Number(input.price))||Number(input.price)<0||!Number.isFinite(Number(input.area))||Number(input.area)<=0||Number(input.area)>999999999)fail(422,'Revisá el precio, la moneda y el área.');
@@ -44,7 +51,7 @@ export function createCatalog({repository,supplemental=[],fetcher=fetch,now=()=>
       else if(action==='catalog_unlist')status='unlisted';
       else if(action==='catalog_publish')status='published';
       else fail(400,'Acción no reconocida.');
-      const decision={status,patch,revision:(previous.revision||0)+1,updatedAt:now().toISOString(),updatedBy:actor.email};
+      const decision={...previous,...assignment,status,patch,revision:(previous.revision||0)+1,updatedAt:now().toISOString(),updatedBy:actor.email};
       if(!await repository.catalogUpdate(body.id,previous.revision||0,decision))fail(409,'El catálogo cambió. Actualizá la lista antes de continuar.');
       return {saved:true,revision:decision.revision};
     }

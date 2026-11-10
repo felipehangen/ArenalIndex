@@ -1,5 +1,6 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Demo de prueba": "Test demo",
   "Contacto ArenalIndex": "Contact ArenalIndex",
   "Propiedades de": "Properties from",
   "Contacto de venta en cada anuncio.": "Sales contact on each listing.",

@@ -31,7 +31,7 @@ test('public endpoint scopes all pages by immutable ownership and returns only c
       {owner_subject:account.subject,status:'deleted',publication:{listing:{...listing,id:'deleted-property'}}}
     ],cursor:'next'}:{records:[{owner_subject:account.subject,status:'approved',publication:{listing:{...listing,id:'second-property'}}}],cursor:null};
   },published:async()=>{throw Error('Must not fetch full catalog');}};
-  const handler=createPublicHandler(repository,{catalog:{published:async()=>{throw Error('Must not fetch demos');}}});
+  const handler=createPublicHandler(repository,{catalog:{published:async subject=>{assert.equal(subject,account.subject);return [];}}});
   const response=await request(handler),data=await response.json();
   assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'no-store');
   assert.deepEqual(data.listings.map(row=>row.id),[listing.id,'second-property']);

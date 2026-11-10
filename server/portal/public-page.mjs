@@ -24,7 +24,7 @@ export function publicAccountProfile(account){
   const key=publicAccountKey(account),slug=account.public_slug||slugBase(account);
   return {key,slug,name:account.name,url:'https://go.arenalindex.com/collection/'+slug+'/'};
 }
-export async function publicAccountPage(repository,key){
+export async function publicAccountPage(repository,key,{catalog}={}){
   if(!/^[a-z0-9][a-z0-9-]{0,99}$/.test(key||''))return null;
   const matches=(await repository.ownerAccounts()).filter(account=>publicAccountKey(account)===key||account.public_slug===key);
   if(matches.length!==1)return null;
@@ -43,5 +43,8 @@ export async function publicAccountPage(repository,key){
     if(cursor&&cursors.has(cursor))throw Error('Repeated account cursor');
     cursors.add(cursor);
   }while(cursor);
+  if(catalog)for(const listing of await catalog.published(account.subject)){
+    if(listing.is_demo===true&&!seen.has(listing.id)){seen.add(listing.id);listings.push(withShareURL(listing));}
+  }
   return {account:profile,listings};
 }

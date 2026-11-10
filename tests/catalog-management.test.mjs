@@ -4,6 +4,8 @@ import {createCatalog} from '../server/catalog/core.mjs';
 import {createAdminHandler} from '../server/admin/core.mjs';
 import {createPublicHandler} from '../server/intake/public.mjs';
 import {portalFixture} from './portal-fixture.mjs';
+import {createOwnerHandler} from '../server/portal/core.mjs';
+import {renderRows} from '../site/admin/view.mjs';
 import {approvedRow,editorial} from './publication-fixture.mjs';
 import {createPublication} from '../server/intake/publication.mjs';
 const demo={id:'lot-1',is_demo:true,name:'Terreno de prueba',place:'La Fortuna',price:10000,currency:'USD',area:1000,details:{schemaVersion:1,language:'es',translations:{en:{title:'Test land'}}}};
@@ -14,6 +16,41 @@ function catalogFixture(){
  const catalog=createCatalog({repository:e.repository,fetcher:async(url,options)=>{calls.push({url,options});return Response.json([demo]);}});
  return {...e,state,catalog,calls};
 }
+test('assigned demos appear only for their account, keep catalog edits and never expose private ownership',async()=>{
+ const e=catalogFixture(),admin=await e.adminSession();
+ await e.call('create_account',{email:'broker@gmail.com',name:'Broker Demo'},admin,'admin');
+ await e.call('create_account',{email:'other@gmail.com',name:'Other Broker'},admin,'admin');
+ const accounts=(await e.call('owner_accounts',{},admin,'admin')).body.accounts;
+ const account=accounts.find(row=>row.email==='broker@gmail.com'),other=accounts.find(row=>row.email==='other@gmail.com');
+ const stored=await e.repository.portalGet('accounts',account.id),actor={email:'admin@gmail.com'};
+ const before=await e.catalog.published();
+ await e.catalog.action('catalog_assign',{id:demo.id,revision:0,accountId:account.id},actor);
+ assert.deepEqual(await e.catalog.published(),before);
+ assert.equal((await e.catalog.published(stored.subject)).length,1);
+ assert.equal((await e.catalog.published('unrelated-subject')).length,0);
+ assert.equal((await e.catalog.list('unrelated-subject')).length,0);
+ assert.equal(JSON.stringify(await e.catalog.published()).includes(stored.subject),false);
+ await assert.rejects(e.catalog.action('catalog_assign',{id:demo.id,revision:0,accountId:account.id},actor),{status:409});
+ await assert.rejects(e.catalog.action('catalog_assign',{id:demo.id,revision:1,accountId:other.id},actor),{status:409});
+ const pub=createPublicHandler(e.repository,{catalog:e.catalog});
+ const response=await pub(new Request('https://api.example/listings?account='+account.publicPage.slug));
+ assert.equal(response.status,200);assert.equal((await response.json()).listings[0].id,demo.id);
+ const login=await e.login('broker'),owner=createOwnerHandler({...e.options,catalog:e.catalog});
+ const send=action=>owner(new Request('https://api.example/owner',{method:'POST',headers:{Authorization:'Bearer '+login.body.token},body:JSON.stringify({action})}));
+ const list=(await (await send('list')).json()).records;
+ assert.equal(list.length,1);assert.equal(list[0].collectionSlug,'broker-demo');
+ assert.equal((await send('catalog_assign')).status,400);
+ globalThis.window={};try{
+  const html=renderRows(list,{owner:true});assert.match(html,/collection\/broker-demo\/#propiedad\/lot-1/);
+  assert.doesNotMatch(html,/data-unlist|data-row-action|newlisting/);assert.match(html,/Demo de prueba/);
+ }finally{delete globalThis.window;}
+ await e.catalog.action('catalog_unlist',{id:demo.id,revision:1},actor);
+ assert.equal(e.state[demo.id].ownerSubject,stored.subject);assert.equal((await e.catalog.published(stored.subject)).length,0);
+ await e.catalog.action('catalog_publish',{id:demo.id,revision:2},actor);
+ assert.equal((await e.catalog.published(stored.subject)).length,1);
+ await e.catalog.action('catalog_delete',{id:demo.id,revision:3,confirmation:'DELETE'},actor);
+ assert.equal((await e.catalog.published(stored.subject)).length,0);assert.equal((await e.catalog.list(stored.subject)).length,0);
+});
 test('demo unlisting, editing, republication and deletion govern both the admin and public catalog',async()=>{
  const e=catalogFixture(),actor={email:'admin@gmail.com'};
  assert.equal((await e.catalog.list())[0].isDemo,true);assert.equal((await e.catalog.published()).length,1);

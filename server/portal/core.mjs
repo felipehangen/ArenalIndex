@@ -7,7 +7,7 @@ import {rulesIdentity,hasAcceptedRules,acceptListingRules} from './listing-rules
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const secret=()=>randomBytes(32).toString('hex');
-export function createOwnerHandler({repository,verifyGoogle,config,mailer,now=()=>new Date()}){
+export function createOwnerHandler({repository,catalog,verifyGoogle,config,mailer,now=()=>new Date()}){
   const origins=new Set(config.origins||['https://arenalindex.com','https://www.arenalindex.com']);
   return async request=>{
     const origin=request.headers.get('Origin'),headers={'Content-Type':'application/json','Cache-Control':'no-store','Vary':'Origin','X-Robots-Tag':'noindex, nofollow','X-Content-Type-Options':'nosniff'};
@@ -70,7 +70,9 @@ export function createOwnerHandler({repository,verifyGoogle,config,mailer,now=()
       if(action==='health')return json({ready:config.emailReady});
       if(action==='list'){
         if(body.cursor!==undefined&&(typeof body.cursor!=='string'||body.cursor.length>2000))fail(400,'Página inválida.');
-        const page=await repository.ownerRecords(session.subject,body.cursor);return json({records:page.records.filter(row=>row.status!=='deleted').map(recordSummary),cursor:page.cursor});
+        const [page,demos]=await Promise.all([repository.ownerRecords(session.subject,body.cursor),!body.cursor&&catalog?catalog.list(session.subject):[]]);
+        const profile=publicAccountProfile(account);
+        return json({records:[...page.records.filter(row=>row.status!=='deleted').map(recordSummary),...demos.map(row=>({...row,collectionSlug:profile?.slug||null}))],cursor:page.cursor});
       }
       if(['workspace_open','workspace_claim','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen','workspace_unlist'].includes(action))return json(await workspaceAction({action,body,actor:session,repository,config,mailer,now}));
       fail(400,'Acción no reconocida.');
