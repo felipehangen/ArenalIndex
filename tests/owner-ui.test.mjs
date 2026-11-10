@@ -58,7 +58,7 @@ test('a delayed password response cannot restore a session after the login flow 
 });
 test('the admin creates a temporary password without storing it in an account list; logout clears the one-time output',async()=>{
   const e=setup({owner:false,signedIn:true});await e.controller.ready;mountAccounts({document:e.document,window:e.window,api:e.api});
-  const form=e.$('#create-owner-account');form.querySelector('[name=email]').value='owner@example.com';form.querySelector('[name=password]').value='Temporary password 123';
+  const form=e.$('#create-owner-account');form.querySelector('[name=name]').value='Owner';form.querySelector('[name=email]').value='owner@example.com';form.querySelector('[name=password]').value='Temporary password 123';
   await form.onsubmit(event);
   assert.equal(form.querySelector('[name=password]').value,'');assert.match(e.$('#owner-accounts output').textContent,/Temporary password 123/);
   assert.doesNotMatch(e.$('[data-accounts]').textContent,/Temporary password 123/);assert.match(e.$('[data-accounts]').textContent,/owner@example.com/);
@@ -67,9 +67,9 @@ test('the admin creates a temporary password without storing it in an account li
 test('admin registration accepts an email without a password, and the interface uses neutral account language',async()=>{
   const e=setup({owner:false,signedIn:true});await e.controller.ready;mountAccounts({document:e.document,window:e.window,api:e.api});
   assert.equal(e.$('#invitations'),null);assert.match(e.$('#owner-accounts summary').textContent,/Cuentas y acceso/);
-  const form=e.$('#create-owner-account');form.querySelector('[name=email]').value='broker@example.com';
+  const form=e.$('#create-owner-account');form.querySelector('[name=name]').value='Arenal Homes';form.querySelector('[name=email]').value='broker@example.com';
   assert.equal(form.querySelector('[name=password]').hasAttribute('required'),false);await form.onsubmit(event);
-  assert.deepEqual(e.calls.find(c=>c.action==='create_account').body,{email:'broker@example.com'});assert.equal(e.calls.some(c=>c.action==='set_owner_password'),false);
+  assert.deepEqual(e.calls.find(c=>c.action==='create_account').body,{email:'broker@example.com',name:'Arenal Homes'});assert.equal(e.calls.some(c=>c.action==='set_owner_password'),false);
   assert.equal(e.$('#owner-accounts output').hidden,true);assert.match(e.$('#owner-accounts [role=status]').textContent,/entrar con Google/);e.controller.destroy();
 });
 test('Google sign-in has no invitation field or code payload, and links use the neutral account routes',async()=>{
@@ -113,4 +113,19 @@ test('a delayed acceptance response cannot reopen an account after leaving the s
   }});await e.controller.ready;e.$('#rules-accept').checked=true;
   const pending=e.$('#rules-form').onsubmit(event);await e.$('#sign-out').onclick();resolve({accepted:true});await pending;
   assert.equal(e.$('#inbox').hidden,true);assert.equal(e.api.session(),null);e.controller.destroy();
+});
+
+
+test('admin edits an escaped account name inline and retains the draft on save error',async()=>{
+  let name='Homes <Arenal>',version=1,reject=true;
+  const e=setup({owner:false,signedIn:true,handler:(action,body)=>{
+    if(action==='owner_accounts')return {accounts:[{id:'c'.repeat(64),email:'owner@example.com',name,nameVersion:version,active:true}]};
+    if(action==='set_owner_name'){if(reject)throw Error('Save failed');name=body.name;version++;return {updated:true};}
+  }});await e.controller.ready;mountAccounts({document:e.document,window:e.window,api:e.api});
+  await e.$('[data-refresh-accounts]').onclick();
+  const list=e.$('[data-accounts]');assert.equal(list.querySelector('strong').textContent,'Homes <Arenal>');assert.equal(list.querySelector('arenal'),null);
+  await list.onclick({target:e.$('[data-edit-name]')});const editor=e.$('[data-name-form]');assert.equal(editor.hidden,false);editor.querySelector('input').value='New Name';
+  await list.onsubmit({...event,target:editor});assert.equal(editor.querySelector('input').value,'New Name');assert.equal(editor.querySelector('[type=submit]').disabled,false);assert.match(e.$('#owner-accounts [role=status]').textContent,/Save failed/);
+  reject=false;await list.onsubmit({...event,target:editor});assert.equal(list.querySelector('strong').textContent,'New Name');assert.equal(e.$('[data-name-form]').hidden,true);
+  assert.deepEqual(e.calls.find(c=>c.action==='set_owner_name').body,{id:'c'.repeat(64),name:'New Name',nameVersion:1});e.controller.destroy();
 });

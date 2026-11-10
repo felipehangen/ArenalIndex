@@ -8,6 +8,10 @@ Drafts can be saved with missing fields. Submitting requires the form checklist,
 
 Clicking a real listing opens its editor. The editor toolbar groups save, preview and the applicable review/publication step; secondary actions live in More actions. Admin listing actions are also grouped in each row. Approval/publication opens the existing review in a same-origin dialog and uses the same protected endpoints and validation. Deletion requires typing DELETE or BORRAR (checked by the UI and server) and is guarded by version, edit revision, and publication revision. A deleted record becomes an inaccessible tombstone with empty payload and no publication; existing private media objects are not physically purged by this listing-management action.
 
+## Account names
+
+The admin account form requires a name (1–100 characters) in addition to the email. Account rows show the name and email, with an inline Edit name action. Older accounts without a name still display their email and can be named from the same list. API calls that omit the name preserve existing names for compatibility. Name edits are administrator-only and version-checked; changing a name preserves account identity, listing ownership, sessions, passwords and recorded rule acceptance. Names are stored as plain text and never translated. This change does not create public profile pages or URL slugs. Deploy the API before the frontend.
+
 ## Demo listings
 
 Supabase remains the read-only public source for seeded demo data. The admin API lists its demo records alongside intake submissions. Demo edits, unlisting, and deletion are saved as private decisions in `catalog/decisions.json` in the existing Vercel Blob store, with ETag and per-record revision checks. These decisions do not modify the Supabase seed rows. Deletion is permanent in the application; a seed refresh cannot silently restore it.

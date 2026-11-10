@@ -3,7 +3,7 @@ import {esc} from './view.mjs';
 export function mountAccounts({document=globalThis.document,window=globalThis.window,api=client}={}){
   const panel=document.querySelector('#owner-accounts');if(!panel)return;
   const t=text=>window.ArenalI18n?.t(text)||text,token=api.session()?.token,valid=()=>token&&api.session()?.token===token;
-  const form=panel.querySelector('form'),email=form.querySelector('[name=email]'),password=form.querySelector('[name=password]'),output=panel.querySelector('output'),message=panel.querySelector('[role=status]'),list=panel.querySelector('[data-accounts]');
+  const form=panel.querySelector('form'),name=form.querySelector('[name=name]'),email=form.querySelector('[name=email]'),password=form.querySelector('[name=password]'),output=panel.querySelector('output'),message=panel.querySelector('[role=status]'),list=panel.querySelector('[data-accounts]');
   let loaded=false,loading=false;
   const acceptance=row=>{
     if(!row.rulesAccepted||!row.rulesAcceptance)return '<span class="rules-receipt">'+t('Reglas: aceptación pendiente')+'</span>';
@@ -15,7 +15,7 @@ export function mountAccounts({document=globalThis.document,window=globalThis.wi
     if(loading||!valid())return;loading=true;list.setAttribute('aria-busy','true');
     try{
       const {accounts}=await api.request('owner_accounts');if(!valid())return;
-      list.innerHTML=accounts.map(row=>'<div class="account-row"><div><strong translate="no">'+esc(row.email)+'</strong><span>'+['Google',row.password?t(row.temporaryPassword?'Contraseña temporal':'Contraseña'):''].filter(Boolean).join(' · ')+'</span>'+acceptance(row)+'</div><span>'+t(row.active?'Activa':'Desactivada')+'</span><button class="quiet" data-account="'+esc(row.id)+'" data-active="'+!row.active+'">'+t(row.active?'Desactivar':'Activar')+'</button></div>').join('')||'<p>'+t('Todavía no hay cuentas registradas.')+'</p>';loaded=true;
+      list.innerHTML=accounts.map(row=>'<div class="account-row"><div><strong translate="no">'+esc(row.name||row.email)+'</strong>'+(row.name?'<span translate="no">'+esc(row.email)+'</span>':'')+'<form hidden class="access-form account-name-form" data-name-form="'+esc(row.id)+'" data-name-version="'+(row.nameVersion||0)+'"><label>'+t('Nombre de la cuenta')+'<input name="name" required maxlength="100" translate="no" value="'+esc(row.name||'')+'"></label><div><button type="submit" class="quiet">'+t('Guardar nombre')+'</button> <button type="button" class="quiet" data-cancel-name>'+t('Cancelar')+'</button></div></form><span>'+['Google',row.password?t(row.temporaryPassword?'Contraseña temporal':'Contraseña'):''].filter(Boolean).join(' · ')+'</span>'+acceptance(row)+'</div><span>'+t(row.active?'Activa':'Desactivada')+'</span><button class="quiet" data-edit-name>'+t('Editar nombre')+'</button><button class="quiet" data-account="'+esc(row.id)+'" data-active="'+!row.active+'">'+t(row.active?'Desactivar':'Activar')+'</button></div>').join('')||'<p>'+t('Todavía no hay cuentas registradas.')+'</p>';loaded=true;
     }catch(error){if(valid())message.textContent=t(error.message);}finally{loading=false;list.setAttribute('aria-busy','false');}
   }
   panel.ontoggle=()=>{if(panel.open&&!loaded)refresh();};
@@ -25,12 +25,20 @@ export function mountAccounts({document=globalThis.document,window=globalThis.wi
   form.onsubmit=async event=>{
     event.preventDefault();const button=form.querySelector('button[type=submit]'),value=password.value;button.disabled=true;output.textContent='';output.hidden=true;message.textContent='';
     try{
-      const result=await api.request(value?'set_owner_password':'create_account',{email:email.value.trim(),...(value?{password:value}:{})});if(!valid())return;
+      const result=await api.request(value?'set_owner_password':'create_account',{email:email.value.trim(),name:name.value.trim(),...(value?{password:value}:{})});if(!valid())return;
       password.value='';if(value){output.textContent=result.email+'\n'+value;output.hidden=false;}
       message.textContent=t(result.active===false?'Acceso guardado. La cuenta sigue desactivada; activala en la lista de accesos.':!value?'Correo registrado. Ya puede entrar con Google usando ese correo.':'Cuenta lista. Copiá el correo y la contraseña temporal para compartirlos en privado. No se envía ningún correo automáticamente.');await refresh();
     }catch(error){if(valid())message.textContent=t(error.message);}finally{button.disabled=false;}
   };
+  list.onsubmit=async event=>{
+    const editor=event.target.closest('[data-name-form]');if(!editor)return;event.preventDefault();if(!valid())return;
+    const button=editor.querySelector('[type=submit]');button.disabled=true;message.textContent='';
+    try{await api.request('set_owner_name',{id:editor.dataset.nameForm,name:editor.querySelector('[name=name]').value.trim(),nameVersion:Number(editor.dataset.nameVersion)});if(valid()){message.textContent=t('Nombre guardado.');await refresh();}}
+    catch(error){if(valid())message.textContent=t(error.message);}finally{button.disabled=false;}
+  };
   list.onclick=async event=>{
+    const edit=event.target.closest('[data-edit-name]'),cancel=event.target.closest('[data-cancel-name]');
+    if(edit||cancel){const row=(edit||cancel).closest('.account-row'),editor=row.querySelector('[data-name-form]');editor.hidden=!!cancel;row.querySelector('[data-edit-name]').hidden=!!edit;if(edit)editor.querySelector('input').focus();else{editor.reset();row.querySelector('[data-edit-name]').focus();}return;}
     const button=event.target.closest('[data-account]');if(!button||!valid())return;button.disabled=true;
     try{await api.request('set_owner_active',{id:button.dataset.account,active:button.dataset.active==='true'});if(valid())await refresh();}
     catch(error){if(valid()){message.textContent=t(error.message);button.disabled=false;}}

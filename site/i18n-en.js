@@ -1,5 +1,10 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Nombre de la cuenta": "Account name",
+  "Editar nombre": "Edit name",
+  "Guardar nombre": "Save name",
+  "Nombre guardado.": "Name saved.",
+  "Ingresá un nombre de entre 1 y 100 caracteres.": "Enter a name between 1 and 100 characters.",
   "Estadísticas": "Analytics",
   "Recursos": "Resources",
   "Arenal Index · exploración de propiedades": "Arenal Index · explore properties",

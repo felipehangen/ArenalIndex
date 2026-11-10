@@ -58,7 +58,7 @@ export function createAdminHandler({repository,verifyGoogle,config,mailer,resolv
       if(action==='session')return json({email:session.email,expiresAt:session.expiresAt});
       if(action==='analytics')return json(await analyticsReport({repository,catalog,body,now:now()}));
       if(action==='health')return json({ready:config.emailReady});
-      if(['create_account','owner_accounts','set_owner_password','set_owner_active'].includes(action))return json(await accountAdminAction({action,body,repository,actor:session,now}));
+      if(['create_account','owner_accounts','set_owner_password','set_owner_active','set_owner_name'].includes(action))return json(await accountAdminAction({action,body,repository,actor:session,now}));
       if(['workspace_open','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen_owner','workspace_unlist','workspace_delete'].includes(action))return json(await workspaceAction({action,body,actor:{...session,role:'admin'},repository,config,mailer,now}));
       if(typeof action==='string'&&action.startsWith('catalog_')&&catalog)return json(await catalog.action(action,body,session));
       if(action==='list'){

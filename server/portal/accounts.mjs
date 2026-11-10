@@ -24,19 +24,30 @@ export async function googleAccount(repository,identity){
   }
   return account;
 }
-async function ensureAccount(repository,email,actor,now){
+async function ensureAccount(repository,email,actor,now,name){
   let account=await findAccount(repository,email),created=false;
   if(!account){
     const subject='email-'+randomBytes(24).toString('hex');
     const index=await repository.portalCreate('emails',hash(email),{email,subject})||await repository.portalGet('emails',hash(email));
     account=await repository.portalGet('accounts',hash(index.subject));
-    if(!account){created=!!await repository.portalCreate('accounts',hash(index.subject),{subject:index.subject,email,active:true,createdAt:now().toISOString(),createdBy:actor.email});account=await repository.portalGet('accounts',hash(index.subject));}
+    if(!account){created=!!await repository.portalCreate('accounts',hash(index.subject),{subject:index.subject,email,...(name!==undefined?{name,name_version:1}:{}),active:true,createdAt:now().toISOString(),createdBy:actor.email});account=await repository.portalGet('accounts',hash(index.subject));}
   }
   if(!account||account.email!==email)fail(409,'La cuenta cambió. Actualizá la lista.');
   return {account,created};
 }
+function normalizeName(value){
+  if(typeof value!=='string'||!value.trim()||value.trim().length>100||/[\u0000-\u001f\u007f]/.test(value))fail(422,'Ingresá un nombre de entre 1 y 100 caracteres.');
+  return value.trim();
+}
 export async function accountAdminAction({action,body,repository,actor,now}){
-  if(action==='owner_accounts')return {accounts:(await repository.ownerAccounts()).map(row=>({id:hash(row.subject),email:row.email,active:row.active,google:!!row.googleSubject,password:!!row.password,temporaryPassword:!!row.mustChangePassword,rulesAccepted:hasAcceptedRules(row),rulesAcceptance:hasAcceptedRules(row)?{version:row.rulesAcceptances[rulesHash].version,acceptedAt:row.rulesAcceptances[rulesHash].acceptedAt,language:row.rulesAcceptances[rulesHash].language}:null}))};
+  if(action==='owner_accounts')return {accounts:(await repository.ownerAccounts()).map(row=>({id:hash(row.subject),email:row.email,name:row.name||'',nameVersion:row.name_version||0,active:row.active,google:!!row.googleSubject,password:!!row.password,temporaryPassword:!!row.mustChangePassword,rulesAccepted:hasAcceptedRules(row),rulesAcceptance:hasAcceptedRules(row)?{version:row.rulesAcceptances[rulesHash].version,acceptedAt:row.rulesAcceptances[rulesHash].acceptedAt,language:row.rulesAcceptances[rulesHash].language}:null}))};
+  if(action==='set_owner_name'){
+    if(!/^[a-f0-9]{64}$/.test(body.id||'')||!Number.isSafeInteger(body.nameVersion)||body.nameVersion<0)fail(400,'Cuenta inválida.');
+    const name=normalizeName(body.name),account=await repository.portalGet('accounts',body.id);if(!account)fail(404,'No se encontró la cuenta.');
+    if((account.name_version||0)!==body.nameVersion)fail(409,'La cuenta cambió. Actualizá la lista.');
+    const updated=await repository.portalUpdate('accounts',body.id,{name_version:account.name_version},{name,name_version:body.nameVersion+1,updatedBy:actor.email});
+    if(!updated)fail(409,'La cuenta cambió. Actualizá la lista.');return {updated:true,name};
+  }
   if(action==='set_owner_active'){
     if(!/^[a-f0-9]{64}$/.test(body.id||'')||typeof body.active!=='boolean')fail(400,'Cuenta inválida.');
     const account=await repository.portalGet('accounts',body.id);if(!account)fail(404,'No se encontró la cuenta.');
@@ -44,8 +55,13 @@ export async function accountAdminAction({action,body,repository,actor,now}){
   }
   if(action==='set_owner_password'||action==='create_account'){
     const email=normalizeEmail(body.email);if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254)fail(422,'Ingresá un correo válido.');
+    const name=body.name===undefined?undefined:normalizeName(body.name);
     const password=action==='set_owner_password'?await hashPassword(body.password):null;
-    const {account,created}=await ensureAccount(repository,email,actor,now);
+    let {account,created}=await ensureAccount(repository,email,actor,now,name);
+    if(name!==undefined&&name!==account.name){
+      const updated=await repository.portalUpdate('accounts',hash(account.subject),{name_version:account.name_version},{name,name_version:(account.name_version||0)+1,updatedBy:actor.email});
+      if(!updated)fail(409,'La cuenta cambió. Actualizá la lista.');account=updated;
+    }
     if(action==='create_account')return {email,active:account.active,created};
     const updated=await repository.portalUpdate('accounts',hash(account.subject),{password_version:account.password_version},{password,password_version:(account.password_version||0)+1,mustChangePassword:true,passwordExpiresAt:now().getTime()+7*86400000,passwordSetBy:actor.email});
     if(!updated)fail(409,'La cuenta cambió. Actualizá la lista.');return {email,active:updated.active,temporary:true,expiresAt:updated.passwordExpiresAt};
