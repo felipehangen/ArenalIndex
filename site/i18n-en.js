@@ -1,5 +1,9 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Explorar propiedades": "Explore properties",
+  "Para publicar": "To list a property",
+  "Hola, tengo una consulta sobre ArenalIndex.": "Hi, I have a question about ArenalIndex.",
+  "Consulta sobre ArenalIndex": "ArenalIndex inquiry",
   "Menú": "Menu",
   "Idioma": "Language",
   "Publicar": "List property",
