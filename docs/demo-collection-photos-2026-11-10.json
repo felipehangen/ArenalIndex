@@ -1,0 +1,1636 @@
+{
+  "retrieved": "2026-11-10",
+  "usage": "Licensed illustrative stock photos for fictional demos only. These galleries combine architectural and landscape references; they do not document one property for sale, and their photographed locations are not the demo map pins. All covers are different. Four supporting nature photographs are shared by two demos each.",
+  "processing": "Covers cropped to 4:3 with the recorded focal position. Remaining photos keep their proportions. Resized, WebP compressed and metadata removed; only exposure adjustments recorded per photo. No AI image generation.",
+  "photos": [
+    {
+      "photographer": "Vero Benedini",
+      "source": "https://www.pexels.com/photo/luxury-villa-with-pool-in-tropical-setting-28915352/",
+      "photoId": 28915352,
+      "name": "collection-28915352",
+      "file": "demo-collection-28915352.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-107"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 291084,
+      "sha256": "e4d11f53d6f793eb30d225fe0a63d38ad0163fbd93eda10bad1eb79d75e79673",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/28915352/pexels-photo-28915352.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Quang Nguyen Vinh",
+      "source": "https://www.pexels.com/photo/luxurious-tropical-resort-bedroom-with-canopy-bed-29000313/",
+      "photoId": 29000313,
+      "name": "collection-29000313",
+      "file": "demo-collection-29000313.webp",
+      "label": "Habitación",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-107"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 853,
+      "quality": 82,
+      "bytes": 145124,
+      "sha256": "23cc2b19e2c142dc9096059cf9ac5172f9c9864d3372de68af4c207bbd7c90fb",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/29000313/pexels-photo-29000313.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Railander Ramos",
+      "source": "https://www.pexels.com/photo/a-narrow-path-with-flowers-and-trees-28003209/",
+      "photoId": 28003209,
+      "name": "collection-28003209",
+      "file": "demo-collection-28003209.webp",
+      "label": "Jardín",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-107"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 850,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 84700,
+      "sha256": "871709b6b93f3241585d05f944a3b70812d2947c175fba7a5413b5782b53cc89",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/28003209/pexels-photo-28003209.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Thibault Om",
+      "source": "https://www.pexels.com/photo/a-beautiful-house-with-swimming-pool-13914273/",
+      "photoId": 13914273,
+      "name": "collection-13914273",
+      "file": "demo-collection-13914273.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-108"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 262754,
+      "sha256": "efd67dc4695a0f10cba76efa3c1ac56ba858e08c5e86d9f068036644f80dcc54",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/13914273/pexels-photo-13914273.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Thibault Om",
+      "source": "https://www.pexels.com/photo/luxurious-summer-resort-with-a-swimming-pool-13914268/",
+      "photoId": 13914268,
+      "name": "collection-13914268",
+      "file": "demo-collection-13914268.webp",
+      "label": "Vista general",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-108"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 835,
+      "quality": 82,
+      "bytes": 165342,
+      "sha256": "f7d7428b289ecb87e85957c6aee746f76d89a2980d6d5d174eb0652e68142f5e",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/13914268/pexels-photo-13914268.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Thibault Om",
+      "source": "https://www.pexels.com/photo/a-sun-loungers-and-couch-near-the-swimming-pool-13914276/",
+      "photoId": 13914276,
+      "name": "collection-13914276",
+      "file": "demo-collection-13914276.webp",
+      "label": "Terraza",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-108"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 853,
+      "quality": 82,
+      "bytes": 179230,
+      "sha256": "ab2a1cf05bb02f4ce4e2a21ce1353f566031c991944d4a10eba3ea9ab0c30efc",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/13914276/pexels-photo-13914276.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Thibault Om",
+      "source": "https://www.pexels.com/photo/villa-with-swimming-pool-13914283/",
+      "photoId": 13914283,
+      "name": "collection-13914283",
+      "file": "demo-collection-13914283.webp",
+      "label": "Piscina",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-108"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 854,
+      "quality": 82,
+      "bytes": 184400,
+      "sha256": "5c4df3e12d708e4b849707a94140cae9d347ed7badd3f894c60beb6bc63a60d1",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/13914283/pexels-photo-13914283.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Quang Nguyen Vinh",
+      "source": "https://www.pexels.com/photo/cozy-wooden-cabin-with-outdoor-patio-amidst-nature-30750588/",
+      "photoId": 30750588,
+      "name": "collection-30750588",
+      "file": "demo-collection-30750588.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-109"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 79,
+      "bytes": 335906,
+      "sha256": "0cea34dbcf11472614e7d759496c87a369d85b84411360de7627931bcfc0d467",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/30750588/pexels-photo-30750588.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Quang Nguyen Vinh",
+      "source": "https://www.pexels.com/photo/eco-friendly-wooden-cabin-in-forest-setting-30750589/",
+      "photoId": 30750589,
+      "name": "collection-30750589",
+      "file": "demo-collection-30750589.webp",
+      "label": "Terraza",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-109"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 853,
+      "quality": 82,
+      "bytes": 305376,
+      "sha256": "5a2c34e80fb9b43252b284fa3849efbbed369d55adaab352899d312cde16e887",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/30750589/pexels-photo-30750589.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Quang Nguyen Vinh",
+      "source": "https://www.pexels.com/photo/cozy-wooden-cabin-at-night-with-open-doors-30750576/",
+      "photoId": 30750576,
+      "name": "collection-30750576",
+      "file": "demo-collection-30750576.webp",
+      "label": "Interior",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-109"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 853,
+      "quality": 82,
+      "bytes": 138836,
+      "sha256": "1d0d8375bde0a95bf198cd17bf2731c7cef63dd0683c90e3c75dd45bb9338444",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/30750576/pexels-photo-30750576.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Czarinah Philline Rayray",
+      "source": "https://www.pexels.com/photo/charming-wooden-a-frame-tiny-house-outdoors-31460167/",
+      "photoId": 31460167,
+      "name": "collection-31460167",
+      "file": "demo-collection-31460167.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-110"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 326478,
+      "sha256": "ef018e1912193ccb2979ba28d0c81c8ec2522cc00a19994c5183e38bcb93764f",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/31460167/pexels-photo-31460167.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Czarinah Philline Rayray",
+      "source": "https://www.pexels.com/photo/cozy-a-frame-wooden-cabin-amidst-lush-greenery-31460168/",
+      "photoId": 31460168,
+      "name": "collection-31460168",
+      "file": "demo-collection-31460168.webp",
+      "label": "Vista general",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-110"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.64
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 226486,
+      "sha256": "1041b0ee5890c64d78bc2bbf74169f8aad18485ae77e3c13bca04d28ed59ad2f",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/31460168/pexels-photo-31460168.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Tara Winstead",
+      "source": "https://www.pexels.com/photo/a-green-palm-tree-beside-flowers-in-a-yard-8407009/",
+      "photoId": 8407009,
+      "name": "collection-8407009",
+      "file": "demo-collection-8407009.webp",
+      "label": "Jardín",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-110"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 286192,
+      "sha256": "3097cf4ff5b33f5cad741dcfc99d73c3ad640c01b0e639fb763fb048a6679b35",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/8407009/pexels-photo-8407009.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Ronnie D",
+      "source": "https://www.pexels.com/photo/wooden-bungalow-in-a-tropical-jungle-16918575/",
+      "photoId": 16918575,
+      "name": "collection-16918575",
+      "file": "demo-collection-16918575.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-111"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.64
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 284666,
+      "sha256": "d80229709ff59ad533cb6f98ca412619be5c57d65e9f08d598ad50c8901b0772",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/16918575/pexels-photo-16918575.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Ronnie D",
+      "source": "https://www.pexels.com/photo/footpath-leading-to-outdoor-cafe-in-a-park-16918564/",
+      "photoId": 16918564,
+      "name": "collection-16918564",
+      "file": "demo-collection-16918564.webp",
+      "label": "Jardín",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-111"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 851,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 291066,
+      "sha256": "3a618b694002a8f6781d91862df6b7ab4223a013dd02b3dee44b5ec8950a8e67",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/16918564/pexels-photo-16918564.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "FOX ^.ᆽ.^= ∫",
+      "source": "https://www.pexels.com/photo/rustic-outdoor-swing-with-wooden-support-30319497/",
+      "photoId": 30319497,
+      "name": "collection-30319497",
+      "file": "demo-collection-30319497.webp",
+      "label": "Jardín",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-111"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 100156,
+      "sha256": "9e225971d7c61754cb279aba6f123b6152318bd85d6eb749e4cf198763882840",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/30319497/pexels-photo-30319497.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "FOX ^.ᆽ.^= ∫",
+      "source": "https://www.pexels.com/photo/footpath-leading-to-a-building-6063234/",
+      "photoId": 6063234,
+      "name": "collection-6063234",
+      "file": "demo-collection-6063234.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-112"
+      ],
+      "brightness": 1.12,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 369824,
+      "sha256": "2752e36f9fd432a95b5acb601857cee922d95e621a092049de78081eb5defecb",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/6063234/pexels-photo-6063234.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Maria Orlova",
+      "source": "https://www.pexels.com/photo/interior-of-typical-villa-located-in-lush-tropical-garden-4917176/",
+      "photoId": 4917176,
+      "name": "collection-4917176",
+      "file": "demo-collection-4917176.webp",
+      "label": "Interior",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-112"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 853,
+      "quality": 82,
+      "bytes": 251278,
+      "sha256": "475260e6595e3916e6c0b36ea920644f1153c2d5ca454368fd03fcfa0874c231",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/4917176/pexels-photo-4917176.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Nur Andi Ravsanjani Gusma",
+      "source": "https://www.pexels.com/photo/palm-trees-and-sunlight-5652566/",
+      "photoId": 5652566,
+      "name": "collection-5652566",
+      "file": "demo-collection-5652566.webp",
+      "label": "Bosque",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-112",
+        "lot-131"
+      ],
+      "brightness": 1.12,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 918,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 277810,
+      "sha256": "cb810a399a26a93d4f6a17d47dec57b7ff376c655f8e62af1e10e9695d1393b7",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/5652566/pexels-photo-5652566.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Vincent Rivaud",
+      "source": "https://www.pexels.com/photo/modern-tropical-villa-with-pool-and-palm-trees-31387341/",
+      "photoId": 31387341,
+      "name": "collection-31387341",
+      "file": "demo-collection-31387341.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-113"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 257026,
+      "sha256": "839143b3720e2d8f0e225a08b6d9fd44d0bf6cbac864b3190febb0194c632c5c",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/31387341/pexels-photo-31387341.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Damm aaaa",
+      "source": "https://www.pexels.com/photo/living-room-28256945/",
+      "photoId": 28256945,
+      "name": "collection-28256945",
+      "file": "demo-collection-28256945.webp",
+      "label": "Interior",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-113"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 68148,
+      "sha256": "3d2acfe825dc8ef2dcc6e8936333500ed191d649a5fff967b4e33bee9f33bd04",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/28256945/pexels-photo-28256945.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Jason Boyd",
+      "source": "https://www.pexels.com/photo/photo-of-bedroom-3209035/",
+      "photoId": 3209035,
+      "name": "collection-3209035",
+      "file": "demo-collection-3209035.webp",
+      "label": "Habitación",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-113"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 855,
+      "quality": 82,
+      "bytes": 137406,
+      "sha256": "a092bc98418fad809d324939db54ddfc4803345822fc43358cf2f8ff1f813a82",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/3209035/pexels-photo-3209035.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Vincent Rivaud",
+      "source": "https://www.pexels.com/photo/swimming-pool-in-yard-of-house-17837145/",
+      "photoId": 17837145,
+      "name": "collection-17837145",
+      "file": "demo-collection-17837145.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-114"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 295396,
+      "sha256": "e7277cc9ff4499aabe04ced12a63fb6d805dadc1083ae37981b59e0533113eb2",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/17837145/pexels-photo-17837145.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Yunus Tuğ",
+      "source": "https://www.pexels.com/photo/rocking-chair-in-living-room-26618076/",
+      "photoId": 26618076,
+      "name": "collection-26618076",
+      "file": "demo-collection-26618076.webp",
+      "label": "Interior",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-114"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 98050,
+      "sha256": "ba60adb536c466df97baaf32feeba0fbda3e8d0bc1aa803ea661627ae6407bce",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/26618076/pexels-photo-26618076.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Magda Ehlers",
+      "source": "https://www.pexels.com/photo/photograph-of-flowers-with-green-leaves-near-a-path-9890614/",
+      "photoId": 9890614,
+      "name": "collection-9890614",
+      "file": "demo-collection-9890614.webp",
+      "label": "Jardín",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-114",
+        "lot-129"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 837,
+      "quality": 82,
+      "bytes": 160412,
+      "sha256": "b0faab2b4c152a2e57b3793402302cf31d7fd5c72eb14f44cdfe77c370107ba7",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/9890614/pexels-photo-9890614.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Vincent Rivaud",
+      "source": "https://www.pexels.com/photo/private-swimming-pool-in-villa-4146874/",
+      "photoId": 4146874,
+      "name": "collection-4146874",
+      "file": "demo-collection-4146874.webp",
+      "label": "Terraza",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-115"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 370582,
+      "sha256": "ca413fdd561c31fc227f7c476010bfc2693f5286919e008fdb66f2c0f6a8b4e8",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/4146874/pexels-photo-4146874.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Luis Zambrano",
+      "source": "https://www.pexels.com/photo/neatly-made-bed-and-a-hanging-lamp-in-a-hotel-room-with-the-view-of-tropical-vegetation-out-the-window-16436925/",
+      "photoId": 16436925,
+      "name": "collection-16436925",
+      "file": "demo-collection-16436925.webp",
+      "label": "Habitación",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-115"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 855,
+      "quality": 82,
+      "bytes": 133262,
+      "sha256": "238360980817072b16ea3e228cc51217afcea1d340ae5ebd9a75ea0a8713eaeb",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/16436925/pexels-photo-16436925.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Rachel Claire",
+      "source": "https://www.pexels.com/photo/rattan-furniture-in-rustic-home-interior-design-8112338/",
+      "photoId": 8112338,
+      "name": "collection-8112338",
+      "file": "demo-collection-8112338.webp",
+      "label": "Interior",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-115"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 269414,
+      "sha256": "0fb45a793a7d9f229de1d73b6a494f1e31ef28e69d8d2c7c6c9f201f16839b46",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/8112338/pexels-photo-8112338.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Vincent Rivaud",
+      "source": "https://www.pexels.com/photo/modern-villa-with-pool-and-wooden-pergola-32727439/",
+      "photoId": 32727439,
+      "name": "collection-32727439",
+      "file": "demo-collection-32727439.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-116"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 226466,
+      "sha256": "9f360560181597a315f77c5f5bcbb0639fef43d77fa5e2ab786f8e60b10e4d3c",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/32727439/pexels-photo-32727439.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Max Vakhtbovych",
+      "source": "https://www.pexels.com/photo/living-room-and-kitchen-8089261/",
+      "photoId": 8089261,
+      "name": "collection-8089261",
+      "file": "demo-collection-8089261.webp",
+      "label": "Interior",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-116"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 853,
+      "quality": 82,
+      "bytes": 125780,
+      "sha256": "69e0dfda8569f8a00534f97eb13a39a1b1511dfc8039bc88d554012b088530d5",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/8089261/pexels-photo-8089261.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Kübra Arslaner",
+      "source": "https://www.pexels.com/photo/room-interior-with-hanging-chair-and-straw-plates-on-wall-7873251/",
+      "photoId": 7873251,
+      "name": "collection-7873251",
+      "file": "demo-collection-7873251.webp",
+      "label": "Interior",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-116"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 255776,
+      "sha256": "6996fe24e593b7c1b256bb96ceffff1ed7ac782b013962f77e70c5b305754920",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/7873251/pexels-photo-7873251.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Keegan Checks",
+      "source": "https://www.pexels.com/photo/luxury-villa-with-private-pool-in-tropical-paradise-34104609/",
+      "photoId": 34104609,
+      "name": "collection-34104609",
+      "file": "demo-collection-34104609.webp",
+      "label": "Vista general",
+      "perspective": "drone",
+      "cover": true,
+      "listings": [
+        "lot-117"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 79,
+      "bytes": 352642,
+      "sha256": "788ca124e177f58aa8ed3353d46f2b5133acd5f62ba20d07a758ecc0f0a69d33",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/34104609/pexels-photo-34104609.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Keegan Checks",
+      "source": "https://www.pexels.com/photo/aerial-view-of-luxury-villa-in-tropical-zanzibar-34104610/",
+      "photoId": 34104610,
+      "name": "collection-34104610",
+      "file": "demo-collection-34104610.webp",
+      "label": "Vista general",
+      "perspective": "drone",
+      "cover": false,
+      "listings": [
+        "lot-117"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 960,
+      "quality": 73,
+      "bytes": 310180,
+      "sha256": "2f3c6056334afa942bfc53711aedb1ad7f693aab84a54f41ca8845edab0a9e97",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/34104610/pexels-photo-34104610.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Orphic Clicks",
+      "source": "https://www.pexels.com/photo/tropical-palm-tree-in-costa-rica-s-vibrant-sky-36183950/",
+      "photoId": 36183950,
+      "name": "collection-36183950",
+      "file": "demo-collection-36183950.webp",
+      "label": "Palmeras",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-117"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 262976,
+      "sha256": "b593d14612a9a27644fa3969d37ad0de82e5f123898737ad0e5071395f239b66",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/36183950/pexels-photo-36183950.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Keegan Checks",
+      "source": "https://www.pexels.com/photo/white-residence-in-tropical-climate-9730025/",
+      "photoId": 9730025,
+      "name": "collection-9730025",
+      "file": "demo-collection-9730025.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-118"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 98262,
+      "sha256": "56fe0fe31dad1a13c0e951c42887cbbdb13386c0c2051bf01982c92267b28387",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/9730025/pexels-photo-9730025.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Keegan Checks",
+      "source": "https://www.pexels.com/photo/indoor-furniture-and-tv-set-12715506/",
+      "photoId": 12715506,
+      "name": "collection-12715506",
+      "file": "demo-collection-12715506.webp",
+      "label": "Interior",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-118"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 854,
+      "quality": 82,
+      "bytes": 146694,
+      "sha256": "6df3a51eb7d561529675430ab6a6317eb9a2c8802cb582e208eaaadcc8a389e6",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/12715506/pexels-photo-12715506.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Mitchell Soeharsono",
+      "source": "https://www.pexels.com/photo/cozy-bohemian-living-room-with-rattan-furniture-36489532/",
+      "photoId": 36489532,
+      "name": "collection-36489532",
+      "file": "demo-collection-36489532.webp",
+      "label": "Interior",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-118"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 137594,
+      "sha256": "ce2c1fcfd57071336cb5cc17b83402eebbc748b6e84ddfc8223d45d55df8bb63",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/36489532/pexels-photo-36489532.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Thượng Hy",
+      "source": "https://www.pexels.com/photo/exterior-of-a-wooden-hut-in-rain-14817856/",
+      "photoId": 14817856,
+      "name": "collection-14817856",
+      "file": "demo-collection-14817856.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-119"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 227288,
+      "sha256": "aef41dda0ef5cdfc4dc6cb8f1dfffd7a844e2fedcb03e70372ca61fe9b41d3f2",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/14817856/pexels-photo-14817856.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Quang Nguyen Vinh",
+      "source": "https://www.pexels.com/photo/hotel-room-in-a-tropical-resort-14025909/",
+      "photoId": 14025909,
+      "name": "collection-14025909",
+      "file": "demo-collection-14025909.webp",
+      "label": "Habitación",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-119"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 854,
+      "quality": 82,
+      "bytes": 129802,
+      "sha256": "8c81c6fcac939f742bd650145166b0067c91be1dcb1e4cf3719b7034f78e41b3",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/14025909/pexels-photo-14025909.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Andreas Ebner",
+      "source": "https://www.pexels.com/photo/a-path-between-the-plants-and-trees-in-a-botanical-garden-19627717/",
+      "photoId": 19627717,
+      "name": "collection-19627717",
+      "file": "demo-collection-19627717.webp",
+      "label": "Jardín",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-119"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 290762,
+      "sha256": "9217702b90528b46ed98d53c34c15b45c325c8b5c2e6a5ddead15d090ddce5b5",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/19627717/pexels-photo-19627717.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Marinella Grce Orell",
+      "source": "https://www.pexels.com/photo/footpath-in-summer-countryside-with-house-19515223/",
+      "photoId": 19515223,
+      "name": "collection-19515223",
+      "file": "demo-collection-19515223.webp",
+      "label": "Exterior",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-120"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1166,
+      "height": 874,
+      "quality": 67,
+      "bytes": 332962,
+      "sha256": "dbdeed65907572220c8c03bf7f1f4a89fe90cc0a0a8247492e67ba80c7a98646",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/19515223/pexels-photo-19515223.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Sarah O'Shea",
+      "source": "https://www.pexels.com/photo/interior-of-a-living-room-16262294/",
+      "photoId": 16262294,
+      "name": "collection-16262294",
+      "file": "demo-collection-16262294.webp",
+      "label": "Interior",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-120"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 960,
+      "height": 1280,
+      "quality": 79,
+      "bytes": 290178,
+      "sha256": "946b84bc11f58eb05761befc8daee72a3f725c9b6f2757470fba090e39c3f0f8",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/16262294/pexels-photo-16262294.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Julia Volk",
+      "source": "https://www.pexels.com/photo/a-narrow-walkway-on-a-beautiful-garden-5769602/",
+      "photoId": 5769602,
+      "name": "collection-5769602",
+      "file": "demo-collection-5769602.webp",
+      "label": "Jardín",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-120"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 853,
+      "quality": 82,
+      "bytes": 204934,
+      "sha256": "f736522bc65ccf5c611bfb6484c361514889606dd55f9e4fbf8d5be89fd138f9",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/5769602/pexels-photo-5769602.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Luis Alberto Arias",
+      "source": "https://www.pexels.com/photo/fields-under-cloudy-sky-10023263/",
+      "photoId": 10023263,
+      "name": "collection-10023263",
+      "file": "demo-collection-10023263.webp",
+      "label": "Cultivos",
+      "perspective": "drone",
+      "cover": true,
+      "listings": [
+        "lot-121"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 313704,
+      "sha256": "89b7130d0be669b76868784cd7699f85beba93f393210ab7ee575162d986ddc6",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/10023263/pexels-photo-10023263.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Luis Alberto Arias",
+      "source": "https://www.pexels.com/photo/aerial-view-of-a-bridge-over-a-river-i-green-mountains-10023264/",
+      "photoId": 10023264,
+      "name": "collection-10023264",
+      "file": "demo-collection-10023264.webp",
+      "label": "Entorno y vistas",
+      "perspective": "drone",
+      "cover": false,
+      "listings": [
+        "lot-121"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 874,
+      "quality": 82,
+      "bytes": 290138,
+      "sha256": "2fe1012784389879482be6723691df4fc4930b6c4455a83e0507e5792ff0ecfc",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/10023264/pexels-photo-10023264.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Carlos Suárez",
+      "source": "https://www.pexels.com/photo/photo-of-cows-lying-on-grassland-10999580/",
+      "photoId": 10999580,
+      "name": "collection-10999580",
+      "file": "demo-collection-10999580.webp",
+      "label": "Potrero",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-122"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 79,
+      "bytes": 370988,
+      "sha256": "c55ac0c04712a2d163d9bd85c9f3df434e65b5aa5edf17c199748644157ad161",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/10999580/pexels-photo-10999580.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Carlos Suárez",
+      "source": "https://www.pexels.com/photo/cows-lying-on-grassland-10999543/",
+      "photoId": 10999543,
+      "name": "collection-10999543",
+      "file": "demo-collection-10999543.webp",
+      "label": "Potrero",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-122"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 853,
+      "quality": 82,
+      "bytes": 243332,
+      "sha256": "cd6bafe3474227582ebfbfacb844c46adb8a4ee303cffa50b5182fbcf97144ab",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/10999543/pexels-photo-10999543.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Jean Paul Montanaro",
+      "source": "https://www.pexels.com/photo/aerial-footage-of-green-fields-with-palm-trees-14510506/",
+      "photoId": 14510506,
+      "name": "collection-14510506",
+      "file": "demo-collection-14510506.webp",
+      "label": "Entorno y vistas",
+      "perspective": "drone",
+      "cover": true,
+      "listings": [
+        "lot-123"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 79,
+      "bytes": 367922,
+      "sha256": "9a5332576fa6849b3d2e41eaf2de38f0a4cc9b82dff11c8d0704182409b5a025",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/14510506/pexels-photo-14510506.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Jean-Daniel Francoeur",
+      "source": "https://www.pexels.com/photo/sunset-in-sky-over-forest-in-costa-rica-17302316/",
+      "photoId": 17302316,
+      "name": "collection-17302316",
+      "file": "demo-collection-17302316.webp",
+      "label": "Atardecer",
+      "perspective": "drone",
+      "cover": false,
+      "listings": [
+        "lot-123",
+        "lot-131"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 58156,
+      "sha256": "aecb75db49ef348adeb98206dc4fce62f2bbd63b3a99c2419ff10037c3d7f4d8",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/17302316/pexels-photo-17302316.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Jean-Daniel Francoeur",
+      "source": "https://www.pexels.com/photo/tropical-bushes-in-costa-rica-17302407/",
+      "photoId": 17302407,
+      "name": "collection-17302407",
+      "file": "demo-collection-17302407.webp",
+      "label": "Bosque",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-123",
+        "lot-129"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 216830,
+      "sha256": "9f637a61f816fcf77a98236ee58119c240182a4a54c39921a653002b334580c2",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/17302407/pexels-photo-17302407.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Dominik Simecek",
+      "source": "https://www.pexels.com/photo/green-and-red-flowers-near-mountain-under-white-clouds-4807058/",
+      "photoId": 4807058,
+      "name": "collection-4807058",
+      "file": "demo-collection-4807058.webp",
+      "label": "Vista al volcán",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-124"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 229500,
+      "sha256": "dc666a5b398227d7836857014f5707b22ffeb74191b0681a71654025c1677b2d",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/4807058/pexels-photo-4807058.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Paul Bill",
+      "source": "https://www.pexels.com/photo/forest-and-volcano-mountain-in-costa-rica-19344663/",
+      "photoId": 19344663,
+      "name": "collection-19344663",
+      "file": "demo-collection-19344663.webp",
+      "label": "Vista al volcán",
+      "perspective": "drone",
+      "cover": false,
+      "listings": [
+        "lot-124"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 853,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 238572,
+      "sha256": "b6328f5a1bca507d66d40156fa26a8ff6d72e2ec668aa6f6bcc7ea293d02845d",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/19344663/pexels-photo-19344663.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Diego Madrigal",
+      "source": "https://www.pexels.com/photo/forest-covered-mountain-834958/",
+      "photoId": 834958,
+      "name": "collection-834958",
+      "file": "demo-collection-834958.webp",
+      "label": "Vista al volcán",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-125"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 174170,
+      "sha256": "34c361a10c8f5d8f6bc9c0779498a1dce4dacc33ab8b66ce240baea57bf19805",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/834958/pexels-photo-834958.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Andrés Góngora",
+      "source": "https://www.pexels.com/photo/green-trees-covering-the-volcano-13068962/",
+      "photoId": 13068962,
+      "name": "collection-13068962",
+      "file": "demo-collection-13068962.webp",
+      "label": "Vista al volcán",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-125"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 853,
+      "quality": 82,
+      "bytes": 247958,
+      "sha256": "51ce4ac23909a01a5f2468fd6a0dd9b0514441770c73603f05d9cc19eb19faec",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/13068962/pexels-photo-13068962.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Jordan Corrales",
+      "source": "https://www.pexels.com/photo/landscape-photography-of-volcano-923228/",
+      "photoId": 923228,
+      "name": "collection-923228",
+      "file": "demo-collection-923228.webp",
+      "label": "Vista al volcán",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-125"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 720,
+      "quality": 82,
+      "bytes": 71596,
+      "sha256": "b03e6a943c2b6a4c43b23abedfd40f3dd378cd3cbc06b26ab54ff6a136727b33",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/923228/pexels-photo-923228.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Lachcim Kejarko",
+      "source": "https://www.pexels.com/photo/green-hills-and-a-lake-landscape-5819273/",
+      "photoId": 5819273,
+      "name": "collection-5819273",
+      "file": "demo-collection-5819273.webp",
+      "label": "Vista al lago",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-126"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 298100,
+      "sha256": "fe5a68bee4b59583d75e2255fffe36c92f18b735476d18ac3a60dee68fdc25d9",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/5819273/pexels-photo-5819273.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Lachcim Kejarko",
+      "source": "https://www.pexels.com/photo/scenery-with-lake-and-mountain-5819320/",
+      "photoId": 5819320,
+      "name": "collection-5819320",
+      "file": "demo-collection-5819320.webp",
+      "label": "Vista al lago",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-126"
+      ],
+      "brightness": 1.12,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 740,
+      "quality": 82,
+      "bytes": 173764,
+      "sha256": "e498745ea50bd456d93c87a548448398f3ffbee4b7e81ac8efdf9355e9060bcc",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/5819320/pexels-photo-5819320.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Koen Swiers",
+      "source": "https://www.pexels.com/photo/landscape-of-a-river-and-green-forest-around-it-12800406/",
+      "photoId": 12800406,
+      "name": "collection-12800406",
+      "file": "demo-collection-12800406.webp",
+      "label": "Río",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-127"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 257056,
+      "sha256": "2e441de2b4f684efa97732f8a5d3b165bf79990f9fab5c05ea506858391c28cc",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/12800406/pexels-photo-12800406.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Mario Rojas",
+      "source": "https://www.pexels.com/photo/green-deep-forest-by-river-6198925/",
+      "photoId": 6198925,
+      "name": "collection-6198925",
+      "file": "demo-collection-6198925.webp",
+      "label": "Río",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-127"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 720,
+      "height": 1280,
+      "quality": 82,
+      "bytes": 127568,
+      "sha256": "f459b3eae5bd91c478cd6ce7c3b06643506cbe0749433e8cdc3c567ca0dfbb21",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/6198925/pexels-photo-6198925.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Jennifer Hernandez",
+      "source": "https://www.pexels.com/photo/scenic-jungle-pathway-in-costa-rica-35642390/",
+      "photoId": 35642390,
+      "name": "collection-35642390",
+      "file": "demo-collection-35642390.webp",
+      "label": "Sendero",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-128"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 361818,
+      "sha256": "9863f3c7290544973d509555a6b32bb9ec1efac34cd3ec6b407884751deb92a1",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/35642390/pexels-photo-35642390.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Enrique Hidalgo",
+      "source": "https://www.pexels.com/photo/misty-forest-pathway-in-cloud-forest-costa-rica-31423342/",
+      "photoId": 31423342,
+      "name": "collection-31423342",
+      "file": "demo-collection-31423342.webp",
+      "label": "Sendero",
+      "perspective": "ground",
+      "cover": false,
+      "listings": [
+        "lot-128"
+      ],
+      "brightness": 1.12,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1024,
+      "height": 1280,
+      "quality": 76,
+      "bytes": 315880,
+      "sha256": "deb9d7de5230acb9e6b9ecd2bd1a469c41ac6a3be0e782bd94d2c9e5bd12ad49",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/31423342/pexels-photo-31423342.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Jean-Daniel Francoeur",
+      "source": "https://www.pexels.com/photo/dirt-road-in-countryside-in-costa-rica-17302380/",
+      "photoId": 17302380,
+      "name": "collection-17302380",
+      "file": "demo-collection-17302380.webp",
+      "label": "Vía de llegada",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-129"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 67,
+      "bytes": 369762,
+      "sha256": "35353a09c052f8755b729be429678ee2353fa7f915e382d117ab9076f2da81c2",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/17302380/pexels-photo-17302380.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Jean Paul Montanaro",
+      "source": "https://www.pexels.com/photo/waterfall-in-forest-19938718/",
+      "photoId": 19938718,
+      "name": "collection-19938718",
+      "file": "demo-collection-19938718.webp",
+      "label": "Cascada",
+      "perspective": "ground",
+      "cover": true,
+      "listings": [
+        "lot-130"
+      ],
+      "brightness": 1.12,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 325658,
+      "sha256": "85912c455164a95c07e82217059209e11237876c9d23c488fdc5d9491879c238",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/19938718/pexels-photo-19938718.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Edgar Arroyo",
+      "source": "https://www.pexels.com/photo/green-forest-around-waterfall-16863800/",
+      "photoId": 16863800,
+      "name": "collection-16863800",
+      "file": "demo-collection-16863800.webp",
+      "label": "Cascada",
+      "perspective": "drone",
+      "cover": false,
+      "listings": [
+        "lot-130"
+      ],
+      "brightness": 1.12,
+      "centering": [
+        0.5,
+        0.5
+      ],
+      "width": 1280,
+      "height": 853,
+      "quality": 82,
+      "bytes": 291102,
+      "sha256": "d731b7fc7e42842a802dda8407aa16333ab788ea29ae822e772a6057aed27540",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/16863800/pexels-photo-16863800.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    },
+    {
+      "photographer": "Jean Paul Montanaro",
+      "source": "https://www.pexels.com/photo/forest-and-mountain-behind-19938719/",
+      "photoId": 19938719,
+      "name": "collection-19938719",
+      "file": "demo-collection-19938719.webp",
+      "label": "Entorno y vistas",
+      "perspective": "drone",
+      "cover": true,
+      "listings": [
+        "lot-131"
+      ],
+      "brightness": 1,
+      "centering": [
+        0.5,
+        0.64
+      ],
+      "width": 1440,
+      "height": 1080,
+      "quality": 82,
+      "bytes": 186598,
+      "sha256": "42b752ce2c3c05b1c1f7304628f65c59bf5bfe708bb79b787c5c12bd3f99dae9",
+      "license": "https://www.pexels.com/license/",
+      "download": "https://images.pexels.com/photos/19938719/pexels-photo-19938719.jpeg?auto=compress&cs=tinysrgb&w=1800&q=85"
+    }
+  ]
+}

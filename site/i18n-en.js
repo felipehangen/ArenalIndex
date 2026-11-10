@@ -1,5 +1,13 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Habitación": "Bedroom",
+  "Palmeras": "Palm trees",
+  "Cultivos": "Crops",
+  "Potrero": "Pasture",
+  "Atardecer": "Sunset",
+  "Sendero": "Path",
+  "Cascada": "Waterfall",
+  "Casa de huéspedes": "Guest house",
   "Cabaña principal": "Main cabin",
   "Vista general": "Overview",
   "Vista al lago": "Lake view",

@@ -1,5 +1,6 @@
 // Fictional showcase, not a real offer. Image provenance: docs/demo-photo-credits.md.
 import {newShowcases} from './showcases.mjs';
+import {collectionDemos} from './collection.mjs';
 const fact=(label,value)=>({label,value,source:'Dato ficticio de demostración'});
 const photo=(id,label)=>({id,src:'/photos/demo-tropical-'+id+'.webp',caption:'Imagen ilustrativa · '+label+' · Orphic Clicks / Pexels',perspective:'ground'});
 const description='Demo ficticio de una casa entre jardines tropicales. Las fotos son de referencia: no corresponden a una propiedad en venta. El precio, las medidas y la ubicación son ejemplos.';
@@ -35,4 +36,4 @@ export const supplementalDemos=[{
     ],
     conditions:['Anuncio ficticio de demostración. No es una oferta de venta.']
   }
-},...newShowcases];
+},...newShowcases,...collectionDemos];
