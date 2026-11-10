@@ -1,3 +1,4 @@
+import {canRelist} from './relisting.mjs';
 import {randomBytes} from 'node:crypto';
 import {newDraft,validateDraft,validSignature} from '../../site/newlisting/model.mjs';
 import {createHandler,digest} from '../intake/core.mjs';
@@ -24,11 +25,19 @@ export async function workspaceAction({action,body,actor,repository,config,maile
     if(!row)fail(409,'La ficha cambió. Actualizá su estado.');
   }
   if(!row||row.status==='deleted'||actor.role!=='admin'&&row.owner_subject!==actor.subject)fail(404,'No se encontró la ficha.');
+  if(action==='workspace_relist'){
+    if(body.version!==row.version||body.editRevision!==(row.edit_revision||0)||body.publicationRevision!==(row.publication_revision||0))fail(409,'La ficha cambió. Actualizá la lista antes de continuar.');
+    if(!canRelist(row))fail(409,'Esta ficha necesita revisión antes de volver a publicarse.');
+    await repository.ensurePublishedIndex(id);
+    const updated=await repository.update(id,{version:row.version,status:row.status,edit_revision:row.edit_revision,publication_revision:row.publication_revision,relist_owner:row.relist_owner},{publication:row.relist_publication,relist_publication:null,relist_owner:null,unlisted_at:null,publication_revision:(row.publication_revision||0)+1,updated_at:now().toISOString(),relisted_by:actor.email});
+    if(!updated)fail(409,'La ficha cambió. Actualizá la lista antes de continuar.');
+    return workspaceSummary(updated);
+  }
   if(action==='workspace_delete'){
     if(actor.role!=='admin')fail(403,'Acción no autorizada.');
     if(!['DELETE','BORRAR'].includes(String(body.confirmation||'').trim().toUpperCase()))fail(422,'Escribí DELETE o BORRAR para confirmar.');
     if(body.version!==row.version||body.editRevision!==(row.edit_revision||0)||body.publicationRevision!==(row.publication_revision||0))fail(409,'La ficha cambió. Actualizá la lista antes de borrarla.');
-    const updated=await repository.update(id,{version:row.version,status:row.status,edit_revision:row.edit_revision,publication_revision:row.publication_revision},{status:'deleted',publication:null,payload:{id,values:{},buildings:[],files:[]},editorial:{},review:{},feedback:'',file_paths:{},token_hash:null,review_token_hash:null,review_token_expires:null,deleted_by:actor.email,deleted_at:now().toISOString(),edit_revision:(row.edit_revision||0)+1,publication_revision:(row.publication_revision||0)+1});
+    const updated=await repository.update(id,{version:row.version,status:row.status,edit_revision:row.edit_revision,publication_revision:row.publication_revision},{status:'deleted',publication:null,relist_publication:null,relist_owner:null,payload:{id,values:{},buildings:[],files:[]},editorial:{},review:{},feedback:'',file_paths:{},token_hash:null,review_token_hash:null,review_token_expires:null,deleted_by:actor.email,deleted_at:now().toISOString(),edit_revision:(row.edit_revision||0)+1,publication_revision:(row.publication_revision||0)+1});
     if(!updated)fail(409,'La ficha cambió. Actualizá la lista antes de borrarla.');return {deleted:true};
   }
   if(action==='workspace_open'){

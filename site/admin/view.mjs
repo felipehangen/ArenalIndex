@@ -20,6 +20,7 @@ export function renderRows(records,{owner=false}={}){
     const button=(action,label,extra='')=>'<button class="row-button '+extra+'" data-row-action="'+action+'" data-id="'+esc(row.id)+'">'+t(label)+'</button>';
     let actions=owner?'<a class="row-button" href="'+edit+'">'+t('Editar')+'</a>':catalogDemo(row)?button('demo-edit','Editar'):'<a class="row-button" href="'+edit+'">'+t('Editar')+'</a>';
     if(row.publishedVersion)actions+=owner?'<button class="row-button" data-unlist="'+esc(row.id)+'">'+t('Deslistar')+'</button>':button('unlist','Deslistar');
+    else if(owner&&row.canRelist)actions+='<button class="row-button row-primary" data-relist="'+esc(row.id)+'">'+t('Volver a enlistar')+'</button>';
     else if(!owner)actions+=button(catalogDemo(row)||row.status==='approved'?'publish':'approve',catalogDemo(row)||row.status==='approved'?'Publicar':'Aprobar','row-primary');
     if(!owner)actions+=button('delete','Borrar','row-danger');
     if(owner&&catalogDemo(row))actions='<span class="demo-badge">'+t('Demo de prueba')+'</span>';
@@ -28,6 +29,7 @@ export function renderRows(records,{owner=false}={}){
       '<div class="admin-price"><strong translate="no">'+esc(amount)+'</strong><span translate="no">'+esc(row.area?new Intl.NumberFormat(locale).format(row.area)+' m²':'—')+'</span></div>'+
       '<div class="admin-state"><span class="status-badge" data-state="'+esc(row.publishedVersion?'published':row.status)+'">'+t(state)+'</span>'+
       (row.publishedVersion&&['draft','ready_for_review','changes_requested'].includes(row.status)?'<small>'+t(row.status==='ready_for_review'?'Cambios en revisión':'Borrador de cambios')+'</small>':'')+
+      (owner&&row.withdrawn&&!row.canRelist?'<small>'+t('Requiere revisión para volver a publicar')+'</small>':'')+
       (row.publishedVersion?'<a class="published-link" href="'+esc(publicLink)+'" target="_blank" rel="noopener">'+t('Ver publicado')+'</a>':'')+'</div>'+
       '<div class="admin-updated"><time translate="no">'+esc(updated)+'</time></div><div class="row-actions">'+actions+'</div></article>';
   }).join('');

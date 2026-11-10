@@ -98,6 +98,7 @@ export function createHandler({repository,mailer,config,now=()=>new Date(),autho
       if(['publish','unpublish','preview_publication'].includes(action)){
         if(body.version!==row.version)fail(409,'La versión cambió. Recargá la revisión.');
         if(action!=='preview_publication'&&body.publicationRevision!==(row.publication_revision||0))fail(409,'La publicación cambió. Recargá la revisión.');
+        if(action==='unpublish'&&!row.publication)fail(409,'El anuncio ya está retirado. Actualizá la lista.');
         let publication=null;
         if(action!=='unpublish'){
           if(action==='publish'&&body.confirmed!==true)fail(422,'Confirmá los datos públicos y las fotografías antes de publicar.');
@@ -115,7 +116,7 @@ export function createHandler({repository,mailer,config,now=()=>new Date(),autho
           await repository.ensurePublishedIndex(id);
         }
         const editorial=publication?{title:publication.listing.name,place:publication.listing.place,description:publication.listing.description,language:publication.listing.details.language,titleTranslation:publication.listing.details.translations[publication.listing.details.language==='es'?'en':'es'].title||'',descriptionTranslation:publication.listing.details.translations[publication.listing.details.language==='es'?'en':'es'].description||'',whatsapp:publication.listing.details.contact?.whatsapp||''}:row.editorial||{};
-        const updated=await repository.update(id,{version:row.version,status:row.status,...reviewGuard,publication_revision:row.publication_revision},{publication,editorial,publication_revision:(row.publication_revision||0)+1,published_by:admin?.email||config.reviewEmail,unlisted_at:action==='unpublish'?now().toISOString():null,updated_at:now().toISOString()});
+        const updated=await repository.update(id,{version:row.version,status:row.status,...reviewGuard,publication_revision:row.publication_revision},{publication,editorial,relist_publication:action==='unpublish'&&admin?.role==='owner'?row.publication:null,relist_owner:action==='unpublish'&&admin?.role==='owner'?row.owner_subject:null,publication_revision:(row.publication_revision||0)+1,published_by:admin?.email||config.reviewEmail,unlisted_at:action==='unpublish'?now().toISOString():null,updated_at:now().toISOString()});
         if(!updated)fail(409,'La ficha cambió. Recargá la revisión antes de publicar.');
         return respond({...summary(updated),editorial,url:publication?shareURL(publication.listing.id):null});
       }
@@ -125,7 +126,7 @@ export function createHandler({repository,mailer,config,now=()=>new Date(),autho
         const review=normalizeReview(body.review);
         if(action==='request_changes'){
           if(!feedback)fail(422,'Indicá los cambios necesarios.');
-          const updated=await repository.update(id,{version:row.version,status:'ready_for_review',...reviewGuard},{status:'changes_requested',review,feedback,reviewed_at:now().toISOString(),reviewed_by:admin?.email||config.reviewEmail,updated_at:now().toISOString()});
+          const updated=await repository.update(id,{version:row.version,status:'ready_for_review',...reviewGuard},{status:'changes_requested',relist_publication:null,relist_owner:null,review,feedback,reviewed_at:now().toISOString(),reviewed_by:admin?.email||config.reviewEmail,updated_at:now().toISOString()});
           if(!updated)fail(409,'La ficha cambió durante la revisión.');
           return respond(summary(updated));
         }

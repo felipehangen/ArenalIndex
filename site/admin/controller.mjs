@@ -1,5 +1,5 @@
 import * as client from './client.mjs';
-import {selectRecords,renderRows} from './view.mjs?v=7-workspace-demos';
+import {selectRecords,renderRows} from './view.mjs?v=8-relist';
 import {createGoogleLoader} from './google-loader.mjs';
 
 let googleLoader;
@@ -178,11 +178,12 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
   $('#refresh').onclick=refresh;$('#admin-search').oninput=render;$('#admin-status').onchange=render;
   if($('#admin-source'))$('#admin-source').onchange=render;
   if(owner)$('#admin-records').onclick=async event=>{
-    const button=event.target.closest('[data-unlist]');if(!button)return;
-    const row=records.find(row=>row.id===button.dataset.unlist);if(!row)return;
-    if(!window.confirm(t('¿Retirar este anuncio del catálogo público? La ficha y sus documentos se conservan.')))return;
+    const button=event.target.closest('[data-unlist],[data-relist]');if(!button)return;
+    const relist=button.hasAttribute('data-relist');
+    const row=records.find(row=>row.id===(relist?button.dataset.relist:button.dataset.unlist));if(!row)return;
+    if(!window.confirm(t(relist?'¿Volver a enlistar la misma versión publicada, sin cambios?':'¿Retirar este anuncio del catálogo público? La ficha y sus documentos se conservan.')))return;
     button.disabled=true;
-    try{await api.request('workspace_unlist',{id:row.id,version:row.version,publicationRevision:row.publicationRevision});await refresh();}
+    try{await api.request(relist?'workspace_relist':'workspace_unlist',{id:row.id,version:row.version,publicationRevision:row.publicationRevision,...(relist?{editRevision:row.editRevision}:{})});await refresh();}
     catch(error){if(error.status===401)expire();else{$('#inbox-error').hidden=false;$('#inbox-error').textContent=t(error.message);button.disabled=false;}}
   };
   window.addEventListener('arenal-language-change',()=>{render();if(owner&&!$('#rules-panel').hidden)renderRules();if(!$('#login-panel').hidden&&config?.configured)prepareGoogle();});

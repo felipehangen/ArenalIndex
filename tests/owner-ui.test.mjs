@@ -135,3 +135,18 @@ test('existing unnamed accounts expose the name editor',async()=>{
   assert.equal(e.$('[data-edit-name]').textContent,'Editar nombre');await e.$('[data-accounts]').onclick({target:e.$('[data-edit-name]')});
   assert.equal(e.$('[data-name-form]').hidden,false);assert.equal(e.$('[data-name-form] input').value,'');e.controller.destroy();
 });
+
+test('owner relist button confirms the unchanged publication and sends current version guards',async()=>{
+  const row={id:'owner-listing-01',title:'Published home',status:'approved',withdrawn:true,canRelist:true,version:2,editRevision:3,publicationRevision:4,currency:'USD',area:1000};
+  const e=setup({signedIn:true,handler:action=>{
+    if(action==='session')return {...identity,requiresPasswordChange:false};
+    if(action==='list')return {records:[row],cursor:null};
+    if(action==='workspace_relist'){row.publishedVersion=2;row.withdrawn=false;row.canRelist=false;return {publishedVersion:2};}
+  }});await e.controller.ready;
+  let confirmed=false;e.window.confirm=()=>confirmed;
+  const button=e.$('[data-relist]');assert.ok(button);
+  await e.$('#admin-records').onclick({target:button});assert.equal(e.calls.some(c=>c.action==='workspace_relist'),false);
+  confirmed=true;await e.$('#admin-records').onclick({target:button});
+  assert.deepEqual(e.calls.find(c=>c.action==='workspace_relist').body,{id:row.id,version:2,editRevision:3,publicationRevision:4});
+  assert.equal(e.$('[data-relist]'),null);assert.ok(e.$('[data-unlist]'));e.controller.destroy();
+});

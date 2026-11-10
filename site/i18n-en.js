@@ -1,5 +1,11 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Volver a enlistar": "Relist",
+  "Requiere revisión para volver a publicar": "Review required before republishing",
+  "¿Volver a enlistar la misma versión publicada, sin cambios?": "Relist the same published version without changes?",
+  "Esta ficha necesita revisión antes de volver a publicarse.": "This listing needs review before it can be published again.",
+  "El anuncio ya está retirado. Actualizá la lista.": "This listing is already withdrawn. Refresh the list.",
+  "La ficha cambió. Actualizá la lista antes de continuar.": "The listing changed. Refresh the list before continuing.",
   "Fuera del mapa": "Off the map",
   "ArenalIndex · Inicio": "ArenalIndex · Home",
   "404 · FUERA DEL MAPA": "404 · OFF THE MAP",

@@ -74,7 +74,7 @@ export function createOwnerHandler({repository,catalog,verifyGoogle,config,maile
         const profile=publicAccountProfile(account);
         return json({records:[...page.records.filter(row=>row.status!=='deleted').map(recordSummary),...demos.map(row=>({...row,collectionSlug:profile?.slug||null}))],cursor:page.cursor});
       }
-      if(['workspace_open','workspace_claim','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen','workspace_unlist'].includes(action))return json(await workspaceAction({action,body,actor:session,repository,config,mailer,now}));
+      if(['workspace_open','workspace_claim','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen','workspace_unlist','workspace_relist'].includes(action))return json(await workspaceAction({action,body,actor:session,repository,config,mailer,now}));
       fail(400,'Acción no reconocida.');
     }catch(error){return json({error:error.status?error.message:error instanceof SyntaxError?'Solicitud inválida.':'No se pudo completar la operación. Intentá de nuevo.'},error.status||(error instanceof SyntaxError?400:500));}
   };
