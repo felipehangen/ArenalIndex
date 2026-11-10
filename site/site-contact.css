@@ -1,0 +1,33 @@
+/* One contact entry in the existing navigation; no floating button over the map. */
+#arenal-index-dos .contact-label-desktop{display:none}
+@media(max-width:959px){
+  #arenal-index-dos .bottom-navigation{gap:4px;padding-left:8px;padding-right:8px}
+  #arenal-index-dos .bottom-navigation>button{padding-left:5px;padding-right:5px}
+  #arenal-index-dos .bottom-navigation>.language-button{flex:0 0 54px}
+}
+@media(min-width:960px){
+  #arenal-index-dos header.explore-header{grid-template-columns:minmax(0,1fr) 530px}
+  #arenal-index-dos .contact-label-mobile{display:none}
+  #arenal-index-dos .contact-label-desktop{display:inline}
+  #arenal-index-dos .bottom-navigation #nav-publish{color:#285a3d;background:#f1f5ee;white-space:nowrap}
+}
+.site-contact{box-sizing:border-box;width:min(440px,calc(100% - 32px));max-height:calc(100dvh - 32px);margin:auto;padding:32px;border:1px solid #e4e8df;border-radius:24px;overflow:auto;background:#fff;color:#303b2c;box-shadow:0 20px 80px #0003;font:14px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.site-contact *{box-sizing:border-box}
+.site-contact [hidden]{display:none!important}
+.site-contact::backdrop{background:#15291d70}
+.site-contact-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.site-contact-brand{font-size:13px;font-weight:650;letter-spacing:.2px;color:#285a3d}
+.site-contact-close{display:grid;place-items:center;width:44px;height:44px;margin:-10px -10px -10px 0;padding:10px;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer}
+.site-contact-close:hover{background:#f1f5ee}
+.site-contact svg{width:20px;height:20px;flex-shrink:0}
+.site-contact h2{font-size:27px;line-height:1.2;letter-spacing:-.7px;font-weight:600;margin:0 0 12px}
+.site-contact p{color:#697263;margin:0 0 24px;line-height:1.6}
+.site-contact-actions{display:grid;gap:10px}
+.site-contact-actions a{display:flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:12px 16px;border:1px solid #dce5d6;border-radius:12px;color:#285a3d;text-decoration:none;font-weight:600}
+.site-contact-actions a:first-child{background:#285a3d;border-color:#285a3d;color:#fff}
+.site-contact-actions a:hover{filter:brightness(.96)}
+.site-contact-account{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;margin-top:28px;padding-top:20px;border-top:1px solid #e6ebe2;font-size:13px;color:#697263}
+.site-contact-account a{display:inline-flex;align-items:center;min-height:44px;color:#285a3d;text-underline-offset:4px;font-weight:600}
+.site-contact-instagram{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin-top:18px;color:#697263;font-size:13px;text-decoration:none}
+.site-contact :is(a,button):focus-visible{outline:2px solid #285a3d;outline-offset:4px}
+@media(max-width:380px){.site-contact{padding:24px}.site-contact h2{font-size:24px}}

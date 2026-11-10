@@ -1,5 +1,15 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Publicar": "List property",
+  "Publicar propiedad": "List your property",
+  "¿Querés publicar una propiedad?": "Want to list a property?",
+  "Contactá a ArenalIndex para coordinar tu anuncio y habilitar tu cuenta.": "Contact ArenalIndex to arrange your listing and set up your account.",
+  "Escribir por WhatsApp": "Message on WhatsApp",
+  "Contactar por correo": "Contact by email",
+  "¿Ya tenés acceso?": "Already have access?",
+  "Seguinos en Instagram": "Follow us on Instagram",
+  "Hola, me gustaría publicar una propiedad en ArenalIndex. ¿Cómo puedo empezar?": "Hi, I would like to list a property on ArenalIndex. How can I get started?",
+  "Publicar una propiedad en ArenalIndex": "List a property on ArenalIndex",
   "Escribí DELETE o BORRAR para confirmar.": "Type DELETE or BORRAR to confirm.",
   "Más acciones": "More actions",
   "Preparar revisión": "Prepare for review",

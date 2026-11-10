@@ -61,6 +61,8 @@ Las tarjetas muestran título, localidad, área, precio y hasta tres caracterís
 
 Las fotos actuales son ilustraciones. Las fichas de demostración ofrecen WhatsApp, llamada y correo al contacto público autorizado. Los anuncios sin contacto asignado permiten preparar y copiar una consulta. Las fichas del catálogo antiguo se administran en Supabase. Los nuevos anuncios se preparan y publican desde su revisión privada, como se describe abajo. Para empezar a operar con anuncios reales, registrar los datos y fotos verificados y asignar el canal de contacto.
 
+La navegación principal incluye «Publicar» en móvil y «Publicar propiedad» en escritorio. Abre un panel de contacto con WhatsApp, correo y acceso a «Mis anuncios», disponible incluso mientras carga el catálogo. Los mensajes se preparan en el idioma de la interfaz; el visitante decide enviarlos. `site/config.js` → `siteContact` configura estos contactos por separado de los demos. `instagramUrl` queda vacío hasta contar con el perfil oficial; al agregar una URL HTTPS de Instagram, aparece «Seguinos en Instagram» al pie del panel, sin mostrar un enlace vacío mientras tanto.
+
 ## Captación y revisión de propiedades
 
 `https://arenalindex.com/newlisting` es el formulario de captación. `/requisitos` y `/requisitos.html` redirigen a la nueva ruta y conservan el borrador anterior en IndexedDB. La página no aparece en el catálogo y usa `noindex,nofollow`. El pin representa siempre la **entrada**.

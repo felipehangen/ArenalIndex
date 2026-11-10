@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<script src="/i18n-en.js?v=2-sort"></script><script src="/demo-translations.js?v=1"></script><script src="/i18n.js?v=2-demo-titles"></script>
+<script src="/i18n-en.js?v=3-site-contact"></script><script src="/demo-translations.js?v=1"></script><script src="/i18n.js?v=2-demo-titles"></script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -72,7 +72,7 @@
 #arenal-index-dos .landmark>svg,#arenal-index-dos .landmark>i{display:block;flex-shrink:0;width:36px;height:36px;padding:7px;border-radius:50%;border:1px solid var(--m-green);background:var(--m-paper);color:var(--m-green);box-shadow:0 1px 5px light-dark(#214b2820,#0004)}
 #arenal-index-dos .landmark .landmark-name{position:absolute;transform:translate(-50%,-50%);background:var(--m-map);color:var(--m-green);font-size:11px;line-height:18px;font-weight:500;white-space:nowrap;padding:2px 5px;border-radius:4px;pointer-events:none}
 
-</style><link rel="stylesheet" href="real-map.css?v=5-clean-filters"><link rel="stylesheet" href="results-layout.css?v=14-single-photo"><link rel="stylesheet" href="property-detail.css?v=8-map-scroll"><link rel="stylesheet" href="ui-theme.css?v=12-card-features"><link rel="stylesheet" href="public-listing.css?v=3-contact"><link rel="stylesheet" href="home-loading.css?v=1"><link rel="stylesheet" href="desktop-layout.css?v=5-header-subtitle"><script src="config.js?v=5-managed-catalog"></script><script src="catalog.js?v=10-managed"></script><script src="property-content.js?v=9-language"></script><script src="ui-format.js?v=2"></script><script src="exchange-rate.js?v=1"></script><script src="pricing.js?v=9-language"></script><script src="listing-sort.js?v=1"></script><link rel="stylesheet" href="listing-sort.css?v=1"><script src="results-scroll.js?v=6-browse-position"></script><script src="map-markers.js?v=1"></script><script src="panel-motion.js?v=1"></script><link rel="stylesheet" href="/i18n.css?v=3-header-subtitle"></head>
+</style><link rel="stylesheet" href="real-map.css?v=5-clean-filters"><link rel="stylesheet" href="results-layout.css?v=14-single-photo"><link rel="stylesheet" href="property-detail.css?v=8-map-scroll"><link rel="stylesheet" href="ui-theme.css?v=12-card-features"><link rel="stylesheet" href="public-listing.css?v=3-contact"><link rel="stylesheet" href="home-loading.css?v=1"><link rel="stylesheet" href="desktop-layout.css?v=5-header-subtitle"><script src="config.js?v=6-site-contact"></script><script src="catalog.js?v=10-managed"></script><script src="property-content.js?v=9-language"></script><script src="ui-format.js?v=2"></script><script src="exchange-rate.js?v=1"></script><script src="pricing.js?v=9-language"></script><script src="listing-sort.js?v=1"></script><link rel="stylesheet" href="listing-sort.css?v=1"><script src="results-scroll.js?v=6-browse-position"></script><script src="map-markers.js?v=1"></script><script src="panel-motion.js?v=1"></script><link rel="stylesheet" href="/i18n.css?v=3-header-subtitle"><link rel="stylesheet" href="site-contact.css?v=1"></head>
 <body>
 
 <div class="local-app"><div id="arenal-index-dos" data-screen="home" data-catalog="loading" aria-label="Arenal Index · exploración de terrenos">
@@ -102,7 +102,7 @@
  <div id="results-scroll"><div class="results-map-space" aria-hidden="true"></div><div class="results-sheet-header"><button data-loading-controls inert id="results-handle" aria-label="Ajustar altura de resultados; arrastra o usa las flechas" aria-controls="results-scroll" aria-expanded="false"><span></span></button><div class="results-heading"><h2 id="index-count" aria-live="polite">Cargando terrenos…</h2><button id="results-return" aria-label="Ver todos los resultados" hidden>Ver todos</button><label class="sort-control" data-loading-controls inert><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h3"/></svg><span aria-hidden="true">Ordenar</span><select id="index-sort" aria-label="Ordenar propiedades"><option value="explore">Explorar</option><option value="price-asc">Menor precio</option><option value="price-desc">Mayor precio</option><option value="unit-asc">Menor precio por m²</option><option value="area-desc">Mayor terreno</option></select></label><button data-loading-controls inert id="results-expand" aria-controls="results-scroll" aria-expanded="false">Ver lista</button></div></div>
  <div class="results-body"><p id="currency-status" class="currency-status" hidden></p><div id="selection-context" hidden></div><p id="catalog-wait" role="status" hidden>Está tardando un poco más de lo habitual.</p><button id="catalog-retry" type="button" hidden>Reintentar</button><div id="catalog-skeleton" aria-hidden="true"><div class="skeleton-card"><div class="skeleton-photo skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line short skeleton-block"></div></div><div class="skeleton-card"><div class="skeleton-photo skeleton-block"></div><div class="skeleton-line skeleton-block"></div></div></div><div id="index-list" aria-busy="true"></div><p id="results-empty" hidden></p><button id="results-more" hidden>Ver 20 más</button><p id="results-progress"></p></div></div>
  </section></section>
- <nav class="bottom-navigation" aria-label="Navegación principal"><button data-loading-controls inert id="nav-explore" aria-pressed="true"><i data-lucide="compass" aria-hidden="true"></i><span>Explorar</span></button><button data-loading-controls inert id="index-saved" aria-pressed="false"><i data-lucide="heart" aria-hidden="true"></i><span>Guardados <b id="index-saved-count">0</b></span></button><span data-language-mount class="language-mount"></span></nav>
+ <nav class="bottom-navigation" aria-label="Navegación principal"><button data-loading-controls inert id="nav-explore" aria-pressed="true"><i data-lucide="compass" aria-hidden="true"></i><span>Explorar</span></button><button data-loading-controls inert id="index-saved" aria-pressed="false"><i data-lucide="heart" aria-hidden="true"></i><span>Guardados <b id="index-saved-count">0</b></span></button><button type="button" id="nav-publish" data-contact-open aria-haspopup="dialog" aria-controls="site-contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg><span class="contact-label-mobile">Publicar</span><span class="contact-label-desktop">Publicar propiedad</span></button><span data-language-mount class="language-mount"></span></nav>
  </div>
  <dialog id="index-filter-page" hidden aria-labelledby="index-panel-title">
   <div class="panel-header"><button id="index-cancel" class="icon-button cursor-interaction" aria-label="Cerrar filtros sin aplicar"><i data-lucide="x" aria-hidden="true"></i></button><h2 id="index-panel-title">Filtros</h2><span class="panel-header-spacer" aria-hidden="true"></span></div>
@@ -131,6 +131,19 @@
 
 
 
+<dialog id="site-contact" class="site-contact" aria-labelledby="site-contact-title" aria-describedby="site-contact-description">
+ <div class="site-contact-top"><span class="site-contact-brand" translate="no">ArenalIndex</span><button type="button" class="site-contact-close" data-contact-close aria-label="Cerrar" autofocus><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+ <h2 id="site-contact-title">¿Querés publicar una propiedad?</h2>
+ <p id="site-contact-description">Contactá a ArenalIndex para coordinar tu anuncio y habilitar tu cuenta.</p>
+ <div class="site-contact-actions">
+  <a data-contact-whatsapp hidden target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg><span>Escribir por WhatsApp</span></a>
+  <a data-contact-email hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 7 9 6 9-6"/></svg><span>Contactar por correo</span></a>
+ </div>
+ <div class="site-contact-account"><span>¿Ya tenés acceso?</span><a href="/cuenta/">Mis anuncios</a></div>
+ <a class="site-contact-instagram" data-contact-instagram hidden target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor" stroke="none"/></svg><span>Seguinos en Instagram</span></a>
+</dialog>
+
+<script src="site-contact.js?v=1"></script>
 <script src="home-loading.js?v=1"></script>
 <script>
 
