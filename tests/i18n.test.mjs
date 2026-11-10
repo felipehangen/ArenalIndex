@@ -74,6 +74,9 @@ test('dynamic copy translates complete phrases without translating captured owne
   const {i18n}=languageFixture();
   assert.equal(i18n.text('Foto exterior: Casa principal'),'Exterior photo: Casa principal');
   assert.equal(i18n.text('Vista 2 de 4 · imagen ilustrativa'),'View 2 of 4 · illustrative image');
+  assert.equal(i18n.text('1 foto de muestra · imágenes ilustrativas'),'1 sample photo · illustrative images');
+  assert.equal(i18n.text('1 foto'),'1 photo');
+  assert.equal(i18n.text('3 fotos'),'3 photos');
   assert.equal(i18n.text('1 · La propiedad ✓'),'1 · The property ✓');
   assert.equal(i18n.text('Versión 3. Aprobada para preparar la publicación.'),'Version 3. Approved for publication preparation.');
   assert.equal(i18n.text('Agua de red: Conexión activa · Electricidad: Medidor activo'),'Mains/community water: Active connection · Electricity: Active meter');
@@ -140,10 +143,20 @@ test('the real home controller keeps applied currency, saved state, pending filt
   const selectValue=Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype,'value');
   Object.defineProperty(window.HTMLSelectElement.prototype,'value',{configurable:true,get:selectValue.get,set(value){for(const option of this.options)option.selected=false;[...this.options].find(option=>option.value===String(value))?.setAttribute('selected','');}});
   const context={window,document,location:{hash:'',pathname:'/'},localStorage:{getItem:()=>null,setItem(){}},console:{error(){}},requestAnimationFrame:()=>1,ResizeObserver:class{observe(){}},matchMedia:()=>({matches:true,addEventListener(){}}),ArenalData:{load:async()=>items},ArenalHomeLoading:loading,ArenalMotion:{cancel(){},leave(node,done){done();}},ArenalResultsScroll:()=>({setListOnly(){},resetList(){},capturePosition(){return {};},restorePosition(){},setExpanded(){},collapsedHeight:250}),Option:function(label,value){const n=document.createElement('option');n.textContent=label;n.value=value;return n;},setTimeout,clearTimeout};
-  for(const file of ['ui-format.js','exchange-rate.js','pricing.js','listing-sort.js','sort-picker.js'])vm.runInNewContext(read(file),context);
-  context.ArenalPricing=window.ArenalPricing;context.ArenalListing=window.ArenalListing;
+  for(const file of ['ui-format.js','exchange-rate.js','pricing.js','listing-sort.js','sort-picker.js','filter-overflow.js'])vm.runInNewContext(read(file),context);
+  context.ArenalFilterOverflow=window.ArenalFilterOverflow;context.ArenalPricing=window.ArenalPricing;context.ArenalListing=window.ArenalListing;
   vm.runInNewContext(html.match(/<script>\s*(window\.arenalReady=[\s\S]*?)<\/script>/)[1],context);
   document.dispatchEvent(new window.Event('DOMContentLoaded'));await window.arenalReady;await flush();assert.deepEqual(events,['ready']);
+  for(const language of ['en','es','en']){
+    i18n.setLanguage(language);
+    const area=document.querySelector('[data-range="area"]');
+    assert.equal(area.querySelector('input[type=range]').getAttribute('aria-label'),language==='en'?'Minimum land area':'Mínimo de área del terreno');
+    assert.equal(area.querySelector('.range-amount').getAttribute('aria-label'),language==='en'?'Minimum land area in m²':'Mínimo de área del terreno en m²');
+    assert.equal(area.querySelector('svg').getAttribute('aria-label'),language==='en'?'Land area distribution across 100 listings':'Distribución de área del terreno en 100 anuncios');
+  }
+  document.querySelector('#index-saved').onclick();await flush();
+  assert.match(document.querySelector('#results-empty').textContent,/no saved properties yet/);
+  document.querySelector('#nav-explore').onclick();
   const first=document.querySelector('.listing-title-link');assert.equal(first.textContent,window.ArenalI18n.listingText(window.arenalDemo.results[0]));
   const sort=document.querySelector('#index-sort');
   const setSort=value=>{sort.click();document.querySelector('[data-sort-mode="'+value+'"]').click();};

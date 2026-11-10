@@ -7,9 +7,10 @@ import {selectRecords,renderRows} from '../site/admin/view.mjs';
 const html=fs.readFileSync(new URL('../site/admin/index.html',import.meta.url),'utf8');
 const sample={id:'test-property-01',title:'Terreno El Jardín',contact:'Felipe',email:'felipe@example.com',price:100000,currency:'USD',area:1000,status:'ready_for_review',version:1,updatedAt:'2026-11-09'};
 const identity={token:'a'.repeat(64),email:'felipehangen@gmail.com',expiresAt:Date.now()+3600000};
-function setup({signedIn=false,handler}={}){
+function setup({signedIn=false,handler,language='es'}={}){
   const {window,document}=parseHTML(html),calls=[],timers=[];let current=signedIn?identity:null;
   globalThis.window=window;window.location={hash:'',replace(url){this.destination=url;}};
+  window.ArenalI18n={language,t:(source,values={})=>source.replace(/\{(\w+)\}/g,(_,key)=>values[key]??'')};
   document.querySelector('#admin-status option').selected=true;
   const api={session:()=>current,saveSession:value=>current=value,clearSession:()=>{current=null;},async logout(){current=null;},async request(action,body,authenticated){
     calls.push({action,body,authenticated});
@@ -21,9 +22,19 @@ function setup({signedIn=false,handler}={}){
     throw Error('Unexpected action '+action);
   }};
   const google={initialize(options){this.options=options;},renderButton(node,options){node.textContent='Google sign-in';this.button=options;},disableAutoSelect(){}};
-  const controller=mountAdmin({document,window,api,googleLoader:async()=>google,schedule:fn=>{const timer={fn};timers.push(timer);return timer;},cancel:timer=>{if(timer)timer.cancelled=true;}});
+  const controller=mountAdmin({document,window,api,googleLoader:async locale=>{google.loadedLocale=locale;return google;},schedule:fn=>{const timer={fn};timers.push(timer);return timer;},cancel:timer=>{if(timer)timer.cancelled=true;}});
   return {window,document,api,google,controller,calls,timers,$:selector=>document.querySelector(selector)};
 }
+test('Google script and button use the same locale on initial load and both switch directions',async()=>{
+ const e=setup({language:'en'});await e.controller.ready;
+ assert.equal(e.google.loadedLocale,'en');assert.equal(e.google.button.locale,'en');
+ for(const language of ['es','en']){
+  e.window.ArenalI18n.language=language;e.window.dispatchEvent(new e.window.Event('arenal-language-change'));
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(e.google.loadedLocale,language);assert.equal(e.google.button.locale,language);
+ }
+ assert.equal(e.calls.some(c=>c.action==='list'),false);e.controller.destroy();
+});
 test('the login screen loads no private records until Google credentials are exchanged by the server',async()=>{
   const e=setup();await e.controller.ready;
   assert.ok(e.$('#inbox').hidden);assert.equal(e.calls.some(call=>call.action==='list'),false);

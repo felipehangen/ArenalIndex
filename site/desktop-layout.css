@@ -1,7 +1,15 @@
 /* Medium screens keep the map above the native results sheet with two cards per row.
    Wide screens place the same grid beside the map. */
 #arenal-index-dos .desktop-filters{display:none}
+#arenal-index-dos .quick-filter-bar{display:none}
 @media(min-width:600px){
+  #arenal-index-dos .quick-filter-bar{display:block;position:relative;flex-shrink:0;min-width:0}
+  #arenal-index-dos .desktop-filters{scroll-padding-inline:64px}
+  #arenal-index-dos .filter-scroll-control{position:absolute;top:0;bottom:0;z-index:1;width:48px;min-width:48px;padding:0;border:0;border-radius:0;display:grid;place-items:center;background:linear-gradient(90deg,#fff0,#fff 35%);color:var(--m-text)}
+  #arenal-index-dos .filter-scroll-control.previous{left:0;transform:scaleX(-1)}
+  #arenal-index-dos .filter-scroll-control.next{right:0}
+  #arenal-index-dos .filter-scroll-control:disabled{opacity:0;pointer-events:none}
+  #arenal-index-dos .filter-scroll-control svg{width:28px;height:28px;padding:5px;border:1px solid var(--m-line);border-radius:50%;background:#fff;box-shadow:0 1px 4px #0001}
   #arenal-index-dos:is([data-screen="home"],[data-screen="filters"]){max-width:none!important;width:100%;box-shadow:none}
   #arenal-index-dos .desktop-filters{display:flex;align-items:center;gap:10px;padding:14px 32px;border-bottom:1px solid var(--m-line);flex-shrink:0;overflow-x:auto;scrollbar-width:thin}
   #arenal-index-dos .desktop-filters button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 14px;background:#fff;border:1px solid var(--m-line);border-radius:22px;white-space:nowrap;font-size:12px;font-weight:500;color:var(--m-text);flex-shrink:0}

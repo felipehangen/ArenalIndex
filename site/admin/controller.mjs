@@ -1,18 +1,9 @@
 import * as client from './client.mjs';
 import {selectRecords,renderRows} from './view.mjs?v=5-editor';
+import {createGoogleLoader} from './google-loader.mjs';
 
-let googleScript;
-export function loadGoogle(){
-  if(window.google?.accounts?.id)return Promise.resolve(window.google.accounts.id);
-  if(!googleScript)googleScript=new Promise((resolve,reject)=>{
-    const script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';script.async=true;
-    const timer=setTimeout(()=>{script.remove();googleScript=null;reject(Error('No se pudo cargar Google. Revisá la conexión e intentá de nuevo.'));},20000);
-    script.onload=()=>{clearTimeout(timer);resolve(window.google.accounts.id);};
-    script.onerror=()=>{clearTimeout(timer);script.remove();googleScript=null;reject(Error('No se pudo cargar Google. Revisá la conexión e intentá de nuevo.'));};
-    document.head.append(script);
-  });
-  return googleScript;
-}
+let googleLoader;
+export function loadGoogle(language){googleLoader??=createGoogleLoader({window,document});return googleLoader(language);}
 
 export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,schedule=setTimeout,cancel=clearTimeout,now=Date.now,owner=false,onSignedIn=()=>{}}){
   const $=selector=>document.querySelector(selector);
@@ -93,7 +84,8 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
       config=await api.request('config',{},false);if(current!==epoch)return;
       if(!config.configured){loginMessage('El acceso con Google todavía no está configurado.',true);return;}
       const challenge=await api.request('challenge',{},false);if(current!==epoch)return;
-      google=await googleLoader();if(current!==epoch)return;
+      const language=window.ArenalI18n?.language||'es';
+      google=await googleLoader(language);if(current!==epoch)return;
       google.initialize({client_id:config.clientId,nonce:challenge.nonce,auto_select:false,
         callback:async response=>{
           if(current!==epoch)return;
@@ -105,7 +97,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
           }catch(error){if(attempt===epoch){google?.disableAutoSelect();await prepareGoogle(error.message);}}
         }
       });
-      google.renderButton($('#google-button'),{type:'standard',theme:'outline',size:'large',text:'signin_with',shape:'pill',locale:window.ArenalI18n?.language||'es',width:Math.min(300,$('#google-button').clientWidth||300)});
+      google.renderButton($('#google-button'),{type:'standard',theme:'outline',size:'large',text:'signin_with',shape:'pill',locale:language,width:Math.min(300,$('#google-button').clientWidth||300)});
       loginMessage(message,!!message);
     }catch(error){if(current===epoch)loginMessage(error.message,true);}
   }
@@ -157,7 +149,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     try{await api.request('workspace_unlist',{id:row.id,version:row.version,publicationRevision:row.publicationRevision});await refresh();}
     catch(error){if(error.status===401)expire();else{$('#inbox-error').hidden=false;$('#inbox-error').textContent=t(error.message);button.disabled=false;}}
   };
-  window.addEventListener('arenal-language-change',()=>{render();if(!$('#login-panel').hidden&&google&&config?.configured)prepareGoogle();});
+  window.addEventListener('arenal-language-change',()=>{render();if(!$('#login-panel').hidden&&config?.configured)prepareGoogle();});
   window.addEventListener('pageshow',event=>{if(event.persisted)start();});
   window.addEventListener('focus',()=>{if(!$('#inbox').hidden&&!api.session())expire();});
   const ready=start();

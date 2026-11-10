@@ -1,5 +1,7 @@
 # Production review — November 10, 2026
 
+**Later update, 11:49 Costa Rica:** the `www` DNS/certificate problem below is now resolved and independently verified. The supplied Chrome QA found additional interface issues, including uncounted overlapping map pins. Read [QA-REVIEW-2026-11-10.md](QA-REVIEW-2026-11-10.md) for the current findings; the original review below remains a dated record.
+
 ## Outcome
 
 The apex site, catalog, media, currency filters and tested access boundaries passed. **Do not treat this as an unconditional launch sign-off:** HTTPS for `www.arenalindex.com` currently fails certificate validation. Interactive browser and real sign-in/email delivery checks were not completed in this review.

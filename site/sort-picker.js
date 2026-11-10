@@ -7,7 +7,7 @@ window.ArenalSortPicker = ({button,dialog,getMode,isAvailable,onSelect,capturePo
     const mode=getMode(),selected=options.find(option=>option.dataset.sortMode===mode);
     button.value=mode;
     button.dataset.active=String(mode!=='explore');
-    button.title=t('Ordenar')+': '+t(selected?.dataset.sortLabel||'Explorar');
+    button.title=t('Ordenar')+': '+t(selected?.dataset.sortLabel||'Variado');
     for(const option of options){
       option.disabled=!isAvailable(option.dataset.sortMode);
       option.setAttribute('aria-pressed',String(option===selected));
