@@ -105,3 +105,11 @@ test('catalog decisions use conditional private writes so simultaneous changes c
   const state=await repository.catalogState();assert.equal(state['lot-1'].revision,2);
   assert.equal(await repository.catalogUpdate('lot-1',1,{status:'published',revision:2}),null);
 });
+
+test('name reservations use private conditional storage and reject concurrent accounts',async()=>{
+  const {withUniqueName}=await import('../server/portal/account-names.mjs');
+  const {repository,rows}=setup();
+  const results=await Promise.allSettled(['one@example.com','two@example.com'].map(email=>withUniqueName({repository,email,name:'Shared',operation:async()=>email})));
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);assert.equal(results.find(r=>r.status==='rejected').reason.status,409);
+  const entry=[...rows].find(([key])=>key.startsWith('portal/account-names/'));assert.ok(entry);assert.equal(JSON.parse(entry[1].text).state,'committed');
+});

@@ -129,3 +129,9 @@ test('admin edits an escaped account name inline and retains the draft on save e
   reject=false;await list.onsubmit({...event,target:editor});assert.equal(list.querySelector('strong').textContent,'New Name');assert.equal(e.$('[data-name-form]').hidden,true);
   assert.deepEqual(e.calls.find(c=>c.action==='set_owner_name').body,{id:'c'.repeat(64),name:'New Name',nameVersion:1});e.controller.destroy();
 });
+
+test('existing unnamed accounts expose the name editor',async()=>{
+  const e=setup({owner:false,signedIn:true});await e.controller.ready;mountAccounts({document:e.document,window:e.window,api:e.api});await e.$('[data-refresh-accounts]').onclick();
+  assert.equal(e.$('[data-edit-name]').textContent,'Editar nombre');await e.$('[data-accounts]').onclick({target:e.$('[data-edit-name]')});
+  assert.equal(e.$('[data-name-form]').hidden,false);assert.equal(e.$('[data-name-form] input').value,'');e.controller.destroy();
+});

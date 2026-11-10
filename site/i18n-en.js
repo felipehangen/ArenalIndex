@@ -1,5 +1,7 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Ese nombre ya está en uso. Elegí otro nombre para la cuenta.": "That name is already in use. Choose another account name.",
+  "Este nombre se está guardando. Intentá de nuevo.": "This name is being saved. Try again.",
   "Nombre de la cuenta": "Account name",
   "Editar nombre": "Edit name",
   "Guardar nombre": "Save name",

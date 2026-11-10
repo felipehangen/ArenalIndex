@@ -29,3 +29,36 @@ test('legacy accounts can gain names and invalid names never create accounts',as
   assert.equal((await e.call('set_owner_password',{email:'legacy@gmail.com',name:'Agency',password:'Temporary password 123'},admin,'admin')).status,200);
   const updated=(await e.call('owner_accounts',{},admin,'admin')).body.accounts[0];assert.equal(updated.name,'Agency');assert.equal(updated.password,true);
 });
+
+test('creation and renaming reject equivalent names, including legacy and inactive accounts',async()=>{
+  const e=portalFixture(),admin=await e.adminSession();await e.register('legacy',admin);
+  const first=(await e.call('owner_accounts',{},admin,'admin')).body.accounts[0];
+  Object.assign(e.portal.get('accounts/'+first.id),{name:'José  Realty',active:false});
+  for(const name of ['José Realty','JOSE REALTY','  jose   realty  ','Jose\u0301 Realty','ＪＯＳＥ Realty']){
+    const result=await e.call('create_account',{email:'other@gmail.com',name},admin,'admin');assert.equal(result.status,409);assert.match(result.body.error,/nombre ya está en uso/);
+  }
+  assert.equal((await e.repository.ownerAccounts()).length,1);
+  await e.register('second',admin);const second=(await e.call('owner_accounts',{},admin,'admin')).body.accounts.find(row=>row.email==='second@gmail.com');
+  assert.equal((await e.call('set_owner_name',{id:second.id,name:'jose realty',nameVersion:0},admin,'admin')).status,409);
+  assert.equal((await e.call('set_owner_password',{email:'second@gmail.com',name:'jose realty',password:'Temporary password 123'},admin,'admin')).status,409);
+  assert.equal(e.portal.get('accounts/'+second.id).password,undefined);
+  assert.equal((await e.call('set_owner_name',{id:first.id,name:'José Realty',nameVersion:0},admin,'admin')).status,200);
+});
+
+test('simultaneous claims allow exactly one account; renamed names become available again',async()=>{
+  const e=portalFixture(),admin=await e.adminSession();
+  const results=await Promise.all(['first','second'].map(email=>e.call('create_account',{email:email+'@gmail.com',name:'Shared Name'},admin,'admin')));
+  assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);
+  const row=(await e.call('owner_accounts',{},admin,'admin')).body.accounts[0];
+  assert.equal((await e.call('set_owner_name',{id:row.id,name:'New Name',nameVersion:row.nameVersion},admin,'admin')).status,200);
+  assert.equal((await e.call('create_account',{email:'third@gmail.com',name:'shared name'},admin,'admin')).status,200);
+});
+
+test('simultaneous renames reserve one target, and failed version writes release their reservation',async()=>{
+  const e=portalFixture(),admin=await e.adminSession();await e.register('first',admin);await e.register('second',admin);
+  const rows=(await e.call('owner_accounts',{},admin,'admin')).body.accounts;
+  const results=await Promise.all(rows.map(row=>e.call('set_owner_name',{id:row.id,name:'Shared',nameVersion:0},admin,'admin')));assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);
+  const update=e.repository.portalUpdate;e.repository.portalUpdate=async(kind,id,filters,patch)=>kind==='accounts'&&patch.name==='Rejected'?null:update(kind,id,filters,patch);
+  const loser=rows[results.findIndex(r=>r.status===409)];assert.equal((await e.call('set_owner_name',{id:loser.id,name:'Rejected',nameVersion:0},admin,'admin')).status,409);
+  e.repository.portalUpdate=update;assert.equal((await e.call('create_account',{email:'third@gmail.com',name:'Rejected'},admin,'admin')).status,200);
+});
