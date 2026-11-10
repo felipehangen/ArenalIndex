@@ -44,10 +44,10 @@
   body:has(#arenal-index-dos){background:#fff}
   #arenal-index-dos:is([data-screen="home"],[data-screen="filters"]){--results-width:60%}
   #arenal-index-dos #index-home{position:relative}
-  #arenal-index-dos header.explore-header{display:grid;grid-template-columns:minmax(180px,1fr) minmax(300px,420px) minmax(250px,1fr);min-height:96px;padding:18px 32px!important;gap:24px}
+  #arenal-index-dos header.explore-header{display:grid;grid-template-columns:minmax(0,1fr) 330px;min-height:96px;padding:18px 32px!important;gap:4px 24px}
   #arenal-index-dos .explore-header .index-arenal{font-size:31px}
   #arenal-index-dos .explore-header .index-index{font-size:8px}
-  #arenal-index-dos .explore-header .browse-location{grid-column:2;grid-row:1;text-align:center;font-size:15px;line-height:1.5}
+  #arenal-index-dos .explore-header .browse-location{grid-column:1;grid-row:2;text-align:left;font-size:12px;line-height:1.4}
   #arenal-index-dos .browse-tools{display:none}
   #arenal-index-dos .bottom-navigation{position:absolute;top:20px;right:32px;min-height:54px;padding:0;border:0;gap:8px;background:transparent;z-index:6}
   #arenal-index-dos .bottom-navigation button{min-width:0;width:auto;height:48px;min-height:48px;display:flex;flex-direction:row;gap:8px;padding:10px 14px;border-radius:24px;font-size:13px}

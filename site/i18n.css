@@ -21,7 +21,6 @@ button.language-button:focus-visible{outline:2px solid #285a3d;outline-offset:2p
 #arenal-index-dos .pd-bar-actions{flex-shrink:0}
 #arenal-index-dos .pd-bar .pd-icon{flex:0 0 44px}
 @media(min-width:960px){
- #arenal-index-dos header.explore-header{grid-template-columns:minmax(160px,1fr) minmax(220px,360px) minmax(330px,1fr)}
  #arenal-index-dos .bottom-navigation>button{flex:none;max-width:none}
  #arenal-index-dos .bottom-navigation .language-button{font-size:12px;padding:10px}
 }
