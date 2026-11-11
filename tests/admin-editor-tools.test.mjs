@@ -8,7 +8,7 @@ test('the editor shows the next valid workflow action and keeps destructive acti
   const d=markup(status);assert.ok(d.querySelector('[data-admin-action="'+action+'"]'));assert.ok(d.querySelector('[data-admin-action=preview]'));
   assert.ok(d.querySelector('details [data-admin-action=delete]'));assert.equal(d.querySelector('[data-admin-action=unlist]'),null);
  }
- const published=markup('approved',{published:true});assert.equal(published.querySelector('[data-admin-action=publish]').textContent,'Actualizar publicación');assert.ok(published.querySelector('details [data-admin-action=unlist]'));
+ const published=markup('approved',{published:true});assert.equal(published.querySelector('[data-admin-action=publish]').textContent,'Revisar y publicar');assert.ok(published.querySelector('details [data-admin-action=unlist]'));
 });
 test('unsaved edits cannot be approved or published against an old saved version',()=>{
  for(const status of ['ready_for_review','approved']){

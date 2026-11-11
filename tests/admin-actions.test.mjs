@@ -14,7 +14,7 @@ function setup(){
  return {document,window,calls,dialog,get refresh(){return refresh;},$:s=>document.querySelector(s),click:async selector=>document.querySelector('#admin-records').onclick({target:document.querySelector(selector)})};
 }
 test('published rows group edit, unlist and delete; review rows open a focused review with no implicit approval',async()=>{
- const e=setup();assert.match(e.$('[data-record="real-property-01"]').textContent,/EditarDeslistarBorrar/);assert.equal(e.$('[data-record="real-property-01"] .admin-record-link').getAttribute('href'),'/newlisting/?admin=real-property-01');
+ const e=setup();assert.match(e.$('[data-record="real-property-01"]').textContent,/EditarDeslistarRevisar y publicarBorrar/);assert.equal(e.$('[data-record="real-property-01"] .admin-record-link').getAttribute('href'),'/newlisting/?admin=real-property-01&edit=1');
  await e.click('[data-id="review-property-01"][data-row-action="approve"]');assert.equal(e.dialog.open,true);assert.match(e.$('iframe').src,/focus=approve&embedded=1/);assert.equal(e.calls.length,0);
  e.$('#listing-dialog-close').onclick();assert.equal(e.$('iframe'),null);
 });

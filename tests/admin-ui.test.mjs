@@ -96,5 +96,5 @@ test('a denied Google login renders a fresh retry button, preserves the error an
 });
 test('administrator sign-in returns direct editing links to the editor',async()=>{
  const e=setup({signedIn:true});e.window.location.hash='#edit=test-property-01';await e.controller.ready;
- assert.equal(e.window.location.destination,'/newlisting/?admin=test-property-01');e.controller.destroy();
+ assert.equal(e.window.location.destination,'/newlisting/?admin=test-property-01&edit=1');e.controller.destroy();
 });

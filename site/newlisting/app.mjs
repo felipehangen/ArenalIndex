@@ -3,7 +3,7 @@ import * as M from './model.mjs?v=12-title-examples';
 import {openStore,createSaver} from './local.mjs?v=2-account-save';
 import {createAPI,randomToken,submitDraft} from './api.mjs';
 import {mountMap} from './map.mjs?v=2-zoom-labels';
-import {accountContext,saveToAccount} from './account.mjs?v=5-listing-rules';
+import {accountContext,saveToAccount,reopenForEditing} from './account.mjs?v=6-simple-workflow';
 import {renderFields,renderPhotoTour,renderPhotoChecklist,renderPhotoGroupStatus,renderPendingItems,areaNotice} from './view.mjs?v=11-title-examples';
 import {addAttachments} from './photos.mjs?v=1';
 import {photoWarnings} from './photo-policy.mjs';
@@ -82,7 +82,7 @@ function review(){
 }
 function submissionState(){
   const s=draft.submission,admin=account.kind==='admin';
-  if(admin){$('#submission-state').replaceChildren();return;}
+  if(admin){$('#submission-state').innerHTML=s?.publishedVersion?'<p class="map-note">Los cambios deberán revisarse antes de publicar. La versión publicada sigue visible.</p>':'';return;}
   const editable=!s||['draft','changes_requested'].includes(s.status);
   const state=s?.publishedVersion?'Publicado':editable?'Borrador':s.status==='approved'?'Listo para publicar':'En revisión';
   $('#submission-state').innerHTML='<div class="editor-state"><span class="draft-badge">'+state+'</span>'+
@@ -105,7 +105,7 @@ function updateReview(){
   for(const [n,option] of [...$('#step-select').options].entries())option.textContent=(n+1)+' · '+M.steps[Number(option.value)].short+(M.stepComplete(draft,Number(option.value),issues)?' ✓':'');
   $('#draft-reference').setAttribute('translate','no');$('#draft-reference').textContent=M.reference(draft);
   $('#next').disabled=busy||cloudConflict||(isReview()&&!canAdminReview()&&!locked()&&(!ready||issues.length>0));
-  if(isReview()&&account.kind==='admin')$('#next').textContent=canAdminReview()?(draft.submission.status==='approved'?'Publicar':'Revisar y aprobar'):'Enviar para revisión';
+  if(isReview()&&account.kind==='admin')$('#next').textContent=canAdminReview()?'Revisar y publicar':'Enviar para revisión';
 }
 function render(focus=true){
   if(account?.expired)return;
@@ -167,7 +167,7 @@ async function send(){
   const issues=M.pending(draft);if(issues.length)return notify('Completá los datos indicados antes de enviar.');
   if(!await confirm('¿Enviar la ficha para revisión?','Compartirás tus respuestas y archivos de forma privada con ArenalIndex. El envío no publica el anuncio: ArenalIndex deberá revisarlo, aprobarlo y publicarlo.'))return;
   busy=true;draft.accessToken ||= randomToken();await save();render(false);
-  try {if(account){await saveToAccount(draft,account,notify);draft.submission=await account.request('submit',{version:draft.submission.version});}else draft.submission=await submitDraft(draft,api,notify);await save();notify('Ficha recibida: lista para revisión de publicación.');if(account?.kind==='admin'){busy=false;render(false);}}
+  try {if(account){await saveToAccount(draft,account,notify);draft.submission=await account.request('submit',{version:draft.submission.version});}else draft.submission=await submitDraft(draft,api,notify);await save();notify('Ficha recibida: lista para revisión de publicación.');if(account?.kind==='admin'){busy=false;render(false);await adminTools.review();}}
   catch(error){
     const received=await api.request('status',{id:draft.id},draft.accessToken).catch(()=>null);
     if(account&&received&&(received.version!==draft.cloud?.version||received.editRevision!==draft.cloud?.editRevision)){cloudConflict=true;notify('Hay cambios más recientes. Cargá la versión actual antes de enviar.');}
@@ -188,9 +188,9 @@ async function retryEmail(){
 }
 async function edit(){
   if(busy||!draft.submission)return;
-  if(!await confirm('¿Editar la ficha enviada?','La aprobación anterior quedará invalidada. Tendrás que enviar los cambios para una nueva revisión.'))return;
+  if(cloudConflict)return notify('Hay cambios más recientes. Cargá la versión actual antes de editar.');
   busy=true;
-  try {draft.submission=await api.request('reopen',{id:draft.id,version:draft.submission.version,...(account?{editRevision:draft.cloud?.editRevision||0}:{})},draft.accessToken);if(account)draft.cloud={version:draft.submission.version,editRevision:draft.submission.editRevision,dirty:false};await save();}
+  try {await reopenForEditing(draft,account);await save();notify('Podés editar. Enviá los cambios para revisión; la versión publicada sigue visible hasta que se publique la actualización.');}
   catch(error){notify(error.message);}finally{busy=false;render(false);}
 }
 document.addEventListener('input',event=>{
@@ -257,7 +257,7 @@ if(account){
 if(account.kind==='admin'){
   document.body.classList.add('admin-editor');
   $('.header-label').textContent='EDITAR ANUNCIO';
-  const {mountAdminEditor}=await import('./admin-tools.mjs?v=1');
+  const {mountAdminEditor}=await import('./admin-tools.mjs?v=2-simple-workflow');
   adminTools=mountAdminEditor({document,window,account,getDraft:()=>draft,isBusy:()=>busy,isConflict:()=>cloudConflict,
     onPreview:buyerPreview,onPrepare:()=>go(M.steps.length-1),
     onChange:async event=>{
@@ -272,6 +272,12 @@ if(account.kind==='admin'){
       }catch(error){notify(error.message);}
     }
   });
+}
+const editParams=new URLSearchParams(location.search);
+if(editParams.get('edit')==='1'){
+  // Consume the click once: refreshing after submission must not reopen it again.
+  editParams.delete('edit');history.replaceState(null,'','?'+editParams+location.hash);
+  if(!cloudConflict){try{if(await reopenForEditing(draft,account)){await save();notify('Podés editar. Enviá los cambios para revisión; la versión publicada sigue visible hasta que se publique la actualización.');}}catch(error){notify(error.message);}}
 }
 render(false);
 ready=await api.available();if(!account?.expired)updateReview();

@@ -1312,5 +1312,16 @@ window.ArenalEnglish=Object.freeze({...window.ArenalEnglish,...{
   "No se pudo preparar la imagen. Probá con otra copia JPG, PNG o WebP.": "The image could not be prepared. Try another JPG, PNG, or WebP copy.",
   "Esta foto ya está en la ficha. Podés cambiar su grupo sin subirla otra vez.": "This photo is already in the listing. You can change its group without uploading it again.",
   "No se pudo comprobar la imagen. Usá otra copia JPG, PNG o WebP.": "The image could not be verified. Use another JPG, PNG, or WebP copy.",
-  "No se pudo preparar una foto para publicar. Volvé a guardar la ficha.": "A photo could not be prepared for publication. Save the listing again."
+  "No se pudo preparar una foto para publicar. Volvé a guardar la ficha.": "A photo could not be prepared for publication. Save the listing again.",
+  "Revisar y publicar": "Review and publish",
+  "Aprobar y publicar": "Approve and publish",
+  "Aprobar y publicar cambios": "Approve and publish changes",
+  "Continuar más tarde": "Continue later",
+  "Guardar aprobación para después": "Save approval for later",
+  "Guarda la revisión aprobada sin publicar el anuncio.": "Saves the approved review without publishing the listing.",
+  "Devolver para cambios": "Return for changes",
+  "La aprobación corresponde a esta versión. Si se edita la ficha, los cambios deberán enviarse nuevamente.": "Approval applies to this version. If the listing is edited, the changes must be submitted again.",
+  "Los cambios deberán revisarse antes de publicar. La versión publicada sigue visible.": "Changes must be reviewed before publication. The published version stays visible.",
+  "Podés editar. Enviá los cambios para revisión; la versión publicada sigue visible hasta que se publique la actualización.": "You can edit now. Submit your changes for review; the published version stays visible until the update is published.",
+  "Hay cambios más recientes. Cargá la versión actual antes de editar.": "There are newer changes. Load the current version before editing."
 }});

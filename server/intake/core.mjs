@@ -19,7 +19,7 @@ export function createHandler({repository,mailer,config,now=()=>new Date(),autho
       const raw=await request.text();if(raw.length>250000)fail(413,'La ficha es demasiado grande.');
       const body=JSON.parse(raw),action=body.action;
       if(action==='health')return respond({ready:!!config.emailReady&&await repository.health()});
-      const reviewAction=['review','approve','request_changes','publish','unpublish','preview_publication'].includes(action);
+      const reviewAction=['review','approve','approve_publish','request_changes','publish','unpublish','preview_publication'].includes(action);
       const admin=reviewAction&&authorizeReview?await authorizeReview(request):null;
       const owner=!reviewAction&&authorizeOwner?await authorizeOwner(request):null;
       const token=request.headers.get(reviewAction?'X-Review-Token':'X-Intake-Token')||'';
@@ -95,14 +95,22 @@ export function createHandler({repository,mailer,config,now=()=>new Date(),autho
         const locality=resolveLocality?await resolveLocality(row.payload.values):null;
         return respond({...summary(row),id,draft:{...row.payload,files},review:row.review,editorial:row.editorial||{},locality,ownerEmail:admin?row.owner_email||null:undefined,copy:buyerCopy(row.payload,row.review),concerns:knownConcerns(row.payload,row.review)});
       }
-      if(['publish','unpublish','preview_publication'].includes(action)){
+      if(['publish','approve_publish','unpublish','preview_publication'].includes(action)){
         if(body.version!==row.version)fail(409,'La versión cambió. Recargá la revisión.');
+        const combined=action==='approve_publish',reviewing=combined||action==='preview_publication'&&row.status==='ready_for_review';
+        if((reviewing||body.editRevision!==undefined)&&body.editRevision!==(row.edit_revision||0))fail(409,'La ficha cambió. Recargá la revisión.');
+        if(reviewing&&row.status!=='ready_for_review')fail(409,'Esta versión ya cambió o fue revisada. Abrí la ficha actual.');
+        const approval=reviewing?{status:'approved',review:normalizeReview(body.review),feedback:typeof body.feedback==='string'?body.feedback.trim().slice(0,3000):'',reviewed_at:now().toISOString(),reviewed_by:admin?.email||config.reviewEmail}:{};
+        if(reviewing){
+          const issues=pending(row.payload,{publication:true,review:approval.review});
+          if(issues.length)fail(422,'Antes de aprobar: '+issues.map(i=>i.label).join(', '));
+        }
         if(action!=='preview_publication'&&body.publicationRevision!==(row.publication_revision||0))fail(409,'La publicación cambió. Recargá la revisión.');
         if(action==='unpublish'&&!row.publication)fail(409,'El anuncio ya está retirado. Actualizá la lista.');
         let publication=null;
         if(action!=='unpublish'){
-          if(action==='publish'&&body.confirmed!==true)fail(422,'Confirmá los datos públicos y las fotografías antes de publicar.');
-          try{publication=createPublication(row,body.editorial||{},{apiURL:config.publicAPIURL,date:now().toISOString()});}catch(error){fail(422,error.message);}
+          if((action==='publish'||combined)&&body.confirmed!==true)fail(422,'Confirmá los datos públicos y las fotografías antes de publicar.');
+          try{publication=createPublication({...row,...approval},body.editorial||{},{apiURL:config.publicAPIURL,date:now().toISOString()});}catch(error){fail(422,error.message);}
           // Every publication uses a server-generated, metadata-free image, even
           // for older drafts or clients that skipped browser-side optimization.
           for(const [photoId,file] of Object.entries(publication.media))publication.media[photoId]=await repository.publicPhoto(file.path,file);
@@ -116,12 +124,15 @@ export function createHandler({repository,mailer,config,now=()=>new Date(),autho
           await repository.ensurePublishedIndex(id);
         }
         const editorial=publication?{title:publication.listing.name,place:publication.listing.place,description:publication.listing.description,language:publication.listing.details.language,titleTranslation:publication.listing.details.translations[publication.listing.details.language==='es'?'en':'es'].title||'',descriptionTranslation:publication.listing.details.translations[publication.listing.details.language==='es'?'en':'es'].description||'',whatsapp:publication.listing.details.contact?.whatsapp||''}:row.editorial||{};
-        const updated=await repository.update(id,{version:row.version,status:row.status,...reviewGuard,publication_revision:row.publication_revision},{publication,editorial,relist_publication:action==='unpublish'&&admin?.role==='owner'?row.publication:null,relist_owner:action==='unpublish'&&admin?.role==='owner'?row.owner_subject:null,publication_revision:(row.publication_revision||0)+1,published_by:admin?.email||config.reviewEmail,unlisted_at:action==='unpublish'?now().toISOString():null,updated_at:now().toISOString()});
+        // Approval and the public snapshot change together, after every check and
+        // photo preparation succeeds. A concurrent edit invalidates the whole write.
+        const updated=await repository.update(id,{version:row.version,status:row.status,edit_revision:row.edit_revision,...reviewGuard,publication_revision:row.publication_revision},{...(combined?approval:{}),publication,editorial,relist_publication:action==='unpublish'&&admin?.role==='owner'?row.publication:null,relist_owner:action==='unpublish'&&admin?.role==='owner'?row.owner_subject:null,publication_revision:(row.publication_revision||0)+1,published_by:admin?.email||config.reviewEmail,unlisted_at:action==='unpublish'?now().toISOString():null,updated_at:now().toISOString()});
         if(!updated)fail(409,'La ficha cambió. Recargá la revisión antes de publicar.');
         return respond({...summary(updated),editorial,url:publication?shareURL(publication.listing.id):null});
       }
       if(['approve','request_changes'].includes(action)){
         if(body.version!==row.version||row.status!=='ready_for_review')fail(409,'Esta versión ya cambió o fue revisada. Abrí la ficha actual.');
+        if(body.editRevision!==undefined&&body.editRevision!==(row.edit_revision||0))fail(409,'La ficha cambió. Recargá la revisión.');
         const feedback=typeof body.feedback==='string'?body.feedback.trim().slice(0,3000):'';
         const review=normalizeReview(body.review);
         if(action==='request_changes'){

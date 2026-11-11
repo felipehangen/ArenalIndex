@@ -1,5 +1,7 @@
 # Account and catalog workflow
 
+The [simplified workflow](SIMPLE-WORKFLOW-2026-11-11.md) combines review and public preparation in one screen with **Approve and publish**. Edit links reopen a submitted listing directly; approval without publication remains optional for continuing later.
+
 New submissions start in `/cuenta/` (`/account/` is an alias). Bare `/newlisting/` sends visitors to account sign-in. Production intake rejects anonymous creation; existing private review links continue to work.
 
 Drafts can be saved with missing fields. Submitting requires the form checklist, approval requires document/photo checks, and publishing requires reviewed public copy and confirmation. Reopening returns a record to draft and clears the approval; the last published snapshot stays visible until replaced or unlisted. Corrections can be discussed outside the application. Legacy `changes_requested` records display as drafts and remain editable.

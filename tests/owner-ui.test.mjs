@@ -44,7 +44,7 @@ test('direct draft links wait until the temporary password has been replaced',as
   const e=setup({signedIn:true,hash:'#edit=property-0001'});await e.controller.ready;
   assert.equal(e.window.location.destination,undefined);assert.equal(e.$('#password-panel').hidden,false);
   e.$('#new-password').value=e.$('#confirm-password').value='Private password 123';await e.$('#password-form').onsubmit(event);
-  assert.equal(e.window.location.destination,'/newlisting/?cuenta=property-0001');e.controller.destroy();
+  assert.equal(e.window.location.destination,'/newlisting/?cuenta=property-0001&edit=1');e.controller.destroy();
 });
 test('password sign-in is usable even when the Google SDK cannot load',async()=>{
   const e=setup({handler:action=>{if(action==='config')return {configured:false};}});await e.controller.ready;
@@ -91,7 +91,7 @@ test('standard rules require an unchecked explicit acceptance before listing acc
   e.$('#rules-accept').checked=true;e.$('#rules-accept').onchange();assert.equal(e.$('#rules-submit').disabled,false);
   await e.$('#rules-form').onsubmit(event);
   assert.deepEqual(e.calls.find(c=>c.action==='accept_listing_rules').body,{accepted:true,version:currentRules.version,contentHash:currentRules.contentHash,language:'es'});
-  assert.equal(e.window.location.destination,'/newlisting/?cuenta=property-0001');assert.equal(e.$('#rules-panel').hidden,true);e.controller.destroy();
+  assert.equal(e.window.location.destination,'/newlisting/?cuenta=property-0001&edit=1');assert.equal(e.$('#rules-panel').hidden,true);e.controller.destroy();
 });
 
 test('acceptance errors keep listings closed and a retry is available; switching language preserves the choice',async()=>{

@@ -35,7 +35,7 @@ function environment({configured=true}={}){
 
 test('anonymous configuration is public but records and every review action require a valid session',async()=>{
   const e=environment();assert.deepEqual((await e.call('config')).body,{configured:true,clientId:'google-client'});
-  for(const action of ['list','session','review','approve','request_changes','publish','unpublish','preview_publication']){
+  for(const action of ['list','session','review','approve','approve_publish','request_changes','publish','unpublish','preview_publication']){
     assert.equal((await e.call(action,{email,isAdmin:true},undefined,{'X-Admin-Email':email,'X-Review-Token':'a'.repeat(64)})).status,401);
     assert.equal((await e.call(action,{},'a'.repeat(64))).status,401);
   }

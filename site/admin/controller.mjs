@@ -1,5 +1,5 @@
 import * as client from './client.mjs';
-import {selectRecords,renderRows} from './view.mjs?v=8-relist';
+import {selectRecords,renderRows} from './view.mjs?v=9-simple-workflow';
 import {createGoogleLoader} from './google-loader.mjs';
 
 let googleLoader;
@@ -72,7 +72,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     if(owner&&identity.requiresPasswordChange){showPassword(identity);return;}
     if($('#password-panel'))$('#password-panel').hidden=true;
     const destination=new URLSearchParams(window.location.hash.slice(1)),edit=destination.get('edit'),review=destination.get('review');
-    if((owner&&edit==='new')||/^[a-zA-Z0-9-]{8,80}$/.test(edit||'')){window.location.replace('/newlisting/?'+(owner?'cuenta':'admin')+'='+encodeURIComponent(edit));return;}
+    if((owner&&edit==='new')||/^[a-zA-Z0-9-]{8,80}$/.test(edit||'')){window.location.replace('/newlisting/?'+(owner?'cuenta':'admin')+'='+encodeURIComponent(edit)+'&edit=1');return;}
     if(!owner&&/^[a-zA-Z0-9-]{8,80}$/.test(review||'')){window.location.replace('/admin/review/#id='+encodeURIComponent(review));return;}
     $('#login-panel').hidden=true;$('#inbox').hidden=false;$('#sign-out').hidden=false;$('#admin-account').textContent=identity.email;
     await refresh();

@@ -15,13 +15,13 @@ export function renderRows(records,{owner=false}={}){
     const updated=row.updatedAt&&!Number.isNaN(Date.parse(row.updatedAt))?new Intl.DateTimeFormat(locale,{day:'numeric',month:'short',year:'numeric'}).format(new Date(row.updatedAt)):'—';
     const amount=row.price!=null?new Intl.NumberFormat(locale,{style:'currency',currency:row.currency,maximumFractionDigits:0}).format(row.price):'—';
     const publicLink=owner&&row.isDemo&&row.collectionSlug?'https://go.arenalindex.com/collection/'+encodeURIComponent(row.collectionSlug)+'/#propiedad/'+encodeURIComponent(row.publicId):'/#propiedad/'+encodeURIComponent(row.publicId);
-    const id=encodeURIComponent(row.id),edit=owner?'/newlisting/?cuenta='+id:'/newlisting/?admin='+id;
+    const id=encodeURIComponent(row.id),edit='/newlisting/?'+(owner?'cuenta':'admin')+'='+id+'&edit=1';
     const state=row.publishedVersion?'Publicado':row.withdrawn?'Retirado':labels[row.status]||'Borrador';
     const button=(action,label,extra='')=>'<button class="row-button '+extra+'" data-row-action="'+action+'" data-id="'+esc(row.id)+'">'+t(label)+'</button>';
     let actions=owner?'<a class="row-button" href="'+edit+'">'+t('Editar')+'</a>':catalogDemo(row)?button('demo-edit','Editar'):'<a class="row-button" href="'+edit+'">'+t('Editar')+'</a>';
     if(row.publishedVersion)actions+=owner?'<button class="row-button" data-unlist="'+esc(row.id)+'">'+t('Deslistar')+'</button>':button('unlist','Deslistar');
     else if(owner&&row.canRelist)actions+='<button class="row-button row-primary" data-relist="'+esc(row.id)+'">'+t('Volver a enlistar')+'</button>';
-    else if(!owner)actions+=button(catalogDemo(row)||row.status==='approved'?'publish':'approve',catalogDemo(row)||row.status==='approved'?'Publicar':'Aprobar','row-primary');
+    if(!owner&&(catalogDemo(row)?!row.publishedVersion:true))actions+=button(catalogDemo(row)||row.status==='approved'?'publish':'approve',catalogDemo(row)?'Publicar':'Revisar y publicar','row-primary');
     if(!owner)actions+=button('delete','Borrar','row-danger');
     if(owner&&catalogDemo(row))actions='<span class="demo-badge">'+t('Demo de prueba')+'</span>';
     const demoTitle=owner?'<a class="admin-record-link" translate="no" href="'+esc(publicLink)+'" target="_blank" rel="noopener">'+esc(row.title)+'</a>':'<button class="admin-record-link" translate="no" data-row-action="demo-edit" data-id="'+esc(row.id)+'">'+esc(row.title)+'</button>';

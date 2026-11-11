@@ -28,6 +28,13 @@ export async function accountContext(search=location.search){
     return normalizeDraft({...result.draft,files,submission:result,cloud:{version:result.version,editRevision:result.editRevision,dirty:false}});
   },blank(){return {...newDraft(id),cloud:{version:0,editRevision:0,dirty:true}};}});
 }
+export async function reopenForEditing(draft,account){
+  if(!draft.submission||['draft','changes_requested'].includes(draft.submission.status))return false;
+  const result=await account.request(account.kind==='admin'?'reopen_owner':'reopen',{version:draft.cloud?.version,editRevision:draft.cloud?.editRevision||0});
+  draft.submission=result;
+  draft.cloud={...draft.cloud,version:result.version,editRevision:result.editRevision};
+  return true;
+}
 export async function saveToAccount(draft,account,onProgress=()=>{},fetcher=fetch){
   const payload={id:draft.id,values:draft.values,buildings:draft.buildings,files:draft.files.map(({blob,remote,...file})=>file)};
   const prepared=await account.request('save_prepare',{draft:payload,version:draft.cloud?.version||0,editRevision:draft.cloud?.editRevision||0,reuse:draft.files.filter(f=>f.remote).map(f=>f.id)});

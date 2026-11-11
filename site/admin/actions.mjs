@@ -1,5 +1,5 @@
 import * as client from './client.mjs';
-import {esc} from './view.mjs?v=5-editor';
+import {esc} from './view.mjs?v=9-simple-workflow';
 export function mountListingActions({document,window,controller,api=client}){
   const $=s=>document.querySelector(s),t=s=>window.ArenalI18n?.t(s)||s,dialog=$('#listing-dialog'),body=$('#listing-dialog-body');let generation=0,busy=false;
   function open(title,content){generation++;$('#listing-dialog-title').textContent=t(title);body.innerHTML=content;if(!dialog.open)dialog.showModal();}
@@ -22,7 +22,7 @@ export function mountListingActions({document,window,controller,api=client}){
   async function run(action,row){
     if(busy||!row||!api.session())return;
     if(['approve','publish'].includes(action)&&(!row.isDemo||row.isWorkspace)){
-      open(action==='approve'?'Revisar y aprobar':'Publicar anuncio','<iframe title="'+t('Revisión del anuncio')+'" src="/admin/review/#id='+encodeURIComponent(row.id)+'&focus='+action+'&embedded=1"></iframe>');return;
+      open('Revisar y publicar','<iframe title="'+t('Revisión del anuncio')+'" src="/admin/review/#id='+encodeURIComponent(row.id)+'&focus='+action+'&embedded=1"></iframe>');return;
     }
     if(action==='demo-edit'){
       open('Editar anuncio demo','<p role="status">'+t('Cargando…')+'</p>');const current=generation;

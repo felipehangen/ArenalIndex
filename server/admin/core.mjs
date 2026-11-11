@@ -9,7 +9,7 @@ import {analyticsReport} from '../analytics/core.mjs';
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const secret=()=>randomBytes(32).toString('hex');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
-const reviewActions=new Set(['review','approve','request_changes','preview_publication','publish','unpublish']);
+const reviewActions=new Set(['review','approve','approve_publish','request_changes','preview_publication','publish','unpublish']);
 export function createAdminHandler({repository,verifyGoogle,config,mailer,resolveLocality,catalog,now=()=>new Date()}){
   const origins=new Set(config.origins||['https://arenalindex.com','https://www.arenalindex.com']);
   const allowed=new Set((config.adminEmails||[]).map(email=>email.trim().toLowerCase()).filter(Boolean));
