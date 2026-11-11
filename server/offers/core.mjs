@@ -1,11 +1,12 @@
+import {offerURL} from './links.mjs';
 import {createHash,createHmac,timingSafeEqual} from 'node:crypto';
-import {validateOffer,normalizeOffer,notice,noticeVersion} from '../../site/offer/model.mjs';
+import {validateOffer,normalizeOffer,notice,noticeVersion,validateSimpleOffer,normalizeSimpleOffer,simpleNotice,simpleNoticeVersion} from '../../site/offer/model.mjs';
 const hash=v=>createHash('sha256').update(v).digest('hex');
 const fail=(status,es,en)=>{throw Object.assign(Error(es),{status,offerEnglish:en});};
 const signed=(id,config)=>id+'.'+createHmac('sha256',config.reviewSecret).update('purchase-proposal:'+id).digest('hex');
-const link=(row,config)=>new URL('/offer/',config.siteURL).href+'#'+signed(row.id,config);
+const link=(row,config)=>row.kind==='submission'?offerURL('receipt',row.id,config):new URL('/offer/',config.siteURL).href+'#'+signed(row.id,config);
 const snapshot=listing=>({id:listing.id,name:listing.name,place:listing.place,price:listing.price,currency:listing.currency||'USD',area:listing.area,image:listing.images?.[0]||'',isDemo:listing.is_demo===true,titles:{es:listing.details?.translations?.es?.title||listing.name,en:listing.details?.translations?.en?.title||listing.name}});
-async function property({repository,catalog,account,id}){
+export async function property({repository,catalog,account,id}){
   if(typeof id!=='string'||!/^[a-zA-Z0-9-]{5,80}$/.test(id))fail(400,'Propiedad inválida.','Invalid property.');
   const row=await repository.get(id);
   if(row?.owner_subject===account.subject&&row.status!=='deleted'&&row.publication?.listing)return snapshot(row.publication.listing);
@@ -13,7 +14,7 @@ async function property({repository,catalog,account,id}){
   if(demo)return snapshot(demo);
   fail(404,'Elegí una propiedad publicada de tu cuenta.','Choose a published property in your account.');
 }
-const publicRecord=row=>({id:row.id,property:row.property,broker:row.broker,createdAt:row.createdAt,expiresAt:row.expiresAt,revision:row.revision,versions:row.versions,revoked:row.revoked,reviewedRevision:row.reviewedRevision});
+export const publicRecord=row=>({kind:row.kind,id:row.id,property:row.property,broker:row.broker,createdAt:row.createdAt,expiresAt:row.expiresAt,revision:row.revision,versions:row.versions,revoked:row.revoked,reviewedRevision:row.reviewedRevision});
 export async function ownerOfferAction({action,body,account,repository,catalog,config,now}){
   if(action==='offers_list'){
     if(body.cursor!==undefined&&(typeof body.cursor!=='string'||body.cursor.length>2000))fail(400,'Página inválida.','Invalid page.');
@@ -61,8 +62,9 @@ export async function publicOfferAction({action,body,repository,catalog,config,n
   if(row.versions.length>=20)fail(422,'Contactá a tu corredor para continuar con una nueva propuesta.','Contact your broker to continue with a new proposal.');
   // Check current ownership/publication, but retain the asking-price snapshot shown to the buyer.
   await property({repository,catalog,account,id:row.sourceId});
-  if(body.confirmed!==true||!['es','en'].includes(body.language)||body.noticeVersion!==noticeVersion||Object.keys(validateOffer(body.offer)).length)fail(422,'Revisá los datos y confirmá la propuesta antes de enviar.','Review your details and confirm the proposal before sending.');
-  const submittedAt=now().toISOString(),version={revision:row.revision+1,submissionId:body.submissionId,submittedAt,validUntil:new Date(now().getTime()+Number(body.offer.validity)*86400000).toISOString(),offer:normalizeOffer(body.offer),language:body.language,noticeVersion,notice:notice[body.language]};
+  const simple=body.offer?.schema===2;
+  if(body.confirmed!==true||!['es','en'].includes(body.language)||body.noticeVersion!==(simple?simpleNoticeVersion:noticeVersion)||Object.keys((simple?validateSimpleOffer:validateOffer)(body.offer)).length)fail(422,'Revisá los datos y confirmá la propuesta antes de enviar.','Review your details and confirm the proposal before sending.');
+  const submittedAt=now().toISOString(),version={revision:row.revision+1,submissionId:body.submissionId,submittedAt,validUntil:simple?null:new Date(now().getTime()+Number(body.offer.validity)*86400000).toISOString(),offer:(simple?normalizeSimpleOffer:normalizeOffer)(body.offer),language:body.language,noticeVersion:simple?simpleNoticeVersion:noticeVersion,notice:(simple?simpleNotice:notice)[body.language]};
   const updated=await repository.portalUpdate('offers',id,{revision:row.revision,revoked:false},{revision:version.revision,versions:[...row.versions,version]});
   if(!updated){const latest=await repository.portalGet('offers',id);if(latest&&!latest.revoked&&latest.versions.some(v=>v.submissionId===body.submissionId))return {...publicRecord(latest),expired:false};fail(409,'La propuesta cambió. Recargá antes de continuar.','The proposal changed. Reload before continuing.');}
   return {...publicRecord(updated),expired:false};

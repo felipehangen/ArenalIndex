@@ -1,4 +1,4 @@
-import {choiceLabel,notice} from './model.mjs';
+import {choiceLabel,notice,simpleNotice} from './model.mjs?v=2';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const money=(v,c,l='es')=>new Intl.NumberFormat(l==='en'?'en-US':'es-CR',{style:'currency',currency:['USD','CRC'].includes(c)?c:'USD',maximumFractionDigits:2}).format(Number(v)||0)+' '+c;
 export const date=(v,l='es')=>new Intl.DateTimeFormat(l==='en'?'en-US':'es-CR',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Costa_Rica'}).format(new Date(v));
@@ -10,6 +10,7 @@ export function propertyCard(p,language='es'){
 export function proposalSummary({property,broker,offer,version,language='es',editable=false}){
   const t=(es,en)=>language==='en'?en:es,d=offer,field=(label,value)=>'<div><dt>'+label+'</dt><dd>'+esc(value)+'</dd></div>';
   const block=(step,title,contents)=>'<section class="proposal-section"><div class="proposal-section-heading"><h3>'+title+'</h3>'+(editable?'<button type="button" class="text-button" data-edit-step="'+step+'">'+t('Editar','Edit')+'</button>':'')+'</div><dl>'+contents+'</dl></section>';
+  if(d.schema===2)return simpleSummary({property,broker,offer:d,version,language});
   const conditions=d.conditions.map(v=>choiceLabel('conditions',v,language));if(d.otherConditions)conditions.push(d.otherConditions);
   return '<article class="proposal-paper"><div class="proposal-letterhead"><span class="eyebrow">ARENAL INDEX · '+t('PROPUESTA DE COMPRA','PURCHASE PROPOSAL')+'</span>'+(version?'<span>'+t('Versión','Version')+' '+version.revision+'</span>':'')+'</div><h2>'+esc(property.titles?.[language]||property.name)+'</h2><p class="muted">'+t('Para','To')+' '+esc(broker)+' · '+esc(property.place)+'</p>'+(property.isDemo?'<p class="demo-notice">'+t('PROPUESTA DE PRUEBA · Propiedad ficticia','TEST PROPOSAL · Fictional property')+'</p>':'')+
     block(0,t('La oferta','The offer'),field(t('Monto propuesto','Proposed amount'),money(d.amount,d.currency,language))+field(t('Precio solicitado al crear la invitación','Asking price when invited'),money(property.price,property.currency,language)))+
@@ -17,4 +18,9 @@ export function proposalSummary({property,broker,offer,version,language='es',edi
     block(2,t('Condiciones y tiempos','Conditions and timing'),field(t('Condiciones propuestas','Proposed conditions'),conditions.join('\n')||t('No se indicaron condiciones adicionales.','No additional conditions specified.'))+field(t('Vigencia propuesta','Proposed validity'),version?date(version.validUntil,language)+' (Costa Rica)':choiceLabel('validity',d.validity,language)+t(' desde el envío',' from submission'))+(d.message?field(t('Mensaje para el propietario','Message for the owner'),d.message):''))+
     block(3,t('Datos del comprador','Buyer details'),field(t('Nombre','Name'),d.name)+field(t('Correo','Email'),d.email)+(d.phone?field(t('Teléfono','Phone'),d.phone):''))+
     '<footer class="proposal-footnote">'+(version?'<p>'+t('Enviada','Submitted')+' '+esc(date(version.submittedAt,language))+' (Costa Rica)</p>':'')+'<p>'+esc(version?.notice||notice[language])+'</p></footer></article>';
+}
+
+export function simpleSummary({property,broker,offer:d,version,language='es'}){
+  const t=(es,en)=>language==='en'?en:es;
+  return '<article class="proposal-paper simple-paper"><p class="eyebrow">ARENAL INDEX · '+t('OFERTA','OFFER')+'</p><h2>'+esc(property.titles?.[language]||property.name)+'</h2><p class="muted">'+esc(property.place)+(property.isDemo?' · '+t('Propiedad de prueba','Test property'):'')+'</p><p class="simple-offer-value">'+esc(money(d.amount,d.currency,language))+'</p><dl class="simple-offer-details"><div><dt>'+t('De','From')+'</dt><dd>'+esc(d.name)+'<br>'+esc(d.contact)+'</dd></div><div><dt>'+t('Para','To')+'</dt><dd>'+esc(broker)+'</dd></div></dl>'+(d.message?'<div class="simple-message"><h3>'+t('Mensaje','Message')+'</h3><p>'+esc(d.message)+'</p></div>':'')+'<footer class="proposal-footnote">'+(version?'<p>'+t('Enviada el ','Submitted on ')+esc(date(version.submittedAt,language))+' (Costa Rica)</p>':'')+'<p>'+esc(version?.notice||simpleNotice[language])+'</p></footer></article>';
 }

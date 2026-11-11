@@ -190,6 +190,6 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now,timeoutMs,
   };
 }
 function portalPath(kind,id){
-  if(!['accounts','account-names','account-slugs','emails','stages','geocodes','offers'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid portal key');
+  if(!['accounts','account-names','account-slugs','emails','stages','geocodes','offers','offer-forms'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid portal key');
   return 'portal/'+kind+'/'+id+'.json';
 }

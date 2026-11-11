@@ -27,3 +27,22 @@ export function validateOffer(input){
 }
 export function normalizeOffer(d){return Object.fromEntries(Object.keys(blankOffer()).map(key=>[key,key==='conditions'?[...d.conditions]:key==='deposit'&&d.depositMode!=='amount'?'':String(d[key]||'').trim()]));}
 export const choiceLabel=(key,value,lang='es')=>choices[key]?.find(row=>row[0]===value)?.[lang==='en'?2:1]||'—';
+
+export const simpleNoticeVersion='2026-11-11-v2';
+export const simpleNotice={
+  es:'Esta es una propuesta inicial para conversar, no un contrato ni una reserva. Tu corredor podrá compartirla con el propietario.',
+  en:'This is an initial proposal for discussion, not a contract or reservation. Your broker may share it with the property owner.'
+};
+export const blankSimpleOffer=currency=>({schema:2,amount:'',currency:currency||'USD',name:'',contact:'',message:''});
+export function validateSimpleOffer(d){
+  const errors={};d=d&&typeof d==='object'?d:{};
+  if(typeof d.amount!=='string'||!/^\d{1,13}(\.\d{1,2})?$/.test(d.amount)||Number(d.amount)<=0||Number(d.amount)>9999999999999)errors.amount='amount';
+  if(!['USD','CRC'].includes(d.currency))errors.currency='currency';
+  if(typeof d.name!=='string'||!d.name.trim()||d.name.length>120)errors.name='name';
+  const contact=typeof d.contact==='string'?d.contact.trim():'';
+  if(contact.length>254||!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)||/^\+?[\d\s().-]+$/.test(contact)&&/^\d{8,15}$/.test(contact.replace(/\D/g,''))))errors.contact='contact';
+  if(typeof d.message!=='string'||d.message.length>2000)errors.message='message';
+  if(d.schema!==2)errors.schema='schema';
+  return errors;
+}
+export const normalizeSimpleOffer=d=>({schema:2,...Object.fromEntries(['amount','currency','name','contact','message'].map(key=>[key,d[key].trim()]))});

@@ -1,5 +1,5 @@
-import {mountOffers} from './offers.mjs?v=1';
-import {mountAdmin} from '../admin/controller.mjs?v=15-offers';
+import {mountOffers} from './offers.mjs?v=2';
+import {mountAdmin} from '../admin/controller.mjs?v=16-simple-offers';
 import {mountBrokerResources} from './resources.mjs?v=1';
 import * as client from './client.mjs';
 const offers=mountOffers({document,window,api:client,onUnauthorized:()=>controller.expire()});

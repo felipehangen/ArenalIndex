@@ -1,6 +1,7 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
   "Ofertas": "Offers",
+  "Formulario de oferta": "Offer form",
   "Invitar a ofertar": "Invite a buyer",
   "Sin foto": "No photo",
   "Ficha imprimible": "Printable sheet",

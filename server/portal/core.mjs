@@ -1,3 +1,4 @@
+import {listingOfferForm,simpleOfferAction} from '../offers/simple.mjs';
 import {ownerOfferAction,publicOfferAction} from '../offers/core.mjs';
 import {publicAccountProfile,ensureAccountSlug} from './public-page.mjs';
 import {randomBytes,createHash} from 'node:crypto';
@@ -21,6 +22,7 @@ export function createOwnerHandler({repository,catalog,verifyGoogle,config,maile
       const raw=await request.text();if(raw.length>250000)fail(413,'Solicitud demasiado grande.');
       const body=JSON.parse(raw);if(!body||typeof body!=='object'||Array.isArray(body))fail(400,'Solicitud inválida.');
       const action=body.action;
+      if(['offer_form_open','offer_form_submit','offer_receipt'].includes(action))return json(await simpleOfferAction({action,body,repository,catalog,config,now,request}));
       if(['offer_open','offer_submit'].includes(action))return json(await publicOfferAction({action,body,repository,catalog,config,now,request}));
       if(action==='config')return json({configured:!!config.googleClientId,clientId:config.googleClientId||null,passwordEnabled:true});
       const startSession=async(account,method)=>{
@@ -69,6 +71,7 @@ export function createOwnerHandler({repository,catalog,verifyGoogle,config,maile
       if(action==='accept_listing_rules')return json(await acceptListingRules({repository,account,session,body,now}));
       if(session.method==='password'&&account.mustChangePassword)fail(403,'Cambiá tu contraseña temporal para continuar.');
       if(!hasAcceptedRules(account))return json({error:'Aceptá las reglas de publicación antes de abrir tus anuncios.',code:'listing_rules_required'},403);
+      if(action==='offer_form')return json(await listingOfferForm({body,account,repository,catalog,config,now}));
       if(['offers_list','offer_create','offer_revoke','offer_reviewed'].includes(action))return json(await ownerOfferAction({action,body,account,repository,catalog,config,now}));
       if(action==='health')return json({ready:config.emailReady});
       if(action==='list'){
