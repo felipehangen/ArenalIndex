@@ -19,7 +19,7 @@ export const supplementalDemos=[{
       en:{title:'Tropical garden home · demo',description:'A fictional demo of a home among tropical gardens. These are reference photos, not a property offered for sale. The price, measurements and location are examples.'}
     },
     declaredArea:2400,documentedArea:2400,areaSource:'Área de ejemplo',entrance:false,residential:'no',
-    contact:{name:'Felipe',whatsapp:'50688542664',phone:'50688542664',email:'felipehangen@gmail.com'},
+    contact:{name:'Felipe',whatsapp:'50688542664',phone:'50688542664',email:'equipo@arenalindex.com'},
     sections:[
       {id:'land',title:'El terreno',rows:[fact('Uso actual','Vivienda'),fact('Topografía','Mayormente plano'),fact('Vista al volcán desde el suelo','No tiene'),fact('Río, quebrada o naciente','No se reporta')]},
       {id:'access',title:'Llegada y acceso',rows:[fact('Vía de llegada','Lastre'),fact('Hasta la entrada','La entrada da directamente a la vía'),fact('Camino dentro de la propiedad','Sí')]},

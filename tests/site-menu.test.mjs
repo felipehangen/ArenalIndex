@@ -34,7 +34,7 @@ test('Menu language selection updates contact links and both selected language s
  for(const link of d.querySelectorAll('[data-contact-whatsapp]')){
   const url=new URL(link.getAttribute('href'));assert.equal(url.origin,'https://wa.me');assert.equal(url.pathname,'/50688542664');assert.match(url.searchParams.get('text'),link.closest('#site-menu')?/^Hi, I have a question/:/^Hi, I would like to list a property/);
  }
- for(const link of d.querySelectorAll('[data-contact-email]'))assert.match(decodeURIComponent(link.getAttribute('href')),link.closest('#site-menu')?/^mailto:felipehangen@gmail.com\?subject=ArenalIndex inquiry/:/^mailto:felipehangen@gmail.com\?subject=List a property/);
+ for(const link of d.querySelectorAll('[data-contact-email]'))assert.match(decodeURIComponent(link.getAttribute('href')),link.closest('#site-menu')?/^mailto:equipo@arenalindex.com\?subject=ArenalIndex inquiry/:/^mailto:equipo@arenalindex.com\?subject=List a property/);
  for(const link of d.querySelectorAll('[data-contact-instagram]'))assert.equal(link.hidden,true);
  menu.querySelector('[data-menu-language="es"]').click();assert.equal(menu.querySelector('[data-contact-open]').textContent,'Publicar propiedad›');
 });

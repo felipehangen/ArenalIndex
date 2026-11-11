@@ -53,7 +53,7 @@ test('the shared public contact reaches every current demo without changing real
  for(const row of rows){
   const contact=window.ArenalData.normalize(row).details.contact;
   assert.equal(contact.name,'Felipe');assert.equal(contact.whatsapp,'50688542664');
-  assert.equal(contact.phone,'50688542664');assert.equal(contact.email,'felipehangen@gmail.com');
+  assert.equal(contact.phone,'50688542664');assert.equal(contact.email,'equipo@arenalindex.com');
  }
  assert.equal(JSON.stringify(rows),before);
  assert.equal(window.ArenalData.normalize({...rows[0],is_demo:false}).details.contact,null);

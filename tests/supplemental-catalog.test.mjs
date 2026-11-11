@@ -120,7 +120,7 @@ test('the 25-demo collection has unique covers, credited optimized photos and co
   for(const item of items){
     assert.ok(item.isDemo&&item.approximate&&item.details.titlesReviewed);
     assert.equal(item.details.entrance,false);assert.equal(item.house,item.details.buildings.length>0);
-    assert.equal(item.details.contact.email,'felipehangen@gmail.com');assert.equal(item.details.contact.whatsapp,'50688542664');
+    assert.equal(item.details.contact.email,'equipo@arenalindex.com');assert.equal(item.details.contact.whatsapp,'50688542664');
     assert.ok(item.images.length>=2&&item.images.length<=4);
     assert.equal(new Set(item.images).size,item.images.length);
     assert.ok(!covers.has(item.images[0]));covers.add(item.images[0]);

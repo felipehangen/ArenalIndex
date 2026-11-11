@@ -12,7 +12,7 @@ export function showcase({id,es,en,place,price,currency='USD',area,lat,lng,terra
     images:groups.flatMap(group=>group.photos.map(p=>p.src)),
     details:{schemaVersion:1,language:'es',titlesReviewed:true,translations:{es:{title:es,description:disclosure.es},en:{title:en,description:disclosure.en}},
       declaredArea:area,documentedArea:area,areaSource:'Área de ejemplo',entrance:false,residential,
-      contact:{name:'Felipe',whatsapp:'50688542664',phone:'50688542664',email:'felipehangen@gmail.com'},
+      contact:{name:'Felipe',whatsapp:'50688542664',phone:'50688542664',email:'equipo@arenalindex.com'},
       sections:[
         {id:'land',title:'El terreno',rows:[fact('Uso actual',use||(house?'Vivienda':'Recreación / descanso')),fact('Topografía',terrain),fact('Vista al volcán desde el suelo',volcano?'Parcial':'No tiene'),fact('Río, quebrada o naciente',river?'Colindante':'No se reporta')]},
         {id:'access',title:'Llegada y acceso',rows:[fact('Vía de llegada',road),fact('Hasta la entrada','La entrada da directamente a la vía'),fact('Camino dentro de la propiedad',house?'Sí':'No')]},

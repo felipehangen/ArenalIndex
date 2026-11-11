@@ -1,0 +1,17 @@
+In GoDaddy DNS for arenalindex.com, add these three records required by the domain’s existing Resend account. Use the default TTL.
+
+1. TXT
+Host: resend._domainkey
+Value: p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDERH7kArAOmo0U4K0zGbAESbONev04ZhQisQQhtuk/RVhRtfjXBw5ertucvSKGuA2o+AOvy3CUvWTxAwR0s9wbkQguZuxMrt1BmXTN6pV8Hja7rnIvuNsz7vXQjybSQUvs1eQ+1iQCYWzrgBzkynZexOL/wbIIiBgX/QiyO57u2wIDAQAB
+
+2. CNAME
+Host: rsend
+Value: rsend.forge.rmta.net
+
+3. CNAME
+Host: send
+Value: send.forge.rmta.net
+
+Inspect existing records first. Skip identical records; report any conflicting record instead of overwriting it.
+
+Preserve Google Workspace’s root MX record, Google SPF/DKIM, DMARC, nameservers, and all website records. Do not enable Resend inbound receiving. Save and confirm that all three records appear in GoDaddy. Codex will handle Resend verification and the website’s sender configuration afterward.
