@@ -1,5 +1,5 @@
 import * as client from './client.mjs';
-import {selectRecords,renderRows} from './view.mjs?v=9-simple-workflow';
+import {selectRecords,renderRows} from './view.mjs?v=10-broker-tools';
 import {createGoogleLoader} from './google-loader.mjs';
 
 let googleLoader;
@@ -24,6 +24,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     if($('#accounts-panel')){$('#accounts-panel').hidden=true;$('#listings-panel').hidden=false;for(const tab of document.querySelectorAll('[data-panel]')){if(tab.dataset.panel==='listings')tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current');}}
     activeIdentity=null;
     if($('#resources-panel'))$('#resources-panel').hidden=true;
+    if(owner)window.dispatchEvent(new window.CustomEvent('arenal-owner-clear'));
     if($('#analytics-panel')){$('#analytics-panel').hidden=true;$('#analytics-panel').replaceChildren();window.dispatchEvent(new window.CustomEvent('arenal-admin-clear'));}
   }
   function loginMessage(message,retry=false){$('#login-status').textContent=t(message);$('#login-status').classList.toggle('login-error',retry&&!!message);$('#retry-login').hidden=!retry;}
@@ -36,6 +37,11 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     const shown=selectRecords(records,{status:$('#admin-status').value,query:$('#admin-search').value,source:$('#admin-source')?.value||'all'});
     $('#admin-records').innerHTML=renderRows(shown,{owner});$('#admin-empty').hidden=shown.length>0;
     $('#admin-count').textContent=t('{shown} de {total} anuncios',{shown:shown.length,total:records.length});
+    if(owner)for(const option of $('#admin-status').options){
+      option.dataset.label = {all:'Todos',ready_for_review:'En revisión',approved:'Listos para publicar',published:'Publicados',draft:'Borradores',unlisted:'Retirados'}[option.value];
+      option.setAttribute('translate','no');
+      option.textContent=t(option.dataset.label)+' ('+selectRecords(records,{status:option.value,query:$('#admin-search').value}).length+')';
+    }
   }
   async function refresh(){
     const current=++epoch;loaded=false;records=[];$('#admin-records').replaceChildren();$('#admin-empty').hidden=true;$('#inbox-error').hidden=true;
@@ -175,6 +181,9 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     try{await api.logout();google?.disableAutoSelect();if(current===epoch)await prepareGoogle();}
     catch{if(current===epoch)loginMessage('Se cerró el acceso en esta pestaña, pero no se pudo revocar la sesión en el servidor. Vence en un máximo de 8 horas.',true);}
   };
+  if(owner)$('#admin-records').addEventListener('error',event=>{
+    const img=event.target;if(img.matches?.('.listing-thumbnail img')){img.hidden=true;img.parentElement.querySelector('span').hidden=false;}
+  },true);
   $('#refresh').onclick=refresh;$('#admin-search').oninput=render;$('#admin-status').onchange=render;
   if($('#admin-source'))$('#admin-source').onchange=render;
   if(owner)$('#admin-records').onclick=async event=>{

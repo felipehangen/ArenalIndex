@@ -1,3 +1,5 @@
-import {mountAdmin} from '../admin/controller.mjs?v=13-simple-workflow';
+import {mountAdmin} from '../admin/controller.mjs?v=14-broker-tools';
+import {mountBrokerResources} from './resources.mjs?v=1';
 import * as client from './client.mjs';
-mountAdmin({document,window,api:client,owner:true,onSignedIn(identity){const link=document.getElementById('account-public-page');link.hidden=!identity.publicPage;if(identity.publicPage)link.href=identity.publicPage.url;else link.removeAttribute('href');}});
+const resources=mountBrokerResources({document,window});
+mountAdmin({document,window,api:client,owner:true,onSignedIn:identity=>resources.setIdentity(identity)});

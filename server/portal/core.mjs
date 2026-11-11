@@ -1,6 +1,6 @@
 import {publicAccountProfile,ensureAccountSlug} from './public-page.mjs';
 import {randomBytes,createHash} from 'node:crypto';
-import {recordSummary} from './summary.mjs';
+import {ownerSummary} from './owner-summary.mjs';
 import {workspaceAction} from './workspace.mjs';
 import {findAccount,googleAccount,normalizeEmail,verifyPassword,changePassword} from './accounts.mjs';
 import {rulesIdentity,hasAcceptedRules,acceptListingRules} from './listing-rules.mjs';
@@ -72,7 +72,7 @@ export function createOwnerHandler({repository,catalog,verifyGoogle,config,maile
         if(body.cursor!==undefined&&(typeof body.cursor!=='string'||body.cursor.length>2000))fail(400,'Página inválida.');
         const [page,demos]=await Promise.all([repository.ownerRecords(session.subject,body.cursor),!body.cursor&&catalog?catalog.list(session.subject):[]]);
         const profile=publicAccountProfile(account);
-        return json({records:[...page.records.filter(row=>row.status!=='deleted').map(recordSummary),...demos.map(row=>({...row,collectionSlug:profile?.slug||null}))],cursor:page.cursor});
+        return json({records:[...await Promise.all(page.records.filter(row=>row.status!=='deleted'&&row.owner_subject===session.subject).map(async row=>({...await ownerSummary(row,repository),collectionSlug:profile?.slug||null}))),...demos.map(row=>({...row,collectionSlug:profile?.slug||null}))],cursor:page.cursor});
       }
       if(['workspace_open','workspace_claim','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen','workspace_unlist','workspace_relist'].includes(action))return json(await workspaceAction({action,body,actor:session,repository,config,mailer,now}));
       fail(400,'Acción no reconocida.');

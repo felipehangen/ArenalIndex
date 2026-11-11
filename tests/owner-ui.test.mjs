@@ -150,3 +150,20 @@ test('owner relist button confirms the unchanged publication and sends current v
   assert.deepEqual(e.calls.find(c=>c.action==='workspace_relist').body,{id:row.id,version:2,editRevision:3,publicationRevision:4});
   assert.equal(e.$('[data-relist]'),null);assert.ok(e.$('[data-unlist]'));e.controller.destroy();
 });
+
+test('owner status counts follow search, include drafts of published listings, and switch languages without accumulating counts',async()=>{
+  const rows=[{id:'draft-home-01',title:'Home draft',status:'changes_requested',currency:'USD'}, {id:'published-home-01',title:'Home published',status:'draft',publishedVersion:1,publicId:'public-home',currency:'USD'}, {id:'review-land-01',title:'Land',status:'ready_for_review',currency:'USD'}];
+  const e=setup({signedIn:true,handler:action=>action==='session'?{...identity,requiresPasswordChange:false}:action==='list'?{records:rows,cursor:null}:undefined});
+  const labels={Todos:'All',Borradores:'Drafts',Publicados:'Published','En revisión':'In review'};
+  e.window.ArenalI18n={language:'en',t:(s,values)=>labels[s]||s.replace(/\{(\w+)\}/g,(_,key)=>values?.[key]??'')};
+  await e.controller.ready;
+  assert.equal(e.$('#admin-status option[value=all]').textContent,'All (3)');
+  assert.equal(e.$('#admin-status option[value=draft]').textContent,'Drafts (2)');
+  assert.equal(e.$('#admin-status option[value=published]').textContent,'Published (1)');
+  e.$('#admin-search').value='home';e.$('#admin-search').oninput();
+  assert.equal(e.$('#admin-status option[value=all]').textContent,'All (2)');
+  assert.equal(e.$('#admin-status option[value=ready_for_review]').textContent,'In review (0)');
+  e.window.ArenalI18n={language:'es',t:s=>s};e.window.dispatchEvent(new e.window.Event('arenal-language-change'));
+  assert.equal(e.$('#admin-status option[value=draft]').textContent,'Borradores (2)');
+  e.controller.destroy();
+});

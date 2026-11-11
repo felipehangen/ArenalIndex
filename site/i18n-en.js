@@ -1,5 +1,12 @@
 /* Reviewed English UI copy. Spanish keys remain the canonical model labels. */
 window.ArenalEnglish=Object.freeze({
+  "Sin foto": "No photo",
+  "Ficha imprimible": "Printable sheet",
+  "Ficha imprimible · ArenalIndex": "Printable sheet · ArenalIndex",
+  "Imprimir / guardar PDF": "Print / save PDF",
+  "Cargando propiedad…": "Loading property…",
+  "Mi cuenta": "My account",
+
   "Volver a enlistar": "Relist",
   "Requiere revisión para volver a publicar": "Review required before republishing",
   "¿Volver a enlistar la misma versión publicada, sin cambios?": "Relist the same published version without changes?",
