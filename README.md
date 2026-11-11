@@ -1,6 +1,6 @@
 # Arenal Index
 
-**Correo de ArenalIndex (11 nov 2026):** `equipo@arenalindex.com` es el contacto público en Google Workspace. La activación del remitente automático de Resend requiere los tres registros DNS pendientes; ver [estado e instrucciones](docs/EMAIL-2026-11-11.md).
+**Correo de ArenalIndex (11 nov 2026):** `equipo@arenalindex.com` recibe consultas en Google Workspace y es el remitente y destinatario de los avisos automáticos de revisión mediante Resend. El dominio está verificado y la prueba de entrega fue exitosa; ver [configuración y verificación](docs/EMAIL-2026-11-11.md).
 
 **Estado actual y continuidad (10 nov 2026):** leer [el handoff](docs/HANDOFF-2026-11-10.md) y [el flujo de cuentas y catálogo](docs/catalog-management.md). El catálogo verificado tiene 31 demos con fotos y un anuncio real; los demos genéricos están eliminados mediante decisiones administradas. Algunas secciones históricas de este README describen el prototipo anterior (captación anónima, collage móvil y edición directa de demos en Supabase); no deben usarse para restaurar esos flujos.
 
@@ -89,7 +89,7 @@ El resumen detalla cada pendiente y su sección. Para fotos, distingue archivos 
 
 Se admiten JPG/PNG/WebP/PDF, hasta 12 MB por archivo y 60 MB en total. El navegador guarda respuestas y adjuntos localmente; un respaldo JSON permite trasladarlos. El respaldo no contiene los tokens de acceso ni reemplaza una ficha enviada: se restaura como un borrador nuevo. El mismo perfil de navegador puede abrir su borrador y borrar los datos del navegador elimina esa copia.
 
-Al enviar, `prepare` crea una nueva versión, se cargan los adjuntos directamente al almacenamiento privado y `submit` comprueba tamaños, tipos y firmas de archivos. La ficha pasa a **Lista para revisión de publicación** y Resend envía el aviso a `felipehangen@gmail.com`. Si el correo falla, la ficha permanece recibida y se puede reintentar el aviso. Una respuesta de red perdida se recupera consultando el estado.
+Al enviar, `prepare` crea una nueva versión, se cargan los adjuntos directamente al almacenamiento privado y `submit` comprueba tamaños, tipos y firmas de archivos. La ficha pasa a **Lista para revisión de publicación** y Resend envía el aviso a `equipo@arenalindex.com`. Si el correo falla, la ficha permanece recibida y se puede reintentar el aviso. Una respuesta de red perdida se recupera consultando el estado.
 
 El correo abre `/newlisting/review/` con un enlace privado que vence en siete días. Abrirlo no aprueba ni publica. El revisor confirma plano y área, resuelve discrepancias, acepta excepciones de fotos cuando corresponda y revisa el texto, los permisos y las condiciones conocidas. Puede aprobar una versión o solicitar cambios. Reabrir la ficha invalida la revisión anterior antes de permitir cambios.
 
@@ -158,7 +158,7 @@ Variables de Production y Preview:
 
 El dominio de producción de la API debe ser accesible sin inicio de sesión en Vercel; los tokens privados de la aplicación controlan los expedientes y decisiones. Los documentos se sirven por enlaces firmados de diez minutos. Las URLs de carga solo permiten un archivo, tamaño y tipo concretos, sin sobrescribirlo. Los registros usan lecturas consistentes y escrituras condicionales por ETag para evitar que una solicitud obsoleta reemplace una decisión. Los contadores horarios caducan automáticamente; los expedientes enviados se conservan para la revisión.
 
-El remitente de arranque es `ArenalIndex <onboarding@resend.dev>`, válido únicamente para notificaciones a la cuenta de Resend. Para usar `@arenalindex.com`, completar la verificación DNS de Resend en GoDaddy y cambiar `INTAKE_EMAIL_FROM`. No guardar secretos en `site/config.js`, Git ni registros de ejecución. El archivo local `.env.intake-production`, si existe para pruebas autorizadas, está ignorado por Git.
+El remitente actual es `ArenalIndex <equipo@arenalindex.com>` y el destinatario de revisión es `equipo@arenalindex.com`. El dominio está verificado en Resend; Google Workspace conserva la recepción del correo. Los registros de envío de Resend son un TXT en `resend._domainkey` y CNAME en `rsend` y `send`; no reemplazar el MX de Google. El remitente inicial `onboarding@resend.dev` ya no se usa. No guardar secretos en `site/config.js`, Git ni registros de ejecución. El archivo local `.env.intake-production`, si existe para pruebas autorizadas, está ignorado por Git.
 
 Publicar el servicio desde este directorio con `vercel deploy --prod`; cambios de variables requieren una nueva publicación. Publicar el formulario con un push a `main`; GitHub Actions instala dependencias, ejecuta pruebas y publica `dist/`. El endpoint `health` informa si están presentes las variables necesarias y responde el almacén; la recepción real del correo debe comprobarse con una prueba explícita de entrega.
 
