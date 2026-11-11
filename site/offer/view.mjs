@@ -2,10 +2,16 @@ import {choiceLabel,notice,simpleNotice} from './model.mjs?v=2';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const money=(v,c,l='es')=>new Intl.NumberFormat(l==='en'?'en-US':'es-CR',{style:'currency',currency:['USD','CRC'].includes(c)?c:'USD',maximumFractionDigits:2}).format(Number(v)||0)+' '+c;
 export const date=(v,l='es')=>new Intl.DateTimeFormat(l==='en'?'en-US':'es-CR',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Costa_Rica'}).format(new Date(v));
-export function propertyCard(p,language='es'){
+// The property stays visible while the buyer writes and reviews their proposal.
+export function propertyStage(p,language='es'){
   const t=(es,en)=>language==='en'?en:es;
-  let image='';try{const u=new URL(p.image,'https://arenalindex.com');if(u.protocol==='https:')image=u.href;}catch{}
-  return '<div class="offer-property">'+(image?'<img src="'+esc(image)+'" alt="" referrerpolicy="no-referrer">':'<span class="property-mark" aria-hidden="true">⌂</span>')+'<div><p class="eyebrow">'+t('LA PROPIEDAD','THE PROPERTY')+'</p><h2>'+esc(p.titles?.[language]||p.name)+'</h2><p>'+esc(p.place)+' · '+esc(new Intl.NumberFormat(language).format(p.area))+' m²</p><p>'+t('Precio solicitado','Asking price')+' <strong>'+esc(money(p.price,p.currency,language))+'</strong></p></div></div>'+(p.isDemo?'<p class="demo-notice">'+t('Demostración: propiedad ficticia. Usá solo datos de prueba.','Demonstration: fictional property. Use test information only.')+'</p>':'');
+  let image='';try{if(p.image){const u=new URL(p.image,'https://arenalindex.com');if(u.protocol==='https:')image=u.href;}}catch{}
+  return '<aside class="property-stage" aria-label="'+t('La propiedad','The property')+'"><div class="property-scene">'+
+    '<div class="property-contours" aria-hidden="true"><span></span><span></span><span></span></div>'+
+    (image?'<img src="'+esc(image)+'" alt="" fetchpriority="high" referrerpolicy="no-referrer">':'')+
+    '<div class="property-caption"><p>'+esc(p.place)+' · '+esc(new Intl.NumberFormat(language).format(p.area))+' m²</p><h2>'+esc(p.titles?.[language]||p.name)+'</h2></div></div>'+
+    '<div class="property-price"><span>'+t('Precio solicitado','Asking price')+'</span><strong>'+esc(money(p.price,p.currency,language))+'</strong></div>'+
+    (p.isDemo?'<p class="demo-notice">'+t('Demostración: propiedad ficticia. Usá solo datos de prueba.','Demonstration: fictional property. Use test information only.')+'</p>':'')+'</aside>';
 }
 export function proposalSummary({property,broker,offer,version,language='es',editable=false}){
   const t=(es,en)=>language==='en'?en:es,d=offer,field=(label,value)=>'<div><dt>'+label+'</dt><dd>'+esc(value)+'</dd></div>';

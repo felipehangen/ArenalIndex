@@ -6,7 +6,7 @@ import {mountOffer} from '../site/offer/app.mjs';
 import {mountOffers} from '../site/cuenta/offers.mjs';
 import {mountBrokerResources} from '../site/cuenta/resources.mjs';
 import {blankSimpleOffer,simpleNotice,blankOffer} from '../site/offer/model.mjs';
-import {proposalSummary} from '../site/offer/view.mjs';
+import {proposalSummary,propertyStage} from '../site/offer/view.mjs';
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const token='listing.'+'a'.repeat(64)+'.'+'b'.repeat(64),receiptToken='receipt.'+'c'.repeat(64)+'.'+'d'.repeat(64);
 const record=()=>({property:{name:'Lake <House>',titles:{en:'Lake <House>',es:'Casa del lago'},place:'La Fortuna',currency:'USD',price:180000,area:1000,image:'/photos/lot.jpg',isDemo:true},broker:'Broker <Arenal>',propertyVersion:'a'.repeat(64)});
@@ -47,10 +47,69 @@ test('summary escapes buyer text, leaves unspecified terms out and still renders
   assert.equal(document.querySelector('script'),null);assert.equal(document.querySelector('img'),null);assert.match(document.querySelector('article').textContent,/CRC/);assert.doesNotMatch(document.querySelector('article').textContent,/Funding|Deposit|Validity|Closing/);assert.match(html,/&lt;script&gt;/);
   assert.match(proposalSummary({...record(),language:'en',offer:{...blankOffer('USD'),amount:'100000',funding:'guidance'}}),/I need guidance/);
 });
-test('listing action retrieves its reusable link directly without a reference or per-buyer setup; logout clears delayed data',async()=>{
-  const e=dom('../site/cuenta/index.html'),calls=[];let resolve;
-  const api={request:async(action,body)=>{calls.push({action,body});if(action==='offers_list')return new Promise(done=>resolve=done);if(action==='offer_form')return {...record(),url:'https://arenalindex.com/offer/#'+token};}};
-  const controller=mountOffers({...e,api});mountBrokerResources(e);controller.setListings([{id:'property-001',title:'Lake house',publishedVersion:1,publicId:'public-001'}]);controller.setIdentity({email:'broker@example.test'});
-  e.$('#admin-records').innerHTML='<button data-offer-invite="property-001">Offer form</button>';e.$('[data-offer-invite]').click();await tick();assert.equal(e.$('#offers-panel').hidden,false);assert.ok(e.$('[data-copy]'));assert.equal(e.$('[name=label]'),null);assert.equal(e.$('#offer-link-form'),null);assert.deepEqual(calls.find(c=>c.action==='offer_form').body,{propertyId:'property-001'});
-  resolve({records:[],cursor:null});await tick();e.$('[data-refresh]').click();e.window.dispatchEvent(new e.window.Event('arenal-owner-clear'));resolve({records:[],cursor:null});await tick();assert.equal(e.$('#offers-panel').innerHTML,'');
+function account({handler,clipboard={writeText:async()=>{}},onUnauthorized}={}){
+  const e=dom('../site/cuenta/index.html'),calls=[];
+  // Native dialog and focus semantics are represented here; no layout/browser simulation.
+  let active=e.document.body;
+  Object.defineProperty(e.document,'activeElement',{get:()=>active});
+  e.window.HTMLElement.prototype.focus=function(){active=this;};
+  e.window.HTMLTextAreaElement.prototype.select=function(){this.selected=true;};
+  const accountWindow=new Proxy(e.window,{get:(target,key)=>key==='navigator'?{clipboard}:Reflect.get(target,key)});
+  const api={request:async(action,body)=>{calls.push({action,body});if(handler)return handler(action,body);if(action==='offers_list')return {records:[],cursor:null};return {...record(),url:'https://arenalindex.com/offer/#'+token};}};
+  const controller=mountOffers({...e,window:accountWindow,api,onUnauthorized});mountBrokerResources(e);
+  const dialog=e.$('.offer-share-dialog');
+  Object.defineProperty(dialog,'open',{get(){return this.hasAttribute('open');}});
+  dialog.showModal=function(){this.setAttribute('open','');this.usedNativeModal=true;};
+  dialog.close=function(){this.removeAttribute('open');};
+  dialog.getBoundingClientRect=()=>({left:10,right:450,top:10,bottom:400});
+  controller.setListings([{id:'property-001',title:'Lake house',publishedVersion:1,publicId:'public-001'},{id:'property-002',title:'Garden house',publishedVersion:1,publicId:'public-002'}]);controller.setIdentity({email:'broker@example.test'});
+  e.$('#admin-records').innerHTML='<button data-offer-invite="property-001">Offer form</button><button data-offer-invite="property-002">Offer form</button>';
+  e.$('[data-owner-panel="listings"]').click();
+  return {...e,dialog,calls,controller};
+}
+test('listing action opens Copy link / View form in a native popup and preserves the listing context; Offers is inbox only',async()=>{
+  let copied;const e=account({clipboard:{writeText:async text=>{copied=text;}}}),button=e.$('[data-offer-invite]');
+  e.$('#admin-search').value='Lake';button.focus();button.click();await tick();
+  assert.equal(e.dialog.open,true);assert.equal(e.dialog.usedNativeModal,true);assert.equal(e.$('#offers-panel').hidden,true);assert.equal(e.$('#listings-panel').hidden,false);assert.equal(e.$('#admin-search').value,'Lake');
+  assert.deepEqual(e.calls,[{action:'offer_form',body:{propertyId:'property-001'}}]);
+  assert.equal(e.$('.offer-share-dialog [data-view-form]').getAttribute('href'),'https://arenalindex.com/offer/#'+token);assert.equal(e.$('[data-view-form]').target,'_blank');
+  assert.equal(e.$('#offers-panel [data-new]'),null);assert.equal(e.$('#offers-panel [data-copy]'),null);assert.equal(e.$('[name=label]'),null);assert.equal(e.$('#offer-link-form'),null);
+  e.$('.offer-share-dialog [data-copy]').click();await tick();assert.equal(copied,'https://arenalindex.com/offer/#'+token);assert.match(e.$('.offer-copy-status').textContent,/Ready to paste/);
+  e.$('[data-share-close]').click();assert.equal(e.dialog.open,false);assert.equal(e.document.activeElement,button);assert.equal(e.$('#admin-search').value,'Lake');
+  e.$('[data-owner-panel="offers"]').click();await tick();assert.equal(e.$('#offers-panel').hidden,false);assert.equal(e.$('#offers-panel [data-new]'),null);assert.match(e.$('.offer-empty').textContent,/My listings/);
+});
+test('popup retries link errors, supports manual copy, switches language and closes through Escape or the backdrop',async()=>{
+  let fail=true;const e=account({handler:async()=>{if(fail)throw Error('Try later');return {...record(),url:'https://arenalindex.com/offer/#'+token};},clipboard:{writeText:async()=>{throw Error('Clipboard denied');}}});
+  const button=e.$('[data-offer-invite]');button.click();await tick();assert.match(e.$('.offer-share-dialog [role=alert]').textContent,/Try later/);
+  fail=false;e.$('[data-share-retry]').click();await tick();e.$('.offer-share-dialog [data-copy]').click();await tick();assert.equal(e.$('.offer-copy-area').hidden,false);assert.equal(e.$('#offer-share-url').selected,true);assert.equal(e.$('#offer-share-url').value,'https://arenalindex.com/offer/#'+token);
+  e.window.ArenalI18n.language='es';e.window.dispatchEvent(new e.window.Event('arenal-language-change'));assert.match(e.$('#offer-share-title').textContent,/Formulario/);assert.equal(e.$('.offer-copy-area').hidden,false);assert.equal(e.document.activeElement,e.$('#offer-share-url'));
+  const escape=new e.window.Event('cancel',{cancelable:true});e.dialog.dispatchEvent(escape);assert.equal(escape.defaultPrevented,true);assert.equal(e.dialog.open,false);assert.equal(e.document.activeElement,button);
+  button.click();await tick();const inside=new e.window.Event('click');inside.clientX=20;inside.clientY=20;e.dialog.dispatchEvent(inside);assert.equal(e.dialog.open,true);
+  const outside=new e.window.Event('click');outside.clientX=0;outside.clientY=0;e.dialog.dispatchEvent(outside);assert.equal(e.dialog.open,false);assert.equal(e.document.activeElement,button);
+});
+test('closing a loading popup and choosing another listing ignores earlier responses, and logout clears pending links',async()=>{
+  const requests=[],e=account({handler:(action,body)=>new Promise(resolve=>requests.push({body,resolve}))});
+  const [first,second]=e.document.querySelectorAll('[data-offer-invite]');
+  first.click();assert.ok(e.$('.offer-share-loading'));e.$('[data-share-close]').click();assert.equal(e.dialog.open,false);
+  second.click();requests[0].resolve({...record(),url:'https://arenalindex.com/old-link'});await tick();assert.equal(e.$('[data-view-form]'),null);assert.match(e.$('.offer-share-property').textContent,/Garden house/);
+  requests[1].resolve({...record(),property:{...record().property,titles:{en:'Garden house'}},url:'https://arenalindex.com/new-link'});await tick();assert.equal(e.$('[data-view-form]').getAttribute('href'),'https://arenalindex.com/new-link');
+  e.$('[data-share-close]').click();first.click();e.window.dispatchEvent(new e.window.Event('arenal-owner-clear'));requests[2].resolve({...record(),url:'https://arenalindex.com/private-link'});await tick();assert.equal(e.dialog.open,false);assert.equal(e.dialog.innerHTML,'');assert.equal(e.$('#offers-panel').innerHTML,'');
+});
+test('a delayed clipboard failure cannot repopulate a closed popup; session expiry closes the popup',async()=>{
+  let rejectCopy;const e=account({clipboard:{writeText:()=>new Promise((resolve,reject)=>{rejectCopy=reject;})}});
+  e.$('[data-offer-invite]').click();await tick();e.$('.offer-share-dialog [data-copy]').click();e.$('[data-share-close]').click();rejectCopy(Error('Denied'));await tick();assert.equal(e.dialog.innerHTML,'');
+  let expired=false;const f=account({handler:async()=>{throw Object.assign(Error('Expired'),{status:401});},onUnauthorized:()=>{expired=true;}});
+  f.$('[data-offer-invite]').click();await tick();assert.equal(expired,true);assert.equal(f.dialog.open,false);assert.equal(f.dialog.innerHTML,'');
+});
+test('logout also ignores an in-flight inbox refresh',async()=>{
+  let resolve;const e=account({handler:()=>new Promise(done=>resolve=done)});
+  e.$('[data-owner-panel="offers"]').click();e.window.dispatchEvent(new e.window.Event('arenal-owner-clear'));resolve({records:[],cursor:null});await tick();assert.equal(e.$('#offers-panel').innerHTML,'');
+});
+test('buyer property context survives review, missing imagery and language changes; optional message starts collapsed',async()=>{
+  const e=await buyer();assert.equal(e.$('.offer-message').hasAttribute('open'),false);assert.match(e.$('.property-caption').textContent,/Lake <House>/);
+  e.$('.property-scene img').dispatchEvent(new e.window.Event('error'));assert.equal(e.$('.property-scene img'),null);assert.match(e.$('.property-caption').textContent,/Lake <House>/);
+  e.set('amount','120000');e.set('name','María');e.set('contact','buyer@example.test');await e.submit();assert.match(e.$('.property-caption').textContent,/Lake <House>/);assert.match(e.$('.offer-delivery').textContent,/Broker <Arenal>/);assert.match(e.$('.proposal-footnote').textContent,/not a contract or reservation/);
+  e.window.ArenalI18n.language='es';e.window.dispatchEvent(new e.window.Event('arenal-language-change'));assert.match(e.$('.property-caption').textContent,/Casa del lago/);assert.match(e.$('[type=submit]').textContent,/Enviar mi oferta/);assert.equal(e.calls.length,1);
+  e.$('[data-edit]').click();assert.equal(e.$('[name=amount]').value,'120000');
+  const {document}=parseHTML(propertyStage({...record().property,name:'<script>x</script>',titles:{},image:'javascript:alert(1)'}));assert.equal(document.querySelector('script'),null);assert.equal(document.querySelector('img'),null);
 });
