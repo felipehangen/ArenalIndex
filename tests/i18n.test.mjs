@@ -20,7 +20,7 @@ function languageFixture({preferred='en-US',stored=null,html='',blocked=false}={
 }
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 
-async function detailFixture(row){
+async function detailFixture(row,offerSession=null){
   const fixture=languageFixture({preferred:'es',html:'<div id="arenal-index-dos"><div id="index-home"></div></div>'});
   const {window,document}=fixture,item=window.ArenalData.normalize(row);
   let focused=null;
@@ -33,6 +33,7 @@ async function detailFixture(row){
   const listeners=new Set(),add=window.addEventListener.bind(window),remove=window.removeEventListener.bind(window);
   window.addEventListener=(type,fn,...args)=>{if(type==='arenal-language-change')listeners.add(fn);add(type,fn,...args);};
   window.removeEventListener=(type,fn,...args)=>{if(type==='arenal-language-change')listeners.delete(fn);remove(type,fn,...args);};
+  window.ArenalOfferSession=offerSession?{create:()=>offerSession}:undefined;
   window.arenalDemo={items:[item],state:{saved:[],filters:{currency:'USD'}}};
   const context={window,document,location:{hash:'#propiedad/'+item.id},ArenalMotion:{cancel(){},leave(node,done){done();}},IntersectionObserver:class{observe(){}disconnect(){}},ResizeObserver:class{observe(){}disconnect(){}},requestAnimationFrame:()=>1,cancelAnimationFrame(){},matchMedia:()=>({matches:true})};
   vm.runInNewContext(read('ui-format.js'),context);
@@ -349,4 +350,16 @@ test('title placeholders retain their field language while labels follow the int
   assert.equal(document.querySelector('[data-key=listing_title_es]').getAttribute('lang'),'es');
   assert.equal(document.querySelector('[for=field-listing_title_es]').textContent.includes(lang==='en'?'Title in Spanish':'Título en español'),true);
  }
+});
+
+test('the full listing offers a bilingual return action and its Back button returns to the buyer flow',async()=>{
+  const row=supplementalDemos.find(d=>d.id==='lot-129'),returned=[];
+  const context={hasDraft:false,href:'/offer/#listing.'+'a'.repeat(64)+'.'+'b'.repeat(64)};
+  const session={returnFor:id=>id===row.id?context:null,returnToOffer:value=>{returned.push(value);return true;}};
+  const {document,i18n}=await detailFixture(row,session);
+  assert.match(document.querySelector('.pd-offer-return').textContent,/Volver a la oferta/);
+  context.hasDraft=true;i18n.setLanguage('en');await flush();
+  assert.match(document.querySelector('.pd-offer-return').textContent,/Continue my offer/);
+  assert.match(document.querySelector('.pd-footer').textContent,/Continue my offer/);
+  document.querySelector('[data-offer-return]').click();document.querySelector('.pd-bar [data-action=back]').click();assert.equal(returned.length,2);assert.equal(returned[0],context);
 });

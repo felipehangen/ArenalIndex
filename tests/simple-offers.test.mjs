@@ -48,3 +48,11 @@ test('earlier buyer-specific links accept the reduced form and keep old submissi
   const e=await setup(),legacy=await e.call('offer_create',{propertyId:'property-test-001',label:'Old test',requestId:'d'.repeat(64)},e.a),token=new URL(legacy.body.url).hash.slice(1);
   const result=await e.call('offer_submit',{token,offer:valid('Alice'),revision:0,submissionId:'a'.repeat(32),confirmed:true,language:'en',noticeVersion:simpleNoticeVersion});assert.equal(result.status,200);assert.equal(result.body.versions[0].offer.schema,2);assert.equal(result.body.versions[0].validUntil,null);
 });
+test('offer welcome exposes only published gallery images and the public WhatsApp contact',async()=>{
+  const e=await setup(),row=e.rows.get('property-test-001');row.publication.listing.images=['/photos/lot.jpg','/photos/garden-volcano.jpg'];row.publication.listing.details={contact:{name:'Public Broker',whatsapp:'50688887777',email:'public@example.test'},privateNotes:'SECRET'};row.payload.images=['PRIVATE-DOCUMENT'];
+  const opened=(await e.open()).body;assert.equal(opened.property.images.length,2);assert.equal(opened.property.contact.whatsapp,'50688887777');assert.equal(opened.property.contact.name,'Public Broker');assert.doesNotMatch(JSON.stringify(opened),/SECRET|PRIVATE|public@example/);
+});
+test('reply preference is saved explicitly and cannot disagree with the submitted contact',async()=>{
+  const e=await setup();for(const patch of [{replyMethod:'email',contact:'+50688887777'},{replyMethod:'whatsapp',contact:'buyer@example.test'},{replyMethod:'sms',contact:'+50688887777'}])assert.equal((await e.send('Alice',{offer:{...valid('Alice'),...patch}})).status,422);
+  const sent=await e.send('Alice',{offer:{...valid('Alice'),replyMethod:'whatsapp',contact:'+50688887777',email:'UNSELECTED-CONTACT'}});assert.equal(sent.status,200);assert.equal(sent.body.versions[0].offer.replyMethod,'whatsapp');assert.doesNotMatch(JSON.stringify(sent.body),/UNSELECTED/);
+});

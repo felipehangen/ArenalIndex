@@ -42,7 +42,8 @@ export function validateSimpleOffer(d){
   const contact=typeof d.contact==='string'?d.contact.trim():'';
   if(contact.length>254||!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)||/^\+?[\d\s().-]+$/.test(contact)&&/^\d{8,15}$/.test(contact.replace(/\D/g,''))))errors.contact='contact';
   if(typeof d.message!=='string'||d.message.length>2000)errors.message='message';
+  if(d.replyMethod!==undefined&&(!['whatsapp','email'].includes(d.replyMethod)||(d.replyMethod==='email'?!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact):!/^\+[1-9]\d{7,14}$/.test(contact))))errors.contact='contact';
   if(d.schema!==2)errors.schema='schema';
   return errors;
 }
-export const normalizeSimpleOffer=d=>({schema:2,...Object.fromEntries(['amount','currency','name','contact','message'].map(key=>[key,d[key].trim()]))});
+export const normalizeSimpleOffer=d=>({schema:2,...Object.fromEntries(['amount','currency','name','contact','message'].map(key=>[key,d[key].trim()])),...(d.replyMethod?{replyMethod:d.replyMethod}:{})});

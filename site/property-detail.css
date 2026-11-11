@@ -215,3 +215,5 @@ body:has(#arenal-index-dos[data-screen="filters"]){overflow:hidden;padding:0}
 #arenal-index-dos #index-map .maplibregl-ctrl-group{border-radius:8px}
 #arenal-index-dos #index-map .maplibregl-ctrl-group button{width:36px;height:36px;min-width:36px;min-height:36px}
 #arenal-index-dos #index-map .maplibregl-ctrl-group .maplibregl-ctrl-icon{background-size:24px 24px}
+
+#arenal-index-dos .pd-offer-return{display:flex;justify-content:flex-end;max-width:1200px;margin:0 auto;padding:18px 24px 0}#arenal-index-dos .pd-offer-return .pd-primary{width:auto;min-width:180px}@media(max-width:600px){#arenal-index-dos .pd-offer-return{padding:16px 20px 0}#arenal-index-dos .pd-offer-return .pd-primary{width:100%}}

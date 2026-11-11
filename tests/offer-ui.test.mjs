@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 import {parseHTML} from 'linkedom';
 import {mountOffer} from '../site/offer/app.mjs';
 import {mountOffers} from '../site/cuenta/offers.mjs';
@@ -9,32 +10,35 @@ import {blankSimpleOffer,simpleNotice,blankOffer} from '../site/offer/model.mjs'
 import {proposalSummary,propertyStage} from '../site/offer/view.mjs';
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const token='listing.'+'a'.repeat(64)+'.'+'b'.repeat(64),receiptToken='receipt.'+'c'.repeat(64)+'.'+'d'.repeat(64);
-const record=()=>({property:{name:'Lake <House>',titles:{en:'Lake <House>',es:'Casa del lago'},place:'La Fortuna',currency:'USD',price:180000,area:1000,image:'/photos/lot.jpg',isDemo:true},broker:'Broker <Arenal>',propertyVersion:'a'.repeat(64)});
+const record=()=>({property:{id:'lake-house',images:['/photos/lot.jpg','/photos/garden-volcano.jpg'],contact:{whatsapp:'50688887777'},name:'Lake <House>',titles:{en:'Lake <House>',es:'Casa del lago'},place:'La Fortuna',currency:'USD',price:180000,area:1000,image:'/photos/lot.jpg',isDemo:true},broker:'Broker <Arenal>',propertyVersion:'a'.repeat(64)});
 function dom(path){
   const {document,window}=parseHTML(fs.readFileSync(new URL(path,import.meta.url),'utf8'));
   Object.defineProperty(window.HTMLSelectElement.prototype,'value',{configurable:true,get(){return this.querySelector('option[selected]')?.value||this.querySelector('option')?.value||'';},set(v){for(const o of this.querySelectorAll('option')){if(o.value===v)o.setAttribute('selected','');else o.removeAttribute('selected');}}});
-  window.ArenalI18n={language:'en',locale:'en-US',t:s=>s};window.location={hash:'#'+token,reload(){}};window.history={replaceState(a,b,hash){window.location.hash=hash;}};window.print=()=>{window.printed=true;};
+  window.ArenalI18n={language:'en',locale:'en-US',t:s=>s};window.location={hash:'#'+token,assign(url){this.assigned=url;},reload(){this.reloaded=true;}};window.history={state:null,replaceState(a,b,url){this.state=structuredClone(a);if(url)window.location.hash=url;},pushState(a,b,url){this.state=structuredClone(a);if(url)window.location.hash=url;}};window.scrollY=0;window.scrollTo=({top})=>{window.scrollY=top;};
+  vm.runInNewContext(fs.readFileSync(new URL('../site/offer/session.js',import.meta.url),'utf8'),{window});window.print=()=>{window.printed=true;};
   return {document,window,$:s=>document.querySelector(s)};
 }
-async function buyer({stored,handler,blockedStorage=false}={}){
+async function buyer({stored,handler,blockedStorage=false,prepare=true}={}){
   const e=dom('../site/offer/index.html'),calls=[],store=new Map(stored?[['arenalindex.simple-offer:'+token,JSON.stringify(stored)]]:[]);
   const api=async(action,body)=>{calls.push({action,body});if(handler){const result=await handler(action,body);if(result)return result;}if(action==='offer_form_open')return record();if(action==='offer_form_submit')return {...record(),id:'c'.repeat(64),receiptURL:'https://arenalindex.com/offer/#'+receiptToken,revision:1,versions:[{revision:1,offer:body.offer,submittedAt:'2026-11-11T12:00:00Z',notice:simpleNotice.en}]};throw Error(action);};
   await mountOffer({...e,api,storage:{getItem:k=>store.get(k),setItem(k,v){if(blockedStorage)throw Error('Blocked');store.set(k,v);},removeItem:k=>store.delete(k)}}).ready;
+  if(prepare&&e.$('[data-prepare]'))e.$('[data-prepare]').click();
+  const choose=method=>{for(const radio of e.document.querySelectorAll('[name=replyMethod]'))radio.checked=radio.value===method;const radio=e.$('[name=replyMethod][value='+method+']');radio.dispatchEvent(new e.window.Event('change',{bubbles:true}));};
   const set=(name,value)=>{const el=e.$('[name="'+name+'"]');el.value=value;el.dispatchEvent(new e.window.Event('input',{bubbles:true}));};
   const submit=async()=>{e.$('#offer-form').dispatchEvent(new e.window.Event('submit',{bubbles:true,cancelable:true}));await tick();};
-  return {...e,calls,store,set,submit};
+  return {...e,calls,store,set,submit,choose};
 }
 test('short form asks only amount, currency, name, contact and optional message; review never submits',async()=>{
-  const e=await buyer();assert.match(e.$('h1').textContent,/Make an offer/);assert.deepEqual([...e.document.querySelectorAll('#offer-form [name]')].map(el=>el.name),['amount','currency','name','contact','message']);assert.equal(e.$('.offer-steps'),null);
+  const e=await buyer();assert.match(e.$('h1').textContent,/Your offer/);assert.deepEqual([...e.document.querySelectorAll('#offer-form [name]:not([type=radio])')].map(el=>el.name),['amount','currency','message','name']);assert.equal(e.$('.offer-steps'),null);
   await e.submit();assert.ok(e.$('[name=amount][aria-invalid=true]'));assert.equal(e.calls.length,1);
-  e.set('amount','155000');e.set('name','Buyer <Test>');e.set('contact','+506 8888 7777');e.set('message','Subject to a property inspection.');await e.submit();
+  e.set('amount','155000');e.set('name','Buyer <Test>');e.choose('whatsapp');e.set('phone','8888 7777');e.set('message','Subject to a property inspection.');await e.submit();
   assert.match(e.$('.proposal-paper').textContent,/155,000/);assert.match(e.$('.proposal-paper').textContent,/Subject to a property inspection/);assert.equal(e.calls.length,1);assert.equal(e.$('test'),null);assert.equal(e.$('[type=checkbox]'),null);
   e.$('[data-edit]').click();assert.equal(e.$('[name=message]').value,'Subject to a property inspection.');e.set('amount','156000');await e.submit();await e.submit();
-  const request=e.calls.find(c=>c.action==='offer_form_submit');assert.equal(request.body.offer.amount,'156000');assert.equal(request.body.offer.schema,2);assert.equal(request.body.offer.contact,'+506 8888 7777');assert.equal('funding' in request.body.offer,false);assert.equal(request.body.confirmed,true);
-  assert.match(e.$('h1').textContent,/Offer sent/);assert.equal(e.store.size,0);assert.equal(e.window.location.hash,'#'+receiptToken);e.$('[data-print]').click();assert.equal(e.window.printed,true);
+  const request=e.calls.find(c=>c.action==='offer_form_submit');assert.equal(request.body.offer.amount,'156000');assert.equal(request.body.offer.schema,2);assert.equal(request.body.offer.contact,'+50688887777');assert.equal('funding' in request.body.offer,false);assert.equal(request.body.confirmed,true);
+  assert.match(e.$('.offer-success').textContent,/OFFER SENT/);assert.match(e.$('.offer-team-note').textContent,/We’re rooting for you/);assert.equal(e.store.size,0);assert.equal(e.window.location.hash,'#'+receiptToken);e.$('[data-print]').click();assert.equal(e.window.printed,true);
 });
 test('language switching and tab draft recovery preserve the short form without inventing terms',async()=>{
-  const e=await buyer();e.set('amount','120000');e.set('name','María');e.set('message','Pago al contado');e.window.ArenalI18n.language='es';e.window.dispatchEvent(new e.window.Event('arenal-language-change'));assert.equal(e.$('[name=amount]').value,'120000');assert.match(e.$('h1').textContent,/Hacé una oferta/);
+  const e=await buyer();e.set('amount','120000');e.set('name','María');e.set('message','Pago al contado');e.window.ArenalI18n.language='es';e.window.dispatchEvent(new e.window.Event('arenal-language-change'));assert.equal(e.$('[name=amount]').value,'120000');assert.match(e.$('h1').textContent,/Tu oferta/);
   const stored=JSON.parse([...e.store.values()][0]),f=await buyer({stored});assert.equal(f.$('[name=message]').value,'Pago al contado');assert.equal(f.$('[name=name]').value,'María');assert.equal(f.calls.length,1);
 });
 test('lost send response keeps review editable and retries the same submission; blocked storage does not prevent sending',async()=>{
@@ -108,8 +112,30 @@ test('logout also ignores an in-flight inbox refresh',async()=>{
 test('buyer property context survives review, missing imagery and language changes; optional message starts collapsed',async()=>{
   const e=await buyer();assert.equal(e.$('.offer-message').hasAttribute('open'),false);assert.match(e.$('.property-caption').textContent,/Lake <House>/);
   e.$('.property-scene img').dispatchEvent(new e.window.Event('error'));assert.equal(e.$('.property-scene img'),null);assert.match(e.$('.property-caption').textContent,/Lake <House>/);
-  e.set('amount','120000');e.set('name','María');e.set('contact','buyer@example.test');await e.submit();assert.match(e.$('.property-caption').textContent,/Lake <House>/);assert.match(e.$('.offer-delivery').textContent,/Broker <Arenal>/);assert.match(e.$('.proposal-footnote').textContent,/not a contract or reservation/);
-  e.window.ArenalI18n.language='es';e.window.dispatchEvent(new e.window.Event('arenal-language-change'));assert.match(e.$('.property-caption').textContent,/Casa del lago/);assert.match(e.$('[type=submit]').textContent,/Enviar mi oferta/);assert.equal(e.calls.length,1);
+  e.set('amount','120000');e.set('name','María');e.choose('email');e.set('email','buyer@example.test');await e.submit();assert.match(e.$('.property-caption').textContent,/Lake <House>/);assert.match(e.$('.proposal-paper').textContent,/Broker <Arenal>/);assert.match(e.$('.proposal-footnote').textContent,/not a contract or reservation/);
+  e.window.ArenalI18n.language='es';e.window.dispatchEvent(new e.window.Event('arenal-language-change'));assert.match(e.$('.property-caption').textContent,/Casa del lago/);assert.match(e.$('[type=submit]').textContent,/Enviar a Broker/);assert.equal(e.calls.length,1);
   e.$('[data-edit]').click();assert.equal(e.$('[name=amount]').value,'120000');
-  const {document}=parseHTML(propertyStage({...record().property,name:'<script>x</script>',titles:{},image:'javascript:alert(1)'}));assert.equal(document.querySelector('script'),null);assert.equal(document.querySelector('img'),null);
+  const {document}=parseHTML(propertyStage({...record().property,name:'<script>x</script>',titles:{},images:['javascript:alert(1)'],image:'javascript:alert(1)'}));assert.equal(document.querySelector('script'),null);assert.equal(document.querySelector('img'),null);
+});
+
+test('welcome names the property and recipient; exploring or asking on WhatsApp never submits',async()=>{
+  const e=await buyer({prepare:false});assert.equal(e.$('#offer-form'),null);assert.match(e.$('[data-prepare]').textContent,/Prepare my offer/);assert.match(e.$('.offer-assurance').textContent,/Broker <Arenal>/);assert.match(e.$('.property-caption').textContent,/La Fortuna/);assert.match(e.$('.welcome-price').textContent,/180,000/);
+  const whatsapp=new URL(e.$('.offer-broker a').href);assert.equal(whatsapp.hostname,'wa.me');assert.match(whatsapp.searchParams.get('text'),/Lake <House>/);assert.equal(e.$('[data-full-listing]').getAttribute('target'),null);
+  e.$('[data-full-listing]').click();assert.equal(e.window.location.assigned,'/#propiedad/lake-house');assert.equal(e.calls.length,1);
+  const context=e.window.ArenalOfferSession.create({storage:{getItem:k=>e.store.get(k)}}).returnFor('lake-house');assert.equal(context.hasDraft,false);
+});
+test('the selected reply channel is required; switching preserves draft entries but sends only the chosen contact',async()=>{
+  const e=await buyer();e.set('amount','150000');e.set('name','Buyer');await e.submit();assert.ok(e.$('#error-replyMethod'));assert.equal(e.$('[name=email]'),null);assert.equal(e.$('[name=phone]'),null);
+  e.choose('email');assert.equal(e.$('[name=email]').type,'email');assert.equal(e.$('[name=email]').getAttribute('inputmode'),'email');e.set('email','first@example.test');
+  e.choose('whatsapp');assert.equal(e.$('[name=email]'),null);assert.equal(e.$('[name=phone]').type,'tel');e.set('phone','8888 7777');e.choose('email');assert.equal(e.$('[name=email]').value,'first@example.test');
+  await e.submit();assert.match(e.$('.proposal-paper').textContent,/Email/);await e.submit();const offer=e.calls.find(c=>c.action==='offer_form_submit').body.offer;assert.equal(offer.contact,'first@example.test');assert.equal(offer.replyMethod,'email');assert.equal('phone' in offer,false);assert.equal('country' in offer,false);
+});
+test('Continue restores writing position, values and contact preference after visiting the welcome screen or reloading',async()=>{
+  const e=await buyer();e.set('amount','225000');e.choose('email');e.set('email','buyer@example.test');e.window.scrollY=630;e.$('[data-welcome]').click();assert.match(e.$('[data-prepare]').textContent,/Continue my offer/);e.$('[data-prepare]').click();assert.equal(e.window.scrollY,630);assert.equal(e.$('[name=email]').value,'buyer@example.test');
+  const saved=JSON.parse(e.store.get('arenalindex.simple-offer:'+token)),f=await buyer({stored:saved,prepare:false});assert.equal(f.$('[name=amount]').value,'225000');assert.equal(f.window.scrollY,630);assert.equal(f.$('[name=email]').value,'buyer@example.test');assert.equal(f.calls.length,1);
+});
+test('gallery uses actual listing photos, responds to arrows/swipes, and preserves the draft when closed',async()=>{
+  const e=await buyer();e.set('amount','210000');e.$('[data-photos]').click();const dialog=e.$('.offer-gallery'),track=e.$('.offer-gallery-track');assert.equal(dialog.hasAttribute('open'),true);assert.equal(track.querySelectorAll('img').length,2);assert.match(e.$('.offer-gallery-status').textContent,/1 \/ 2/);
+  Object.defineProperty(track,'clientWidth',{value:300});track.scrollTo=({left})=>{track.scrollLeft=left;};e.$('[data-gallery-next]').click();assert.equal(track.scrollLeft,300);assert.match(e.$('.offer-gallery-status').textContent,/2 \/ 2/);track.scrollLeft=0;track.dispatchEvent(new e.window.Event('scroll'));assert.match(e.$('.offer-gallery-status').textContent,/1 \/ 2/);
+  const escape=new e.window.Event('cancel',{cancelable:true});dialog.dispatchEvent(escape);assert.equal(dialog.hasAttribute('open'),false);assert.equal(e.$('[name=amount]').value,'210000');assert.equal(e.calls.length,1);
 });

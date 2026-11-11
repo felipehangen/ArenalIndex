@@ -10,6 +10,10 @@
   root.append(page);
   const {number} = window.ArenalFormat;
   const content = window.ArenalListing;
+  const offerSession=window.ArenalOfferSession?.create();
+  const offerContext=id=>window.ArenalPreview?null:offerSession?.returnFor(id);
+  const offerLabel=context=>window.ArenalI18n?.language==='en'?(context.hasDraft?'Continue my offer':'Back to offer'):(context.hasDraft?'Continuar mi oferta':'Volver a la oferta');
+  const offerLink=(context,css='pd-primary')=>context?'<a translate="no" class="'+css+'" data-offer-return href="'+context.href+'">'+offerLabel(context)+' →</a>':'';
   const photoCount=count=>count+(count===1?' foto':' fotos');
   const money = value => value===null||!Number.isFinite(value)||!current?.currency?'Por definir':content.price(value,current.currency);
   const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -41,6 +45,7 @@
     detailMap?.remove(); detailMap = null;
     current = d;
     const title = window.ArenalI18n?.listingText(d)||d.name;
+    const offer=offerContext(d.id);
     const place=d.draftPreview&&d.place==='Localidad por definir'?window.ArenalI18n?.t(d.place)||d.place:d.place;
     const tour=content.groups(d),allPhotos=tour.flatMap(group=>group.images);
     photos=d.images.filter((src,i,array)=>array.indexOf(src)===i).slice(0,5).map(src=>allPhotos.find(p=>p.src===src)||{src,label:d.name});
@@ -54,14 +59,15 @@
     const originalPrice=money(d.price)+' '+(d.currency||'');
     const priceDetails='<section class="pd-section pd-sale-price"><h2>El precio</h2><p><strong>Precio solicitado: '+escape(originalPrice)+'</strong></p>'+(other?.approximate?'<p>Equivalente estimado: '+escape(content.price(other.price,other.currency)+' '+other.currency)+'</p>':'')+'<p class="pd-muted">'+escape(pricing?.note()||'')+'</p><p class="pd-muted">El precio y la moneda de pago se acuerdan con el propietario.</p></section>';
     const areaBasis=d.isDemo?'área de ejemplo':d.draftPreview?(d.details.documentedArea?'área indicada del plano':'área declarada'):d.details?'área del plano':'área indicada';
-    page.innerHTML = `<div class="pd-bar">${iconButton('back',window.ArenalPreview?'Cerrar vista previa':'Cerrar propiedad y volver a los resultados','back')}<a class="pd-brand" href="#" aria-label="Arenal Index">arenal <small>INDEX</small></a><div class="pd-bar-actions">${window.ArenalI18n?.toggle()||''}${iconButton('share','Compartir propiedad','share')}${iconButton('save','Guardar propiedad','heart')}</div></div>
-      <div class="pd-scroll"><header class="pd-heading"><p class="pd-kicker">${d.draftPreview?'Vista previa privada · borrador sin publicar':window.ArenalPreview?'Vista previa privada':d.isDemo?'Un ejemplo de lo que podés encontrar':'Propiedad en venta'}</p>${window.ArenalAccount?.attribution()||''}<h1 tabindex="-1" translate="no">${escape(title)}</h1><p class="pd-location"><a href="#pd-location" translate="no">${icon('pin')}${escape(place)} · Costa Rica</a>${d.isDemo?'<span class="pd-sample">Demostración</span>':''}</p></header>
+    page.innerHTML = `<div class="pd-bar">${iconButton('back',offer?offerLabel(offer):window.ArenalPreview?'Cerrar vista previa':'Cerrar propiedad y volver a los resultados','back')}<a class="pd-brand" href="#" aria-label="Arenal Index">arenal <small>INDEX</small></a><div class="pd-bar-actions">${window.ArenalI18n?.toggle()||''}${iconButton('share','Compartir propiedad','share')}${iconButton('save','Guardar propiedad','heart')}</div></div>
+      <div class="pd-scroll">${offer?'<div class="pd-offer-return" translate="no">'+offerLink(offer)+'</div>':''}<header class="pd-heading"><p class="pd-kicker">${d.draftPreview?'Vista previa privada · borrador sin publicar':window.ArenalPreview?'Vista previa privada':d.isDemo?'Un ejemplo de lo que podés encontrar':'Propiedad en venta'}</p>${window.ArenalAccount?.attribution()||''}<h1 tabindex="-1" translate="no">${escape(title)}</h1><p class="pd-location"><a href="#pd-location" translate="no">${icon('pin')}${escape(place)} · Costa Rica</a>${d.isDemo?'<span class="pd-sample">Demostración</span>':''}</p></header>
       <button class="pd-hero" data-action="photos" aria-label="Ver ${count} ${count===1?'fotografía':'fotografías'}" ${!count?'disabled':''}><div class="pd-photo-grid pd-grid-${photos.length}">${photos.map(p=>`<img translate="no" src="${escape(p.src)}" alt="${escape(content.photoAlt(p,current))}">`).join('')}</div>${d.isDemo?'<span class="pd-photo-label">Fotos ilustrativas</span>':''}<span class="pd-photo-count">${icon('grid')} ${count?(count===1?'Ver la foto':'Ver las '+count+' fotos'):'Fotos por incorporar'}</span></button>
       <div class="pd-content"><main>${content.content(d,display)}${priceDetails}${content.contactContent(d)}
       <section class="pd-section" id="pd-location"><h2>La ubicación</h2><p translate="no">${escape(place)} · Costa Rica</p><div class="pd-map" aria-label="Mapa de ubicación"></div><p class="pd-muted">${!d.coordinates?'Entrada por ubicar':d.isDemo?'Ubicación de demostración':d.details?.entrance?'El pin señala la entrada de la propiedad':d.approximate?'Ubicación aproximada':'Ubicación indicada en el anuncio'}. El punto no representa los linderos.</p><button class="pd-outline" data-action="map"${!d.coordinates?' disabled':''}>Explorar esta zona en el mapa</button></section>
       </main><aside class="pd-aside"><p class="pd-price-label">Precio en ${currency}</p><strong>${displayedMoney(display.price)} <small>${currency}</small></strong><p>${displayedMoney(unitPrice)} ${currency}/m² · ${areaBasis}</p><p class="pd-original-price">Solicitado: ${escape(originalPrice)}</p><div class="pd-price-rule"></div><p>¿Te imaginás aquí?<br>Consultá los detalles y coordiná una visita.</p>${contactAction(contactLinks?.whatsapp?'Consultar por WhatsApp':hasContact?'Ver contacto':'Preparar una consulta')}${hasContact?'<a class="pd-contact-more" href="#pd-contact">Ver contacto y otras opciones</a>':''}<small class="pd-contact-caption" ${contactLinks?.name!=='Contacto del anuncio'&&hasContact?'translate="no"':''}>${hasContact?escape(contactLinks.name):'El contacto de venta está por asignar'}</small></aside></div></div>
-      <div class="pd-footer"><div><strong>${displayedMoney(display.price)} <small>${currency}</small></strong><span class="pd-unit">${displayedMoney(unitPrice)} ${currency}/m²</span></div>${contactAction(contactLinks?.whatsapp?'WhatsApp':hasContact?'Ver contacto':'Preparar consulta')}</div>`;
+      <div class="pd-footer"><div><strong>${displayedMoney(display.price)} <small>${currency}</small></strong><span class="pd-unit">${displayedMoney(unitPrice)} ${currency}/m²</span></div>${offer?offerLink(offer):contactAction(contactLinks?.whatsapp?'WhatsApp':hasContact?'Ver contacto':'Preparar consulta')}</div>`;
     syncSave();
+    if(offer)page.querySelectorAll('[data-offer-return]').forEach(link=>link.onclick=e=>{e.preventDefault();if(!offerSession.returnToOffer(offerContext(d.id)))render(current);});
     const contactMore=page.querySelector('.pd-contact-more');if(contactMore)contactMore.onclick=e=>{e.preventDefault();page.querySelector('#pd-contact').scrollIntoView({block:'start',behavior:'smooth'});};
     page.querySelector('.pd-brand').onclick=e=>{e.preventDefault();back();};
     page.querySelector('.pd-location a').onclick = e => { e.preventDefault(); page.querySelector('#pd-location').scrollIntoView({block:'start',behavior:'smooth'}); };
@@ -92,7 +98,7 @@
   page.addEventListener('click',e=>{if(e.target!==page)return;const r=page.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)back();});
   function route() {const match=location.hash.match(/^#propiedad\/([a-z0-9][a-z0-9-]{0,79})$/); const d=match&&app.items.find(item=>item.id===match[1]); if(d){ArenalMotion.cancel(page);if(current?.id!==d.id||page.hidden)show(d);}else if(!page.hidden)hide();}
   function open(id){if(current?.id===id)return;window.history.pushState({arenalDetail:true},'', '#propiedad/'+id);route();}
-  function back(){if(window.ArenalPreview){window.close();return;}if(window.history.state?.arenalDetail)window.history.back();else{window.history.replaceState(null,'',location.pathname+location.search);hide();}}
+  function back(toOffer=true){const offer=toOffer&&current&&offerContext(current.id);if(offer&&offerSession.returnToOffer(offer))return;if(window.ArenalPreview){window.close();return;}if(window.history.state?.arenalDetail)window.history.back();else{window.history.replaceState(null,'',location.pathname+location.search);hide();}}
   function dialog(title,content,extra='') {
     openDialog?.close(); const node=document.createElement('dialog');node.className='pd-dialog '+extra;node.setAttribute('aria-label',title);
     node.innerHTML=`<div class="pd-dialog-head"><h2>${title}</h2>${iconButton('close-dialog','Cerrar','close')}</div>${content}`;
@@ -176,7 +182,7 @@
     node.addEventListener('close',()=>{window.removeEventListener('arenal-language-change',refreshLanguage);resize.disconnect();cancelAnimationFrame(scrollFrame);},{once:true});
   }
   function specs(){dialog('Ficha de la propiedad',`<div class="pd-dialog-body">${content.content(current)}</div>`);}
-  page.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(!action)return;if(action==='back')back();if(action==='photos')gallery();if(action==='contact'){window.ArenalAnalytics?.track('contact',current,{channel:'options'});contact();}if(action==='share'){window.ArenalAnalytics?.track('share',current);share();}if(action==='specs')specs();if(action==='save'){app.toggleSaved(current.id);syncSave();}if(action==='map'){window.ArenalAnalytics?.track('map_open',current);if(window.ArenalPreview)app.focusProperty(current.id);else{pendingMap=current.id;back();}}});
+  page.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(!action)return;if(action==='back')back();if(action==='photos')gallery();if(action==='contact'){window.ArenalAnalytics?.track('contact',current,{channel:'options'});contact();}if(action==='share'){window.ArenalAnalytics?.track('share',current);share();}if(action==='specs')specs();if(action==='save'){app.toggleSaved(current.id);syncSave();}if(action==='map'){window.ArenalAnalytics?.track('map_open',current);if(window.ArenalPreview)app.focusProperty(current.id);else{pendingMap=current.id;back(false);}}});
   page.addEventListener('keydown',e=>{if(e.key==='Escape'&&!openDialog){e.preventDefault();back();}});
   // Native scrolling and carousel swipes must never activate a listing.
   const list=document.getElementById('index-list');
@@ -194,6 +200,7 @@
     document.title=(window.ArenalI18n?.listingText(current)||current.name)+' · Arenal Index';
     if(!openDialog)page.querySelector('[data-language-toggle]')?.focus({preventScroll:true});
   });
+  window.addEventListener('pageshow',event=>{if(event.persisted&&current&&!page.hidden){const scroll=page.querySelector('.pd-scroll').scrollTop;render(current);page.querySelector('.pd-scroll').scrollTop=scroll;}});
   window.addEventListener('popstate',route);window.addEventListener('hashchange',route);
   window.arenalDetail={open};route();
 })();

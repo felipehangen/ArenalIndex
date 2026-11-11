@@ -1,4 +1,4 @@
-import {mountOffers} from './offers.mjs?v=3';
+import {mountOffers} from './offers.mjs?v=4';
 import {mountAdmin} from '../admin/controller.mjs?v=16-simple-offers';
 import {mountBrokerResources} from './resources.mjs?v=1';
 import * as client from './client.mjs';

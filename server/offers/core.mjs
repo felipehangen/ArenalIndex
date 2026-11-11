@@ -5,7 +5,7 @@ const hash=v=>createHash('sha256').update(v).digest('hex');
 const fail=(status,es,en)=>{throw Object.assign(Error(es),{status,offerEnglish:en});};
 const signed=(id,config)=>id+'.'+createHmac('sha256',config.reviewSecret).update('purchase-proposal:'+id).digest('hex');
 const link=(row,config)=>row.kind==='submission'?offerURL('receipt',row.id,config):new URL('/offer/',config.siteURL).href+'#'+signed(row.id,config);
-const snapshot=listing=>({id:listing.id,name:listing.name,place:listing.place,price:listing.price,currency:listing.currency||'USD',area:listing.area,image:listing.images?.[0]||'',isDemo:listing.is_demo===true,titles:{es:listing.details?.translations?.es?.title||listing.name,en:listing.details?.translations?.en?.title||listing.name}});
+const snapshot=listing=>({id:listing.id,name:listing.name,place:listing.place,price:listing.price,currency:listing.currency||'USD',area:listing.area,image:listing.images?.[0]||'',images:Array.isArray(listing.images)?listing.images.filter(src=>typeof src==='string').slice(0,200):[],contact:{name:listing.details?.contact?.name||'',whatsapp:String(listing.details?.contact?.whatsapp||'').replace(/\D/g,'')},isDemo:listing.is_demo===true,titles:{es:listing.details?.translations?.es?.title||listing.name,en:listing.details?.translations?.en?.title||listing.name}});
 export async function property({repository,catalog,account,id}){
   if(typeof id!=='string'||!/^[a-zA-Z0-9-]{5,80}$/.test(id))fail(400,'Propiedad inválida.','Invalid property.');
   const row=await repository.get(id);
