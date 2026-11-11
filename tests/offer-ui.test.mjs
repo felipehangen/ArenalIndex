@@ -126,7 +126,7 @@ test('buyer property context survives review, missing imagery and language chang
 });
 
 test('welcome names the property and recipient; exploring or asking on WhatsApp never submits',async()=>{
-  const e=await buyer({prepare:false});assert.equal(e.$('#offer-form'),null);assert.match(e.$('[data-prepare]').textContent,/Prepare my offer/);assert.match(e.$('.offer-broker').textContent,/Broker <Arenal>/);assert.match(e.$('.property-caption').textContent,/La Fortuna/);assert.match(e.$('.welcome-price').textContent,/180,000/);
+  const e=await buyer({prepare:false});assert.equal(e.$('#offer-form'),null);assert.match(e.$('[data-prepare]').textContent,/Make an offer/);assert.match(e.$('.offer-broker').textContent,/Broker <Arenal>/);assert.match(e.$('.property-caption').textContent,/La Fortuna/);assert.match(e.$('.welcome-price').textContent,/180,000/);
   const whatsapp=new URL(e.$('.offer-questions a').href);assert.equal(whatsapp.hostname,'wa.me');assert.match(whatsapp.searchParams.get('text'),/Lake <House>/);assert.equal(e.$('[data-full-listing]').getAttribute('target'),null);
   e.$('[data-full-listing]').click();assert.equal(e.window.location.assigned,'/#propiedad/lake-house');assert.equal(e.calls.length,1);
   const context=e.window.ArenalOfferSession.create({storage:{getItem:k=>e.store.get(k)}}).returnFor('lake-house');assert.equal(context.hasDraft,false);
@@ -138,7 +138,7 @@ test('the selected reply channel is required; switching preserves draft entries 
   await e.submit();assert.match(e.$('.proposal-paper').textContent,/Email/);await e.submit();const offer=e.calls.find(c=>c.action==='offer_form_submit').body.offer;assert.equal(offer.contact,'first@example.test');assert.equal(offer.replyMethod,'email');assert.equal('phone' in offer,false);assert.equal('country' in offer,false);
 });
 test('Continue restores the current writing step and its internal scroll after welcome or reloading',async()=>{
-  const e=await buyer();e.set('amount','225000');e.set('message','Comments preserved');e.$('.offer-step-fields').scrollTop=63;e.$('[data-back]').click();assert.match(e.$('[data-prepare]').textContent,/Continue my offer/);e.$('[data-prepare]').click();assert.equal(e.$('.offer-step-fields').scrollTop,63);assert.equal(e.$('[name=message]').value,'Comments preserved');
+  const e=await buyer();e.set('amount','225000');e.set('message','Comments preserved');e.$('.offer-step-fields').scrollTop=63;e.$('[data-back]').click();assert.match(e.$('[data-prepare]').textContent,/Resume draft/);e.$('[data-prepare]').click();assert.equal(e.$('.offer-step-fields').scrollTop,63);assert.equal(e.$('[name=message]').value,'Comments preserved');
   await e.submit();e.choose('email');e.set('email','buyer@example.test');
   const saved=JSON.parse(e.store.get('arenalindex.simple-offer:'+token)),f=await buyer({stored:saved,prepare:false});assert.equal(f.$('#offer-root').dataset.stage,'contact');assert.equal(f.$('[name=email]').value,'buyer@example.test');assert.equal(f.calls.length,1);
 });

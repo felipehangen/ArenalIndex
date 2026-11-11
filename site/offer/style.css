@@ -48,7 +48,12 @@ body:has(.offer-experience) .admin-header{min-height:72px;padding-top:12px;paddi
 .property-stage .demo-notice{margin:8px 0 0;font-size:10px;padding:8px 10px;flex-shrink:0}
 .property-view-photos{position:absolute;z-index:3;top:18px;right:18px;min-height:44px;padding:10px 16px;border:1px solid #ffffff70;border-radius:24px;background:#fffef5eb;color:#284835;font:inherit;font-size:12px;box-shadow:0 2px 12px #162a1915}
 .property-full-link{display:inline-flex;align-items:center;min-height:36px;font-size:12px;color:#385540;text-underline-offset:4px;flex-shrink:0;width:fit-content}
-.offer-questions{display:flex;flex-shrink:0}
+.property-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;margin-top:8px}
+.offer-questions{display:flex}
+.offer-whatsapp{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:8px 13px;border:1px solid #b4cebb;border-radius:24px;background:#eef6ef;color:#225a3b;font-size:13px;font-weight:550;line-height:1.2;text-decoration:none}
+.offer-whatsapp svg{width:20px;height:20px;flex:none}
+.offer-whatsapp:hover{background:#dfeee2;border-color:#81a98d}
+.offer-whatsapp:focus-visible{outline:2px solid #285a3d;outline-offset:2px}
 .offer-desk{min-width:0;min-height:0;display:flex;flex-direction:column}
 .offer-heading{margin:4px 0 24px;flex-shrink:0}
 .offer-heading .eyebrow{font-size:10px;letter-spacing:1.6px;margin-bottom:14px}
@@ -74,7 +79,7 @@ body:has(.offer-experience) .admin-header{min-height:72px;padding-top:12px;paddi
 .simple-amount input::placeholder{font-size:inherit;color:#8b9983}.simple-amount input[data-long=true]{font-size:24px;letter-spacing:-.5px}
 .simple-amount select{min-height:72px;font-size:15px}
 .optional{font-size:11px;font-weight:400;color:var(--offer-muted);margin-left:5px}
-.simple-contact{display:grid;gap:22px}
+.simple-contact,.contact-reply{display:grid;gap:22px}.contact-reply{gap:inherit}
 .reply-choice{border:0;margin:0;padding:0;min-width:0}
 .reply-choice legend{font-size:13px;font-weight:550;margin-bottom:10px;line-height:1.5;color:#42513f}
 .reply-choice>div{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -135,9 +140,9 @@ body:has(.offer-experience) .admin-header{min-height:72px;padding-top:12px;paddi
   .offer-experience[data-stage=welcome] .property-caption{padding:18px}
   .offer-experience[data-stage=welcome] .property-caption h2{font-size:22px}
   .offer-experience[data-stage=welcome] .property-view-photos{top:12px;bottom:auto;right:12px;font-size:11px;padding:10px 12px}
-  .offer-experience[data-stage=welcome] .property-stage{position:relative;padding-bottom:36px}
-  .offer-experience[data-stage=welcome] .property-full-link{position:absolute;bottom:0;left:0;font-size:11px}
-  .offer-experience[data-stage=welcome] .offer-questions .property-full-link{left:auto;right:0}
+  .property-actions{gap:4px 8px;margin-top:4px}
+  .property-actions .property-full-link{font-size:12px}
+  .offer-whatsapp{font-size:12px;padding-inline:10px}
   .offer-experience[data-stage=welcome] .offer-heading{margin:0 0 12px}
   .offer-experience[data-stage=welcome] .eyebrow{display:none}
   .offer-experience[data-stage=welcome] .welcome-price{padding-top:12px;margin-top:0}
@@ -197,6 +202,15 @@ body:has(.offer-experience) .admin-header{min-height:72px;padding-top:12px;paddi
   .offer-experience:is([data-stage=draft],[data-stage=contact],[data-stage=review]) .offer-desk{flex:1}
   .offer-heading h1{font-size:26px}.offer-step-nav{margin-bottom:0}.offer-action-zone{margin-top:6px;padding-top:8px}
   .offer-action-zone .offer-assurance{display:none}
+}
+/* On phones the document scrolls as one surface. The keyboard can never
+   squeeze the fields into a strip between the heading and the action. */
+@media screen and (max-width:860px){
+  body:has(.offer-experience[data-stage=contact]){display:block;height:auto;overflow:visible}
+  #offer-root[data-stage=contact],#offer-root[data-stage=contact] :is(.offer-spread,.offer-desk,#offer-form,.offer-step-fields){display:block;height:auto;overflow:visible}
+  #offer-root[data-stage=contact] .offer-desk{margin-top:12px}
+  #offer-root[data-stage=contact] .offer-action-zone{margin-top:16px}
+  #offer-root[data-stage=contact] .offer-phone select{font-size:16px}
 }
 @media(prefers-reduced-motion:reduce){.offer-experience *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 /* The confirmation is the end of this action, with an optional copy below. */

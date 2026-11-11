@@ -12,7 +12,7 @@
   const content = window.ArenalListing;
   const offerSession=window.ArenalOfferSession?.create();
   const offerContext=id=>window.ArenalPreview?null:offerSession?.returnFor(id);
-  const offerLabel=context=>window.ArenalI18n?.language==='en'?(context.hasDraft?'Continue my offer':'Back to offer'):(context.hasDraft?'Continuar mi oferta':'Volver a la oferta');
+  const offerLabel=()=>window.ArenalI18n?.language==='en'?'Back to offer':'Volver a la oferta';
   const offerLink=(context,css='pd-primary')=>context?'<a translate="no" class="'+css+'" data-offer-return href="'+context.href+'">'+offerLabel(context)+' →</a>':'';
   const photoCount=count=>count+(count===1?' foto':' fotos');
   const money = value => value===null||!Number.isFinite(value)||!current?.currency?'Por definir':content.price(value,current.currency);

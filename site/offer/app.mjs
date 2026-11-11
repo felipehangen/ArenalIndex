@@ -28,11 +28,11 @@ export function mountOffer({document,window,api,storage}){
   const field=(name,label,control)=>'<div class="simple-field"><label for="offer-'+name+'">'+label+'</label>'+(errors[name]?control.replace('>',' aria-invalid="true" aria-describedby="error-'+name+'">'):control)+(errors[name]?'<span id="error-'+name+'" class="field-error">'+messages()[name]+'</span>':'')+'</div>';
   const input=(name,type='text',extra='')=>'<input id="offer-'+name+'" name="'+name+'" type="'+type+'" value="'+esc(draft[name])+'" '+extra+'>';
   const arrow='<span aria-hidden="true">→</span>';
-  const continueLabel=()=>t(hasDraft?'Continuar mi oferta':'Preparar mi oferta',hasDraft?'Continue my offer':'Prepare my offer');
+  const continueLabel=()=>hasDraft?t('Retomar borrador','Resume draft'):t('Hacer una oferta','Make an offer');
   function questionLink(){
     const contact=record.property.contact||{},phone=String(contact.whatsapp||'').replace(/\D/g,''),name=contact.name||record.broker;
     const message=t('Hola '+name+', tengo una consulta sobre '+(record.property.titles?.es||record.property.name)+'.','Hi '+name+', I have a question about '+(record.property.titles?.en||record.property.name)+'.');
-    return /^[1-9]\d{7,14}$/.test(phone)?'<a class="property-full-link" href="https://wa.me/'+phone+'?text='+esc(encodeURIComponent(message))+'" target="_blank" rel="noopener noreferrer">'+t('Consultar por WhatsApp','Ask on WhatsApp')+' ↗</a>':'';
+    return /^[1-9]\d{7,14}$/.test(phone)?'<a class="offer-whatsapp" href="https://wa.me/'+phone+'?text='+esc(encodeURIComponent(message))+'" target="_blank" rel="noopener noreferrer"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M20.8 11.8a8.9 8.9 0 0 1-13.2 7.8l-4.5 1.2 1.2-4.4a8.9 8.9 0 1 1 16.5-4.6Z" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 7.2c-.9 0-1.4 1.1-1.3 2 .3 3.5 4.2 7.4 7.8 7.6 1 .1 2-.6 2.1-1.7l-2.8-1.5-1.1 1c-1.6-.7-3-2.1-3.8-3.6l1-1.2-1.3-2.6h-.6Z" fill="currentColor"/></svg><span>'+t('Consultar por WhatsApp','Ask on WhatsApp')+'</span></a>':'';
   }
   function welcome(){return '<div class="offer-welcome-details"><div class="offer-heading"><p class="eyebrow">'+t('UNA PROPIEDAD. TU PROPUESTA.','ONE PROPERTY. YOUR PROPOSAL.')+'</p><h1 tabindex="-1">'+t('¿Te imaginás aquí?','Can you picture yourself here?')+'</h1><p>'+t('Prepará tu oferta en tres pasos simples.','Prepare your offer in three simple steps.')+'</p></div><div class="welcome-price"><span>'+t('Precio solicitado','Asking price')+'</span><strong>'+esc(money(record.property.price,record.property.currency,language()))+'</strong></div><p class="offer-broker">'+t('Tu oferta la recibe','Your offer goes to')+' <strong>'+esc(record.broker)+'</strong></p></div><div class="offer-action-zone"><p class="offer-assurance">'+t('Podés revisar todo antes de enviar.','You can review everything before sending.')+'</p><button type="button" class="primary offer-prepare" data-prepare>'+continueLabel()+arrow+'</button><p class="offer-error" role="alert"></p></div>';}
   function priceFields(){
@@ -40,10 +40,10 @@ export function mountOffer({document,window,api,storage}){
   }
   function contactFields(){
     const phone=draft.replyMethod==='whatsapp',email=draft.replyMethod==='email';
-    return '<div class="simple-contact">'+field('name',t('Tu nombre','Your name'),input('name','text','autocomplete="name" maxlength="120" placeholder="'+t('Nombre y apellido','Full name')+'" required'))+
-      '<fieldset class="reply-choice" '+(errors.replyMethod?'aria-describedby="error-replyMethod"':'')+'><legend>'+t('¿Cómo preferís que te respondan?','How would you like to hear back?')+'</legend><div>'+[['whatsapp','WhatsApp'],['email',t('Correo','Email')]].map(([value,label])=>'<label><input type="radio" name="replyMethod" value="'+value+'" '+(draft.replyMethod===value?'checked':'')+' required><span>'+label+'</span></label>').join('')+'</div>'+(errors.replyMethod?'<span class="field-error" id="error-replyMethod">'+messages().replyMethod+'</span>':'')+'</fieldset>'+
+    return '<div class="simple-contact">'+field('name',t('Tu nombre','Your name'),input('name','text','enterkeyhint="next" autocomplete="name" maxlength="120" placeholder="'+t('Nombre y apellido','Full name')+'" required'))+
+      '<div class="contact-reply"><fieldset class="reply-choice" '+(errors.replyMethod?'aria-describedby="error-replyMethod"':'')+'><legend>'+t('¿Cómo preferís que te respondan?','How would you like to hear back?')+'</legend><div>'+[['whatsapp','WhatsApp'],['email',t('Correo','Email')]].map(([value,label])=>'<label><input type="radio" name="replyMethod" value="'+value+'" '+(draft.replyMethod===value?'checked':'')+' required><span>'+label+'</span></label>').join('')+'</div>'+(errors.replyMethod?'<span class="field-error" id="error-replyMethod">'+messages().replyMethod+'</span>':'')+'</fieldset>'+
       (phone?'<div class="offer-phone">'+field('country',t('País','Country'),'<select id="offer-country" name="country" autocomplete="tel-country-code">'+dialCodes.map(([code,name])=>'<option value="'+code+'" '+(draft.country===code?'selected':'')+'>'+esc(name)+' +'+code+'</option>').join('')+'<option value="other" '+(draft.country==='other'?'selected':'')+'>'+t('Otro país','Another country')+'</option></select>')+field('phone',t('Tu WhatsApp','Your WhatsApp'),input('phone','tel','inputmode="tel" autocomplete="tel-national" maxlength="40" placeholder="'+t('Tu número','Your number')+'" required'))+'</div>'+(draft.country==='other'?field('dialCode',t('Código de país','Country calling code'),input('dialCode','tel','inputmode="tel" autocomplete="tel-country-code" maxlength="5" placeholder="+" required')):''):'')+
-      (email?field('email',t('Tu correo','Your email'),input('email','email','inputmode="email" autocomplete="email" maxlength="254" autocapitalize="none" spellcheck="false" placeholder="'+t('tu@correo.com','you@example.com')+'" required')):'')+'</div>';
+      (email?field('email',t('Tu correo','Your email'),input('email','email','inputmode="email" autocomplete="email" maxlength="254" autocapitalize="none" spellcheck="false" placeholder="'+t('tu@correo.com','you@example.com')+'" required')):'')+'</div></div>';
   }
   function reviewFields(){return proposalSummary({property:record.property,broker:record.broker,offer:proposedOffer(draft),language:language()});}
   function watchImage(){const img=$('.property-scene img');img?.addEventListener('error',()=>img.remove(),{once:true});}
@@ -51,11 +51,17 @@ export function mountOffer({document,window,api,storage}){
     if(!record)return;document.title=t('Prepará tu oferta','Prepare your offer')+' · ArenalIndex';document.querySelector('#offer-header-label').textContent=t('Oferta de compra','Purchase offer');root.classList.add('offer-experience');root.dataset.stage=receipt?(receiptLink?'copy':'sent'):screen;
     if(receipt){renderReceipt();return;}
     const review=screen==='review',contact=screen==='contact',step=review?3:contact?2:1;
-    const title=review?t('Revisá tu oferta.','Review your offer.'):contact?t('Tu contacto.','Your contact details.'):t('Tu oferta.','Your offer.');
+    const title=review?t('Revisá tu oferta.','Review your offer.'):contact?t('Tus datos de contacto','Your contact details'):t('Tu oferta.','Your offer.');
     const back=review?'contact':contact?'draft':'welcome';
-    const content=screen==='welcome'?welcome():'<div class="offer-step-nav"><button class="text-button" type="button" data-back="'+back+'">← '+t('Atrás','Back')+'</button><p class="offer-progress">'+t('Paso ','Step ')+step+t(' de 3',' of 3')+'</p></div><div class="offer-heading"><h1 tabindex="-1">'+title+'</h1></div><form id="offer-form" novalidate><div class="offer-step-fields">'+(review?reviewFields():contact?contactFields():priceFields())+'</div><div class="offer-action-zone"><p class="offer-send-status" role="status"></p><p class="offer-error" role="alert"></p>'+(!review?'<p class="offer-assurance">'+t('Es un borrador hasta que lo enviés.','It’s a draft until you send it.')+'</p>':'')+'<button class="primary" type="submit">'+(review?t('Enviar a ','Send to ')+esc(record.broker):contact?t('Revisar mi oferta','Review my offer'):t('Continuar','Continue'))+arrow+'</button></div></form>';
+    const content=screen==='welcome'?welcome():'<div class="offer-step-nav"><button class="text-button" type="button" data-back="'+back+'">← '+t('Atrás','Back')+'</button><p class="offer-progress">'+t('Paso ','Step ')+step+t(' de 3',' of 3')+'</p></div><div class="offer-heading"><h1 tabindex="-1">'+title+'</h1></div><form id="offer-form" novalidate><div class="offer-step-fields">'+(review?reviewFields():contact?contactFields():priceFields())+'</div><div class="offer-action-zone"><p class="offer-send-status" role="status"></p><p class="offer-error" role="alert"></p>'+(!review?'<p class="offer-assurance">'+t('Es un borrador hasta que lo enviés.','It’s a draft until you send it.')+'</p>':'')+'<button class="primary" type="submit">'+(review?t('Enviar a ','Send to ')+esc(record.broker):contact?t('Revisar mi oferta','Review my offer'):t('Siguiente: contacto','Next: contact details'))+arrow+'</button></div></form>';
     root.innerHTML='<div class="offer-spread">'+propertyStage(record.property,language(),{gallery:screen==='welcome',listing:screen==='welcome',showPrice:screen!=='welcome'})+'<section class="offer-desk">'+content+'</section></div>';
-    if(screen==='welcome'&&questionLink())$('.property-stage').insertAdjacentHTML('beforeend','<div class="offer-questions">'+questionLink()+'</div>');
+    if(screen==='welcome'){
+      const chat=questionLink(),listing=$('[data-full-listing]');
+      if(chat||listing){
+        $('.property-stage').insertAdjacentHTML('beforeend','<div class="property-actions">'+(chat?'<div class="offer-questions">'+chat+'</div>':'')+'</div>');
+        if(listing)$('.property-actions').prepend(listing);
+      }
+    }
     const amount=$('[name=amount]');if(amount)amount.dataset.long=String(amount.value.length>9);watchImage();
   }
 
@@ -84,6 +90,21 @@ export function mountOffer({document,window,api,storage}){
     // Unchecked radios and the unselected contact channel never replace draft fields.
     if(event.target.type==='radio')return;
     draft[event.target.name]=event.target.value;hasDraft=true;delete errors[event.target.name];event.target.removeAttribute('aria-invalid');event.target.removeAttribute('aria-describedby');$('#error-'+event.target.name)?.remove();const amount=$('[name=amount]');if(amount)amount.dataset.long=String(amount.value.length>9);persist();
+  });
+  // Keep the method picker in view alongside its input when the phone keyboard opens.
+  function showContactContext(target){
+    if(screen!=='contact'||!target?.name||!window.matchMedia?.('(max-width:860px)').matches)return;
+    const group=target.closest('.contact-reply')||target.closest('.simple-contact');
+    if(!group)return;
+    const available=window.visualViewport?.height||window.innerHeight;
+    (group.getBoundingClientRect().height<=available?group:target.closest('.simple-field,fieldset'))?.scrollIntoView({block:'nearest'});
+  }
+  root.addEventListener('focusin',event=>showContactContext(event.target));
+  root.addEventListener('keydown',event=>{
+    if(screen!=='contact'||event.target.name!=='name'||event.key!=='Enter'||event.isComposing)return;
+    event.preventDefault();
+    const next=draft.replyMethod==='email'?'email':draft.replyMethod==='whatsapp'?'phone':'replyMethod';
+    $('[name="'+next+'"]')?.focus();
   });
   root.addEventListener('change',event=>{
     if(busy||!['draft','contact'].includes(screen))return;const name=event.target.name;
@@ -119,7 +140,7 @@ export function mountOffer({document,window,api,storage}){
     }catch(error){$('.offer-error').textContent=error.message;}
     finally{busy=false;$('#offer-form')?.removeAttribute('aria-busy');if($('.offer-send-status'))$('.offer-send-status').textContent='';for(const b of root.querySelectorAll('button'))b.disabled=false;}
   });
-  function fitViewport(){if(window.visualViewport)document.documentElement.style.setProperty('--offer-viewport-height',Math.round(window.visualViewport.height)+'px');}
+  function fitViewport(){if(window.visualViewport)document.documentElement.style.setProperty('--offer-viewport-height',Math.round(window.visualViewport.height)+'px');showContactContext(document.activeElement);}
   window.visualViewport?.addEventListener('resize',fitViewport);fitViewport();
   window.addEventListener('arenal-language-change',()=>{if(busy)return;persist();render();});
   window.addEventListener('pagehide',()=>{if(!leaving)persist();});

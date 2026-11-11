@@ -360,7 +360,7 @@ test('the full listing offers a bilingual return action and its Back button retu
   const {document,i18n}=await detailFixture(row,session);
   assert.match(document.querySelector('.pd-offer-return').textContent,/Volver a la oferta/);
   context.hasDraft=true;i18n.setLanguage('en');await flush();
-  assert.match(document.querySelector('.pd-offer-return').textContent,/Continue my offer/);
-  assert.match(document.querySelector('.pd-footer').textContent,/Continue my offer/);
+  assert.match(document.querySelector('.pd-offer-return').textContent,/Back to offer/);
+  assert.match(document.querySelector('.pd-footer').textContent,/Back to offer/);
   document.querySelector('[data-offer-return]').click();document.querySelector('.pd-bar [data-action=back]').click();assert.equal(returned.length,2);assert.equal(returned[0],context);
 });
