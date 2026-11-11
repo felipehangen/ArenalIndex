@@ -14,4 +14,6 @@ Validation: 356 tests pass; build and git diff --check pass. Focused tests cover
 
 Visual verification limitation: current CUA inventory reports “Local browser use is disabled in Work settings.” Responsive CSS and DOM behavior were checked, but no actual desktop/mobile browser rendering was inspected.
 
-Requires both Vercel API/static deployment and GitHub Pages frontend deployment. Publication evidence will be recorded after verification.
+Application commit: `ccbabfe3d58520c3959b917e4b134ffefabfbc3b`. The user explicitly approved “Publish the update” after the initial automatic-review block. Vercel deployment `dpl_BL9aywtLwzxF3kGbxzuFYZorAER7` reached READY on `https://go.arenalindex.com`. All 13 checked frontend files on that domain match the tested build. Both `/api/owner` configuration endpoints return HTTP 200/configured, and the public `asambleaterinde` collection returns HTTP 200. No account/listing data was edited for verification.
+
+The commit was pushed to `origin/main`; GitHub Pages run `43057733262` completed successfully, including all test/build/deploy steps. All 13 checked frontend files on `https://arenalindex.com` also match the tested build. Publication is complete. Asset verification evidence is saved in ignored `.vercel/broker-tools/`.
