@@ -1,5 +1,13 @@
 #inbox{padding-top:8px}.workspace-tabs{margin-bottom:32px}
-#listings-panel .admin-table-head,#listings-panel .admin-row{grid-template-columns:minmax(260px,2fr) minmax(105px,.8fr) minmax(125px,1fr) 90px minmax(140px,auto)}
+#listings-panel .admin-table-head,#listings-panel .admin-row{grid-template-columns:minmax(0,1fr) 135px 150px 100px 200px;column-gap:20px}
+/* Every desktop row and its header use the same tracks, independent of content. */
+#listings-panel .admin-row{min-height:112px}
+#listings-panel .admin-row>div{min-width:0}
+#listings-panel .admin-table-head>span:first-child{padding-left:96px}
+#listings-panel .admin-price strong{font-variant-numeric:tabular-nums}
+#listings-panel .admin-state{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+#listings-panel .admin-state small,#listings-panel .published-link{margin:0}
+#listings-panel .row-actions{align-content:center;gap:8px}
 #listings-panel .admin-property{display:flex;align-items:center;gap:16px;min-width:0}.admin-property-copy{min-width:0}
 .listing-thumbnail{width:80px;height:64px;flex:0 0 80px;overflow:hidden;border-radius:9px;background:#eef2e9;display:grid;place-items:center;color:#7a8673}
 .listing-thumbnail img{width:100%;height:100%;object-fit:cover}.listing-thumbnail span{font-size:11px;text-align:center;padding:8px}
