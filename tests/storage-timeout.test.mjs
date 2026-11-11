@@ -39,9 +39,12 @@ test('ambiguous writes and signed-token requests time out without an application
   await assert.rejects(()=>repository.create({id:'private-record'}),timedOut);assert.equal(puts,1);
   await assert.rejects(()=>repository.downloadURL('private-record/photo'),timedOut);assert.equal(signs,1);
 });
-test('an exhausted request budget prevents further storage calls and mutations',{timeout:2000},async()=>{
-  let reads=0,writes=0;
-  const repository=createRepository({timeoutMs:100,deadline:Date.now()+25,diagnostic:silent,sdk:{get:()=>{reads++;return pending();},put:()=>{writes++;}}});
+test('an exhausted request budget prevents further storage calls and mutations',{timeout:2000},async t=>{
+  let reads=0,writes=0,now=1000;
+  // Real timers may fire just before their nominal deadline. Explicitly exhaust
+  // the clock during the pending read so this tests the budget, not timer jitter.
+  t.mock.method(Date,'now',()=>now);
+  const repository=createRepository({timeoutMs:100,deadline:1025,diagnostic:silent,sdk:{get:()=>{reads++;now=1025;return pending();},put:()=>{writes++;}}});
   await assert.rejects(()=>repository.allow('private-session',30),timedOut);
   await assert.rejects(()=>repository.authCreate('challenge','a'.repeat(64),{used:false}),timedOut);
   assert.equal(reads,1);assert.equal(writes,0);

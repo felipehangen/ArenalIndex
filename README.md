@@ -1,5 +1,7 @@
 # Arenal Index
 
+**Correo de ArenalIndex (11 nov 2026):** `equipo@arenalindex.com` es el contacto público en Google Workspace. La activación del remitente automático de Resend requiere los tres registros DNS pendientes; ver [estado e instrucciones](docs/EMAIL-2026-11-11.md).
+
 **Estado actual y continuidad (10 nov 2026):** leer [el handoff](docs/HANDOFF-2026-11-10.md) y [el flujo de cuentas y catálogo](docs/catalog-management.md). El catálogo verificado tiene 31 demos con fotos y un anuncio real; los demos genéricos están eliminados mediante decisiones administradas. Algunas secciones históricas de este README describen el prototipo anterior (captación anónima, collage móvil y edición directa de demos en Supabase); no deben usarse para restaurar esos flujos.
 
 Sitio público: https://arenalindex.com/
