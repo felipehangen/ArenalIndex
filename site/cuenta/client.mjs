@@ -7,6 +7,6 @@ export async function request(action,body={},authenticated=true){
   const current=authenticated?session():null;if(authenticated&&!current)throw Object.assign(Error('Iniciá sesión para continuar.'),{status:401});
   const url=new URL('owner',window.ArenalConfig.intakeUrl);
   const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',...(current?{Authorization:'Bearer '+current.token}:{})},body:JSON.stringify({action,...body}),cache:'no-store',signal:AbortSignal.timeout(60000)});
-  const result=await response.json();if(!response.ok){if(authenticated&&response.status===401)clearSession();throw Object.assign(Error(result.error||'No se pudo completar la operación.'),{status:response.status,code:result.code});}return result;
+  const result=await response.json();if(!response.ok){if(authenticated&&response.status===401)clearSession();throw Object.assign(Error((window.ArenalI18n?.language==='en'&&result.errorEnglish)||result.error||'No se pudo completar la operación.'),{status:response.status,code:result.code});}return result;
 }
 export async function logout(){try{if(session())await request('logout');}finally{clearSession();}}

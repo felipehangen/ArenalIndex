@@ -10,7 +10,7 @@
     },
     "api/owner.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/admin/**,server/portal/**,server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/publicar/rules.mjs,site/newlisting/photo-policy.mjs,server/sharing/links.mjs}"
+      "includeFiles": "{server/admin/**,server/portal/**,server/offers/**,site/offer/model.mjs,server/intake/**,server/analytics/**,server/catalog/**,site/newlisting/model.mjs,site/publicar/rules.mjs,site/newlisting/photo-policy.mjs,server/sharing/links.mjs}"
     },
     "api/listings.mjs": {
       "maxDuration": 60,
@@ -83,6 +83,23 @@
     },
     {
       "source": "/newlisting/review/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/offer/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

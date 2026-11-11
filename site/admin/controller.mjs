@@ -1,11 +1,11 @@
 import * as client from './client.mjs';
-import {selectRecords,renderRows} from './view.mjs?v=10-broker-tools';
+import {selectRecords,renderRows} from './view.mjs?v=11-offers';
 import {createGoogleLoader} from './google-loader.mjs';
 
 let googleLoader;
 export function loadGoogle(language){googleLoader??=createGoogleLoader({window,document});return googleLoader(language);}
 
-export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,schedule=setTimeout,cancel=clearTimeout,now=Date.now,owner=false,onSignedIn=()=>{}}){
+export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,schedule=setTimeout,cancel=clearTimeout,now=Date.now,owner=false,onSignedIn=()=>{},onRecords=()=>{}}){
   const $=selector=>document.querySelector(selector);
   const t=(text,values)=>window.ArenalI18n?.t(text,values)||text.replace(/\{(\w+)\}/g,(_,key)=>values?.[key]??'');
   let epoch=0,expiryTimer,records=[],loaded=false,google,config,activeIdentity;
@@ -57,7 +57,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
         visited.add(cursor);
       }while(cursor);
       if(!api.session()){expire();return;}
-      records=[...found.values()];loaded=true;render();
+      records=[...found.values()];loaded=true;render();onRecords(records);
     }catch(error){
       if(current!==epoch)return;
       if(error.status===401){expire();return;}

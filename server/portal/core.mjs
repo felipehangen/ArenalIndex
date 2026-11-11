@@ -1,3 +1,4 @@
+import {ownerOfferAction,publicOfferAction} from '../offers/core.mjs';
 import {publicAccountProfile,ensureAccountSlug} from './public-page.mjs';
 import {randomBytes,createHash} from 'node:crypto';
 import {ownerSummary} from './owner-summary.mjs';
@@ -20,6 +21,7 @@ export function createOwnerHandler({repository,catalog,verifyGoogle,config,maile
       const raw=await request.text();if(raw.length>250000)fail(413,'Solicitud demasiado grande.');
       const body=JSON.parse(raw);if(!body||typeof body!=='object'||Array.isArray(body))fail(400,'Solicitud inválida.');
       const action=body.action;
+      if(['offer_open','offer_submit'].includes(action))return json(await publicOfferAction({action,body,repository,catalog,config,now,request}));
       if(action==='config')return json({configured:!!config.googleClientId,clientId:config.googleClientId||null,passwordEnabled:true});
       const startSession=async(account,method)=>{
         account=await ensureAccountSlug(repository,account);
@@ -67,6 +69,7 @@ export function createOwnerHandler({repository,catalog,verifyGoogle,config,maile
       if(action==='accept_listing_rules')return json(await acceptListingRules({repository,account,session,body,now}));
       if(session.method==='password'&&account.mustChangePassword)fail(403,'Cambiá tu contraseña temporal para continuar.');
       if(!hasAcceptedRules(account))return json({error:'Aceptá las reglas de publicación antes de abrir tus anuncios.',code:'listing_rules_required'},403);
+      if(['offers_list','offer_create','offer_revoke','offer_reviewed'].includes(action))return json(await ownerOfferAction({action,body,account,repository,catalog,config,now}));
       if(action==='health')return json({ready:config.emailReady});
       if(action==='list'){
         if(body.cursor!==undefined&&(typeof body.cursor!=='string'||body.cursor.length>2000))fail(400,'Página inválida.');
@@ -76,6 +79,6 @@ export function createOwnerHandler({repository,catalog,verifyGoogle,config,maile
       }
       if(['workspace_open','workspace_claim','workspace_save_prepare','workspace_save_commit','workspace_submit','workspace_status','workspace_reopen','workspace_unlist','workspace_relist'].includes(action))return json(await workspaceAction({action,body,actor:session,repository,config,mailer,now}));
       fail(400,'Acción no reconocida.');
-    }catch(error){return json({error:error.status?error.message:error instanceof SyntaxError?'Solicitud inválida.':'No se pudo completar la operación. Intentá de nuevo.'},error.status||(error instanceof SyntaxError?400:500));}
+    }catch(error){return json({...(error.offerEnglish?{errorEnglish:error.offerEnglish}:{}),error:error.status?error.message:error instanceof SyntaxError?'Solicitud inválida.':'No se pudo completar la operación. Intentá de nuevo.'},error.status||(error instanceof SyntaxError?400:500));}
   };
 }

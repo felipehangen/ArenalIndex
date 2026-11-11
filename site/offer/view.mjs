@@ -1,0 +1,20 @@
+import {choiceLabel,notice} from './model.mjs';
+export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export const money=(v,c,l='es')=>new Intl.NumberFormat(l==='en'?'en-US':'es-CR',{style:'currency',currency:['USD','CRC'].includes(c)?c:'USD',maximumFractionDigits:2}).format(Number(v)||0)+' '+c;
+export const date=(v,l='es')=>new Intl.DateTimeFormat(l==='en'?'en-US':'es-CR',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Costa_Rica'}).format(new Date(v));
+export function propertyCard(p,language='es'){
+  const t=(es,en)=>language==='en'?en:es;
+  let image='';try{const u=new URL(p.image,'https://arenalindex.com');if(u.protocol==='https:')image=u.href;}catch{}
+  return '<div class="offer-property">'+(image?'<img src="'+esc(image)+'" alt="" referrerpolicy="no-referrer">':'<span class="property-mark" aria-hidden="true">⌂</span>')+'<div><p class="eyebrow">'+t('LA PROPIEDAD','THE PROPERTY')+'</p><h2>'+esc(p.titles?.[language]||p.name)+'</h2><p>'+esc(p.place)+' · '+esc(new Intl.NumberFormat(language).format(p.area))+' m²</p><p>'+t('Precio solicitado','Asking price')+' <strong>'+esc(money(p.price,p.currency,language))+'</strong></p></div></div>'+(p.isDemo?'<p class="demo-notice">'+t('Demostración: propiedad ficticia. Usá solo datos de prueba.','Demonstration: fictional property. Use test information only.')+'</p>':'');
+}
+export function proposalSummary({property,broker,offer,version,language='es',editable=false}){
+  const t=(es,en)=>language==='en'?en:es,d=offer,field=(label,value)=>'<div><dt>'+label+'</dt><dd>'+esc(value)+'</dd></div>';
+  const block=(step,title,contents)=>'<section class="proposal-section"><div class="proposal-section-heading"><h3>'+title+'</h3>'+(editable?'<button type="button" class="text-button" data-edit-step="'+step+'">'+t('Editar','Edit')+'</button>':'')+'</div><dl>'+contents+'</dl></section>';
+  const conditions=d.conditions.map(v=>choiceLabel('conditions',v,language));if(d.otherConditions)conditions.push(d.otherConditions);
+  return '<article class="proposal-paper"><div class="proposal-letterhead"><span class="eyebrow">ARENAL INDEX · '+t('PROPUESTA DE COMPRA','PURCHASE PROPOSAL')+'</span>'+(version?'<span>'+t('Versión','Version')+' '+version.revision+'</span>':'')+'</div><h2>'+esc(property.titles?.[language]||property.name)+'</h2><p class="muted">'+t('Para','To')+' '+esc(broker)+' · '+esc(property.place)+'</p>'+(property.isDemo?'<p class="demo-notice">'+t('PROPUESTA DE PRUEBA · Propiedad ficticia','TEST PROPOSAL · Fictional property')+'</p>':'')+
+    block(0,t('La oferta','The offer'),field(t('Monto propuesto','Proposed amount'),money(d.amount,d.currency,language))+field(t('Precio solicitado al crear la invitación','Asking price when invited'),money(property.price,property.currency,language)))+
+    block(1,t('Plan de compra','Purchase plan'),field(t('Forma de pago','Funding'),choiceLabel('funding',d.funding,language))+field(t('Depósito propuesto','Proposed deposit'),d.depositMode==='amount'?money(d.deposit,d.currency,language):t('Por conversar con el corredor','To discuss with the broker'))+field(t('Cierre preferido','Preferred closing'),choiceLabel('closing',d.closing,language)))+
+    block(2,t('Condiciones y tiempos','Conditions and timing'),field(t('Condiciones propuestas','Proposed conditions'),conditions.join('\n')||t('No se indicaron condiciones adicionales.','No additional conditions specified.'))+field(t('Vigencia propuesta','Proposed validity'),version?date(version.validUntil,language)+' (Costa Rica)':choiceLabel('validity',d.validity,language)+t(' desde el envío',' from submission'))+(d.message?field(t('Mensaje para el propietario','Message for the owner'),d.message):''))+
+    block(3,t('Datos del comprador','Buyer details'),field(t('Nombre','Name'),d.name)+field(t('Correo','Email'),d.email)+(d.phone?field(t('Teléfono','Phone'),d.phone):''))+
+    '<footer class="proposal-footnote">'+(version?'<p>'+t('Enviada','Submitted')+' '+esc(date(version.submittedAt,language))+' (Costa Rica)</p>':'')+'<p>'+esc(version?.notice||notice[language])+'</p></footer></article>';
+}

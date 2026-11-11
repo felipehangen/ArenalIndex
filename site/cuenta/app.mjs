@@ -1,5 +1,7 @@
-import {mountAdmin} from '../admin/controller.mjs?v=14-broker-tools';
+import {mountOffers} from './offers.mjs?v=1';
+import {mountAdmin} from '../admin/controller.mjs?v=15-offers';
 import {mountBrokerResources} from './resources.mjs?v=1';
 import * as client from './client.mjs';
+const offers=mountOffers({document,window,api:client,onUnauthorized:()=>controller.expire()});
 const resources=mountBrokerResources({document,window});
-mountAdmin({document,window,api:client,owner:true,onSignedIn:identity=>resources.setIdentity(identity)});
+const controller=mountAdmin({document,window,api:client,owner:true,onRecords:records=>offers.setListings(records),onSignedIn:identity=>{resources.setIdentity(identity);offers.setIdentity(identity);}});

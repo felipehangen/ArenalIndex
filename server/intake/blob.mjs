@@ -68,6 +68,16 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now,timeoutMs,
       if(!current||Object.entries(filters).some(([key,value])=>current.row[key]!==value))return null;
       return write(path,{...current.row,...patch},current.etag);
     },
+    async ensureOfferIndex(subject,id){
+      if(!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid offer ID');
+      await write('portal/offer-index/'+hash(subject)+'/'+id+'.json',{id});
+    },
+    async ownerOffers(subject,cursor){
+      const prefix='portal/offer-index/'+hash(subject)+'/',page=await list({prefix,limit:30,...(cursor?{cursor}:{})});
+      const ids=page.blobs.map(b=>b.pathname.slice(prefix.length).match(/^([a-f0-9]{64})\.json$/)?.[1]).filter(Boolean),records=[];
+      for(let offset=0;offset<ids.length;offset+=10){const rows=await Promise.all(ids.slice(offset,offset+10).map(id=>read(portalPath('offers',id))));records.push(...rows.filter(r=>r?.row.ownerSubject===subject).map(r=>r.row));}
+      return {records,cursor:page.hasMore?page.cursor:null};
+    },
     async ownerAccounts(){
       const records=[];let cursor;
       do{const page=await list({prefix:'portal/accounts/',limit:100,...(cursor?{cursor}:{})});
@@ -180,6 +190,6 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now,timeoutMs,
   };
 }
 function portalPath(kind,id){
-  if(!['accounts','account-names','account-slugs','emails','stages','geocodes'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid portal key');
+  if(!['accounts','account-names','account-slugs','emails','stages','geocodes','offers'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid portal key');
   return 'portal/'+kind+'/'+id+'.json';
 }

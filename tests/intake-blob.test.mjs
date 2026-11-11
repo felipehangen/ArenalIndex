@@ -113,3 +113,11 @@ test('name reservations use private conditional storage and reject concurrent ac
   assert.equal(results.filter(r=>r.status==='fulfilled').length,1);assert.equal(results.find(r=>r.status==='rejected').reason.status,409);
   const entry=[...rows].find(([key])=>key.startsWith('portal/account-names/'));assert.ok(entry);assert.equal(JSON.parse(entry[1].text).state,'committed');
 });
+
+test('offer discovery is private, paginated, filters foreign indexes and retains conditional versions',async()=>{
+  const {repository}=setup();
+  for(let n=0;n<33;n++){const id=n.toString(16).padStart(64,'0');await repository.ensureOfferIndex('owner-a',id);await repository.portalCreate('offers',id,{id,ownerSubject:n===32?'owner-b':'owner-a',revision:0,versions:[]});}
+  const a=await repository.ownerOffers('owner-a'),b=await repository.ownerOffers('owner-a',a.cursor);assert.equal(a.records.length,30);assert.equal(b.records.length,2);assert.equal(b.cursor,null);
+  const id='0'.repeat(64);const writes=await Promise.all([1,2].map(n=>repository.portalUpdate('offers',id,{revision:0},{revision:1,versions:[n]})));assert.equal(writes.filter(Boolean).length,1);
+  await assert.rejects(()=>repository.ensureOfferIndex('owner-a','../accounts'));
+});
