@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {portalFixture,hash} from './portal-fixture.mjs';
+import {shareURL} from '../server/sharing/links.mjs';
 import {offerToken} from '../server/offers/links.mjs';
 import {blankSimpleOffer,simpleNoticeVersion} from '../site/offer/model.mjs';
 const valid=name=>({...blankSimpleOffer('USD'),name,contact:name.toLowerCase()+'@example.test',amount:'150000'});
@@ -68,7 +69,7 @@ test('reply preference is saved explicitly and cannot disagree with the submitte
 });
 
 test('broker links are short and stable; earlier long links reach the same form and receipt on retry',async()=>{
-  const e=await setup();assert.match(e.token,/^l\.[A-Za-z0-9_-]{22}$/);assert.equal(e.form.url.length,55);
+  const e=await setup();assert.match(e.token,/^l\.[A-Za-z0-9_-]{22}$/);assert.equal(e.form.url,shareURL(e.opened.property.id)+'/offer#'+e.token);
   const form=[...e.portal].find(([key])=>key.startsWith('offer-forms/'))[1],legacy=offerToken('listing',form.id,e.options.config);
   const oldOpened=await e.call('offer_form_open',{token:legacy});assert.equal(oldOpened.status,200);assert.deepEqual(oldOpened.body,e.opened);
   const first=await e.send('Alice',{token:legacy}),retry=await e.send();assert.equal(first.status,200);assert.equal(retry.status,200);assert.equal(first.body.receiptURL,retry.body.receiptURL);

@@ -32,7 +32,7 @@ export function mountOffer({document,window,api,storage}){
   function questionLink(){
     const contact=record.property.contact||{},phone=String(contact.whatsapp||'').replace(/\D/g,''),name=contact.name||record.broker;
     const message=t('Hola '+name+', tengo una consulta sobre '+(record.property.titles?.es||record.property.name)+'.','Hi '+name+', I have a question about '+(record.property.titles?.en||record.property.name)+'.');
-    return /^[1-9]\d{7,14}$/.test(phone)?'<a class="offer-whatsapp" href="https://wa.me/'+phone+'?text='+esc(encodeURIComponent(message))+'" target="_blank" rel="noopener noreferrer"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M20.8 11.8a8.9 8.9 0 0 1-13.2 7.8l-4.5 1.2 1.2-4.4a8.9 8.9 0 1 1 16.5-4.6Z" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 7.2c-.9 0-1.4 1.1-1.3 2 .3 3.5 4.2 7.4 7.8 7.6 1 .1 2-.6 2.1-1.7l-2.8-1.5-1.1 1c-1.6-.7-3-2.1-3.8-3.6l1-1.2-1.3-2.6h-.6Z" fill="currentColor"/></svg><span>'+t('Consultar por WhatsApp','Ask on WhatsApp')+'</span></a>':'';
+    return /^[1-9]\d{7,14}$/.test(phone)?'<a class="property-full-link" href="https://wa.me/'+phone+'?text='+esc(encodeURIComponent(message))+'" target="_blank" rel="noopener noreferrer">'+t('Consultar por WhatsApp','Ask on WhatsApp')+'</a>':'';
   }
   function welcome(){return '<div class="offer-welcome-details"><div class="offer-heading"><p class="eyebrow">'+t('UNA PROPIEDAD. TU PROPUESTA.','ONE PROPERTY. YOUR PROPOSAL.')+'</p><h1 tabindex="-1">'+t('¿Te imaginás aquí?','Can you picture yourself here?')+'</h1><p>'+t('Prepará tu oferta en tres pasos simples.','Prepare your offer in three simple steps.')+'</p></div><div class="welcome-price"><span>'+t('Precio solicitado','Asking price')+'</span><strong>'+esc(money(record.property.price,record.property.currency,language()))+'</strong></div><p class="offer-broker">'+t('Tu oferta la recibe','Your offer goes to')+' <strong>'+esc(record.broker)+'</strong></p></div><div class="offer-action-zone"><p class="offer-assurance">'+t('Podés revisar todo antes de enviar.','You can review everything before sending.')+'</p><button type="button" class="primary offer-prepare" data-prepare>'+continueLabel()+arrow+'</button><p class="offer-error" role="alert"></p></div>';}
   function priceFields(){
@@ -140,7 +140,19 @@ export function mountOffer({document,window,api,storage}){
     }catch(error){$('.offer-error').textContent=error.message;}
     finally{busy=false;$('#offer-form')?.removeAttribute('aria-busy');if($('.offer-send-status'))$('.offer-send-status').textContent='';for(const b of root.querySelectorAll('button'))b.disabled=false;}
   });
-  function fitViewport(){if(window.visualViewport)document.documentElement.style.setProperty('--offer-viewport-height',Math.round(window.visualViewport.height)+'px');showContactContext(document.activeElement);}
+  function fitViewport(){
+    const viewport=window.visualViewport;
+    if(!viewport)return;
+    document.documentElement.style.setProperty('--offer-viewport-height',Math.round(viewport.height)+'px');
+    const active=document.activeElement;
+    showContactContext(active);
+    // iOS can shrink only the visual viewport, leaving CSS media queries at full height.
+    if(screen==='draft'&&active?.closest('#offer-form')&&window.matchMedia('(max-width:860px)').matches){
+      const box=active.getBoundingClientRect(),top=viewport.offsetTop+8,bottom=viewport.offsetTop+viewport.height-8;
+      if(box.bottom>bottom)window.scrollBy(0,box.bottom-bottom);
+      else if(box.top<top)window.scrollBy(0,box.top-top);
+    }
+  }
   window.visualViewport?.addEventListener('resize',fitViewport);fitViewport();
   window.addEventListener('arenal-language-change',()=>{if(busy)return;persist();render();});
   window.addEventListener('pagehide',()=>{if(!leaving)persist();});

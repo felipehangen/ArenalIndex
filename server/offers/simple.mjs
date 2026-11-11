@@ -1,3 +1,4 @@
+import {shareURL} from '../sharing/links.mjs';
 import {createHash} from 'node:crypto';
 import {property,publicRecord} from './core.mjs';
 import {offerURL,shortFormURL,resolveTokenID} from './links.mjs';
@@ -12,7 +13,8 @@ export async function listingOfferForm({body,account,repository,catalog,config,n
   const id=hash('listing-form-v2:'+account.subject+':'+body.propertyId);
   const row=await repository.portalGet('offer-forms',id)||await repository.portalCreate('offer-forms',id,{id,ownerSubject:account.subject,sourceId:body.propertyId,createdAt:now().toISOString()})||await repository.portalGet('offer-forms',id);
   if(!row)fail(503,'No se pudo preparar el enlace. Intentá de nuevo.','Could not prepare the link. Please try again.');
-  return {property:p,broker:account.name||'ArenalIndex',url:await shortFormURL(id,config,repository)};
+  const direct=new URL(await shortFormURL(id,config,repository));
+  return {property:p,broker:account.name||'ArenalIndex',url:shareURL(p.id)+'/offer'+direct.hash};
 }
 export async function simpleOfferAction({action,body,repository,catalog,config,now,request}){
   const ip=request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'unknown';

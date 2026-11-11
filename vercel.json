@@ -118,6 +118,10 @@
   ],
   "rewrites": [
     {
+      "source": "/:code([A-Z][0-9][A-Za-z0-9]{4})/offer",
+      "destination": "/api/share?code=:code&offer=1"
+    },
+    {
       "source": "/p/:code/image.jpg",
       "destination": "/api/share?code=:code&image=1&legacy=1"
     },

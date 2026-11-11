@@ -57,6 +57,18 @@ test('crawler receives photo, title, original price and locality without JavaScr
   assert.doesNotMatch(escaped,/<img src=x|<\/script><img/);
 });
 
+test('offer previews identify the property and open its buyer form with the original fragment',async()=>{
+  const handler=createShareHandler({origin,published:async()=>[row]});
+  const {document}=parseHTML(await (await handler(request('/offer'))).text());
+  const meta=key=>document.querySelector('[property="'+key+'"]').getAttribute('content');
+  assert.equal(meta('og:title'),'Hacé una oferta: '+row.name);
+  assert.equal(meta('og:url'),shareURL(row.id,origin)+'/offer');
+  assert.ok(meta('og:image').startsWith(shareURL(row.id,origin)+'/image.jpg?'));
+  const location={hash:'#l.test',replace(url){this.destination=url;}};
+  vm.runInNewContext(document.querySelector('script').textContent,{location});
+  assert.equal(location.destination,'https://arenalindex.com/offer/#l.test');
+});
+
 test('edits refresh previews, while withdrawn, missing and failed catalog reads expose no old listing',async()=>{
   let rows=[row];const handler=createShareHandler({origin,published:async()=>rows});
   const first=await (await handler(request())).text();
