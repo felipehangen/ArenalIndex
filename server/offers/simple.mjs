@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {property,publicRecord} from './core.mjs';
-import {offerURL,tokenID} from './links.mjs';
+import {offerURL,shortFormURL,resolveTokenID} from './links.mjs';
 import {validateSimpleOffer,normalizeSimpleOffer,simpleNotice,simpleNoticeVersion} from '../../site/offer/model.mjs';
 const hash=v=>createHash('sha256').update(v).digest('hex');
 const fail=(status,es,en)=>{throw Object.assign(Error(es),{status,offerEnglish:en});};
@@ -12,13 +12,13 @@ export async function listingOfferForm({body,account,repository,catalog,config,n
   const id=hash('listing-form-v2:'+account.subject+':'+body.propertyId);
   const row=await repository.portalGet('offer-forms',id)||await repository.portalCreate('offer-forms',id,{id,ownerSubject:account.subject,sourceId:body.propertyId,createdAt:now().toISOString()})||await repository.portalGet('offer-forms',id);
   if(!row)fail(503,'No se pudo preparar el enlace. Intentá de nuevo.','Could not prepare the link. Please try again.');
-  return {property:p,broker:account.name||'ArenalIndex',url:offerURL('listing',id,config)};
+  return {property:p,broker:account.name||'ArenalIndex',url:await shortFormURL(id,config,repository)};
 }
 export async function simpleOfferAction({action,body,repository,catalog,config,now,request}){
-  const kind=action==='offer_receipt'?'receipt':'listing',id=tokenID(body.token,kind,config);
-  if(!id)unavailable();
   const ip=request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'unknown';
   if(!await repository.allow('simple-offer:'+hash(ip+config.rateSalt),120))fail(429,'Demasiados intentos. Intentá más tarde.','Too many attempts. Please try again later.');
+  const kind=action==='offer_receipt'?'receipt':'listing',id=await resolveTokenID(body.token,kind,config,repository);
+  if(!id)unavailable();
   if(kind==='receipt'){
     const row=await repository.portalGet('offers',id),account=row&&await repository.portalGet('accounts',hash(row.ownerSubject));
     if(!row||row.kind!=='submission'||row.revoked||!account?.active)unavailable();

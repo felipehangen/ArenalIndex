@@ -18,8 +18,9 @@ function dom(path){
   vm.runInNewContext(fs.readFileSync(new URL('../site/offer/session.js',import.meta.url),'utf8'),{window});window.print=()=>{window.printed=true;};
   return {document,window,$:s=>document.querySelector(s)};
 }
-async function buyer({stored,handler,blockedStorage=false,prepare=true}={}){
+async function buyer({stored,handler,blockedStorage=false,prepare=true,linkToken=token}={}){
   const e=dom('../site/offer/index.html'),calls=[],store=new Map(stored?[['arenalindex.simple-offer:'+token,JSON.stringify(stored)]]:[]);
+  e.window.location.hash='#'+linkToken;
   const api=async(action,body)=>{calls.push({action,body});if(handler){const result=await handler(action,body);if(result)return result;}if(action==='offer_form_open')return record();if(action==='offer_form_submit')return {...record(),id:'c'.repeat(64),receiptURL:'https://arenalindex.com/offer/#'+receiptToken,revision:1,versions:[{revision:1,offer:body.offer,submittedAt:'2026-11-11T12:00:00Z',notice:simpleNotice.en}]};throw Error(action);};
   await mountOffer({...e,api,storage:{getItem:k=>store.get(k),setItem(k,v){if(blockedStorage)throw Error('Blocked');store.set(k,v);},removeItem:k=>store.delete(k)}}).ready;
   if(prepare&&e.$('[data-prepare]'))e.$('[data-prepare]').click();
@@ -138,4 +139,36 @@ test('gallery uses actual listing photos, responds to arrows/swipes, and preserv
   const e=await buyer();e.set('amount','210000');e.$('[data-photos]').click();const dialog=e.$('.offer-gallery'),track=e.$('.offer-gallery-track');assert.equal(dialog.hasAttribute('open'),true);assert.equal(track.querySelectorAll('img').length,2);assert.match(e.$('.offer-gallery-status').textContent,/1 \/ 2/);
   Object.defineProperty(track,'clientWidth',{value:300});track.scrollTo=({left})=>{track.scrollLeft=left;};e.$('[data-gallery-next]').click();assert.equal(track.scrollLeft,300);assert.match(e.$('.offer-gallery-status').textContent,/2 \/ 2/);track.scrollLeft=0;track.dispatchEvent(new e.window.Event('scroll'));assert.match(e.$('.offer-gallery-status').textContent,/1 \/ 2/);
   const escape=new e.window.Event('cancel',{cancelable:true});dialog.dispatchEvent(escape);assert.equal(dialog.hasAttribute('open'),false);assert.equal(e.$('[name=amount]').value,'210000');assert.equal(e.calls.length,1);
+});
+
+test('short listing links open the form and restore their draft after browsing the full listing',async()=>{
+  const linkToken='l.AbcdefghijklmnopqrstuQ',e=await buyer({linkToken});
+  assert.equal(e.calls[0].action,'offer_form_open');assert.equal(e.calls[0].body.token,linkToken);
+  e.set('amount','210000');e.set('name','Buyer');e.choose('email');e.set('email','buyer@example.test');
+  e.$('[data-full-listing]').click();
+  const session=e.window.ArenalOfferSession.create({storage:{getItem:k=>e.store.get(k)}}),context=session.returnFor('lake-house');
+  assert.equal(context.href,'/offer/#'+linkToken);assert.equal(context.hasDraft,true);assert.equal(context.snapshot.draft.amount,'210000');
+});
+test('private copy opens in a separate tab and receipt links load a distinct printable saved offer',async()=>{
+  const e=await buyer();e.set('amount','156000');e.set('name','Buyer');e.choose('email');e.set('email','buyer@example.test');await e.submit();await e.submit();
+  const link=e.$('.receipt-link');assert.equal(link.getAttribute('target'),'_blank');assert.match(link.getAttribute('rel'),/noopener/);assert.match(link.textContent,/Open my private copy/);
+  const linkToken=new URL(link.getAttribute('href')).hash.slice(1),offer=e.calls.find(c=>c.action==='offer_form_submit').body.offer;
+  const f=await buyer({linkToken,handler:async(action,body)=>{
+    assert.equal(action,'offer_receipt');assert.equal(body.token,receiptToken);
+    return {...record(),receiptURL:link.href,versions:[{revision:1,offer,submittedAt:'2026-11-11T12:00:00Z',notice:simpleNotice.en}]};
+  }});
+  assert.equal(f.$('#offer-root').dataset.stage,'copy');assert.equal(f.$('h1').textContent,'Your private copy.');assert.equal(f.$('.offer-success'),null);assert.equal(f.$('.receipt-link'),null);assert.equal(f.$('#offer-form'),null);assert.match(f.$('.proposal-paper').textContent,/156,000/);assert.match(f.$('.proposal-paper').textContent,/buyer@example.test/);
+  f.$('[data-print]').click();assert.equal(f.window.printed,true);assert.equal(f.calls.length,1);
+  f.window.ArenalI18n.language='es';f.window.dispatchEvent(new f.window.Event('arenal-language-change'));assert.equal(f.$('h1').textContent,'Tu copia privada.');assert.match(f.$('[data-print]').textContent,/Guardar PDF/);
+});
+test('unavailable private receipts show an error instead of an empty or editable offer',async()=>{
+  const e=await buyer({linkToken:receiptToken,handler:async()=>{throw Error('This copy is no longer available.');}});
+  assert.match(e.$('[role=alert]').textContent,/no longer available/);assert.equal(e.$('#offer-form'),null);assert.equal(e.$('[data-print]'),null);
+});
+test('mobile photo sizing cannot transfer a minimum-height aspect ratio into the grid width',()=>{
+  const css=fs.readFileSync(new URL('../site/offer/style.css',import.meta.url),'utf8');
+  const scene=css.match(/\.property-scene\{([^}]+)\}/)[1];
+  assert.match(scene,/width:100%/);assert.match(scene,/max-width:100%/);assert.match(scene,/min-width:0/);
+  assert.match(css,/@media\(max-width:860px\)\{\s*\.offer-spread\{grid-template-columns:minmax\(0,1fr\)\}/);
+  assert.match(css,/\.offer-experience\[data-stage=welcome\] \.property-scene\{aspect-ratio:auto;height:clamp\(240px,64vw,300px\);min-height:0;max-height:none\}/);
 });

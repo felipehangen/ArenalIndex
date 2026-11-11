@@ -33,3 +33,12 @@ test('international WhatsApp numbers normalize once and only the chosen channel 
  assert.ok(validateReply({...d,phone:''}).phone);assert.ok(validateReply({...d,dialCode:''}).dialCode);assert.ok(validateReply({...d,replyMethod:''}).replyMethod);
  const migrated=replyDraft('USD',{contact:'+506 8888 7777'});assert.equal(migrated.country,'506');assert.equal(migrated.phone,'88887777');assert.equal(replyDraft('USD',{contact:'buyer@example.test'}).replyMethod,'email');
 });
+
+test('short form links preserve the return journey with or without tab storage',()=>{
+ for(const blocked of [false,true]){
+  const e=fixture(blocked),short='l.AbcdefghijklmnopqrstuQ';assert.equal(e.window.ArenalOfferSession.tokenKind(short),'listing');
+  assert.equal(e.session.visitListing(short,'lake-house',snapshot()),true);
+  const context=e.session.returnFor('lake-house');assert.equal(context.href,'/offer/#'+short);
+  assert.equal(e.session.returnToOffer(context),true);assert.equal(e.session.load(short).draft.email,'buyer@example.test');assert.equal(e.session.load(short).positions.draft.y,540);
+ }
+});

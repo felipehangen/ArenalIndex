@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {portalFixture,hash} from './portal-fixture.mjs';
+import {offerToken} from '../server/offers/links.mjs';
 import {blankSimpleOffer,simpleNoticeVersion} from '../site/offer/model.mjs';
 const valid=name=>({...blankSimpleOffer('USD'),name,contact:name.toLowerCase()+'@example.test',amount:'150000'});
 async function setup(){
@@ -55,4 +56,21 @@ test('offer welcome exposes only published gallery images and the public WhatsAp
 test('reply preference is saved explicitly and cannot disagree with the submitted contact',async()=>{
   const e=await setup();for(const patch of [{replyMethod:'email',contact:'+50688887777'},{replyMethod:'whatsapp',contact:'buyer@example.test'},{replyMethod:'sms',contact:'+50688887777'}])assert.equal((await e.send('Alice',{offer:{...valid('Alice'),...patch}})).status,422);
   const sent=await e.send('Alice',{offer:{...valid('Alice'),replyMethod:'whatsapp',contact:'+50688887777',email:'UNSELECTED-CONTACT'}});assert.equal(sent.status,200);assert.equal(sent.body.versions[0].offer.replyMethod,'whatsapp');assert.doesNotMatch(JSON.stringify(sent.body),/UNSELECTED/);
+});
+
+test('broker links are short and stable; earlier long links reach the same form and receipt on retry',async()=>{
+  const e=await setup();assert.match(e.token,/^l\.[A-Za-z0-9_-]{22}$/);assert.equal(e.form.url.length,55);
+  const form=[...e.portal].find(([key])=>key.startsWith('offer-forms/'))[1],legacy=offerToken('listing',form.id,e.options.config);
+  const oldOpened=await e.call('offer_form_open',{token:legacy});assert.equal(oldOpened.status,200);assert.deepEqual(oldOpened.body,e.opened);
+  const first=await e.send('Alice',{token:legacy}),retry=await e.send();assert.equal(first.status,200);assert.equal(retry.status,200);assert.equal(first.body.receiptURL,retry.body.receiptURL);
+  const alias=[...e.portal].find(([key])=>key.startsWith('offer-links/'))[1];assert.deepEqual(alias,{kind:'listing',id:form.id});
+  const concurrent=await Promise.all([1,2].map(()=>e.call('offer_form',{propertyId:'property-test-001'},e.a)));assert.ok(concurrent.every(r=>r.body.url===e.form.url));
+});
+test('unknown, altered and wrong-purpose short links cannot reveal any offer data',async()=>{
+  const e=await setup();await e.send();
+  for(const token of ['l.'+'a'.repeat(22),e.token.slice(0,-1)+(e.token.endsWith('A')?'Q':'A'),e.token+'.extra',e.token.replace('l.','r.'),'l.']){
+    const response=await e.call('offer_form_open',{token});assert.equal(response.status,404);assert.doesNotMatch(JSON.stringify(response.body),/Alice|example.test|Lake house/);
+  }
+  assert.equal((await e.call('offer_receipt',{token:e.token})).status,404);
+  e.options.config.reviewSecret='y'.repeat(64);assert.equal((await e.open()).status,404);
 });

@@ -1,7 +1,13 @@
 /* Tab-local offer drafts and return links. No draft data is sent to the server. */
 (() => {
   if(typeof window==='undefined')return;
-  const tokenOK=value=>typeof value==='string'&&/^(?:(?:listing|receipt)\.)?[a-f0-9]{64}\.[a-f0-9]{64}$/.test(value);
+  function tokenKind(value){
+    if(typeof value!=='string')return null;
+    if(/^l\.[A-Za-z0-9_-]{22}$/.test(value))return 'listing';
+    if(/^(?:(?:listing|receipt)\.)?[a-f0-9]{64}\.[a-f0-9]{64}$/.test(value))return value.startsWith('listing.')?'listing':value.startsWith('receipt.')?'receipt':'legacy';
+    return null;
+  }
+  const tokenOK=value=>!!tokenKind(value);
   const idOK=value=>typeof value==='string'&&/^[a-z0-9][a-z0-9-]{0,79}$/.test(value);
   function create({storage,history=window.history}={}){
     if(!storage)try{storage=window.sessionStorage;}catch{}
@@ -42,5 +48,5 @@
     function clear(token,id){remove(key(token));if(id&&returnFor(id)?.token===token)remove(returnKey(id));try{const state={...history.state};delete state.arenalOffer;delete state.arenalOfferBridge;history.replaceState(state,'');}catch{}}
     return {load,save,returnFor,visitListing,returnToOffer,clear};
   }
-  window.ArenalOfferSession={create};
+  window.ArenalOfferSession={create,tokenKind};
 })();

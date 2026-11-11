@@ -30,7 +30,7 @@
 .offer-experience{--offer-ink:#214835;--offer-muted:#687465;overflow-wrap:anywhere}
 .offer-spread{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1fr);gap:clamp(36px,6vw,80px);align-items:start}
 .property-stage{position:sticky;top:30px;min-width:0}
-.property-scene{position:relative;isolation:isolate;overflow:hidden;border-radius:18px;background:#284d3d;aspect-ratio:4/5;max-height:580px;min-height:330px}
+.property-scene{position:relative;isolation:isolate;overflow:hidden;width:100%;max-width:100%;min-width:0;border-radius:18px;background:#284d3d;aspect-ratio:4/5;max-height:580px;min-height:330px}
 .property-scene>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .property-scene::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,#101f19a8 68%,#101f19ed 100%);z-index:1;pointer-events:none}
 .property-contours{position:absolute;inset:0;overflow:hidden;background:linear-gradient(135deg,#4e7056,#183e30)}
@@ -94,4 +94,22 @@
 .offer-gallery{width:min(1000px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:0;border:1px solid #d8e2d0;border-radius:16px;background:#f8f9f4;color:#284835}.offer-gallery::backdrop{background:#14221be0}.offer-gallery header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 22px;background:#fff}.offer-gallery h2{font-size:17px;margin:0;overflow-wrap:anywhere}.offer-gallery [data-gallery-close]{font-size:25px;padding:0;width:44px;flex-shrink:0}.offer-gallery-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;touch-action:pan-x pan-y pinch-zoom}.offer-gallery-track::-webkit-scrollbar{display:none}.offer-gallery-slide{position:relative;flex:0 0 100%;min-width:0;scroll-snap-align:start;height:clamp(220px,64dvh,700px);display:grid;place-items:center;background:#e8eddf}.offer-gallery-slide img{width:100%;height:100%;object-fit:contain}.offer-gallery-slide p{font-size:14px;padding:24px}.offer-gallery footer{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 22px}.offer-gallery-status{margin:0;font-size:12px;text-align:center}.offer-gallery-track:focus-visible{outline:2px solid #285a3d;outline-offset:-3px}body:has(.offer-gallery[open]){overflow:hidden}
 @media(max-width:860px){.offer-experience[data-stage=welcome]{padding-top:28px}.offer-experience[data-stage=welcome] .property-scene{border-radius:70px 70px 14px 14px;min-height:260px}.offer-experience[data-stage=welcome] .property-caption{padding-bottom:76px}.offer-experience[data-stage=welcome] .property-view-photos{bottom:18px;right:20px}.offer-experience[data-stage=draft] .property-scene,.offer-experience[data-stage=review] .property-scene{aspect-ratio:auto;min-height:155px;height:155px}.offer-experience[data-stage=draft] .property-caption,.offer-experience[data-stage=review] .property-caption{padding:18px;padding-top:65px}.offer-experience[data-stage=draft] .property-caption h2,.offer-experience[data-stage=review] .property-caption h2{font-size:23px}.property-view-photos{top:12px;right:12px}.offer-team-note p{font-size:30px}.offer-experience .simple-actions{gap:8px}.offer-gallery{width:calc(100% - 16px)}.offer-gallery header,.offer-gallery footer{padding:14px 16px}}
 @media(max-width:380px){.offer-phone{grid-template-columns:1fr}.offer-team-note p{font-size:28px}.reply-choice>div{gap:8px}.offer-gallery h2{font-size:14px}}
+.offer-private-copy{max-width:680px;margin:0 auto}
+/* Give the mobile photograph a definite size: min-height plus aspect-ratio can
+   otherwise transfer an oversized intrinsic width into the one-column grid. */
+@media(max-width:860px){
+  .offer-spread{grid-template-columns:minmax(0,1fr)}
+  .offer-experience[data-stage=welcome] .property-scene{aspect-ratio:auto;height:clamp(240px,64vw,300px);min-height:0;max-height:none}
+}
+@media(max-width:599px){
+  .offer-experience[data-stage=welcome]{padding-top:20px}
+  .offer-experience[data-stage=welcome] .offer-spread{gap:24px}
+  .offer-experience[data-stage=welcome] .property-caption{padding:20px 20px 78px}
+  .offer-experience[data-stage=welcome] .property-caption h2{font-size:25px;line-height:1.12}
+  .offer-experience[data-stage=welcome] .offer-heading{margin-bottom:20px}
+  .offer-experience[data-stage=welcome] .offer-heading h1{font-size:36px;letter-spacing:-1px;margin-bottom:12px}
+  .offer-experience[data-stage=welcome] .offer-heading .eyebrow{margin-bottom:10px}
+  .offer-experience[data-stage=welcome] .welcome-price{margin-top:20px;padding-top:18px}
+  .offer-experience[data-stage=welcome] .offer-broker{padding:18px 0;margin-top:12px}
+}
 @media print{.offer-team-note,.offer-gallery,.offer-property-back,.offer-assurance,.offer-broker{display:none!important}}

@@ -121,3 +121,14 @@ test('offer discovery is private, paginated, filters foreign indexes and retains
   const id='0'.repeat(64);const writes=await Promise.all([1,2].map(n=>repository.portalUpdate('offers',id,{revision:0},{revision:1,versions:[n]})));assert.equal(writes.filter(Boolean).length,1);
   await assert.rejects(()=>repository.ensureOfferIndex('owner-a','../accounts'));
 });
+
+test('short offer capabilities resolve through durable private storage and reject conflicting aliases',async()=>{
+  const {shortFormURL,resolveTokenID}=await import('../server/offers/links.mjs');
+  const {repository,rows}=setup(),config={reviewSecret:'x'.repeat(64),siteURL:'https://arenalindex.com'},id='a'.repeat(64);
+  const urls=await Promise.all([1,2].map(()=>shortFormURL(id,config,repository)));assert.equal(urls[0],urls[1]);
+  const token=new URL(urls[0]).hash.slice(1),entry=[...rows].find(([key])=>key.startsWith('portal/offer-links/'));
+  assert.ok(entry);assert.deepEqual(JSON.parse(entry[1].text),{kind:'listing',id});assert.equal(await resolveTokenID(token,'listing',config,repository),id);
+  assert.equal(await resolveTokenID(token,'receipt',config,repository),null);
+  rows.set(entry[0],{...entry[1],text:JSON.stringify({kind:'listing',id:'b'.repeat(64)})});
+  assert.equal(await resolveTokenID(token,'listing',config,repository),null);await assert.rejects(()=>shortFormURL(id,config,repository));
+});
