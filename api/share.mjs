@@ -9,7 +9,7 @@ export default async function handler(req,res){
   const catalog=createCatalog({repository,supplemental:supplementalDemos});
   const url=new URL(req.url,shareOrigin());
   // The rewrite passes a validated route, never an arbitrary destination URL.
-  if(url.pathname==='/api/share')url.pathname=(url.searchParams.get('legacy')==='1'?'/p/':'/')+(url.searchParams.get('code')||'')+(url.searchParams.get('image')==='1'?'/image.jpg':url.searchParams.get('offer')==='1'?'/offer':'');
+  if(url.pathname==='/api/share')url.pathname=(url.searchParams.get('legacy')==='1'?'/p/':'/')+(url.searchParams.get('code')||'')+(url.searchParams.get('offer')==='1'?'/offer':'')+(url.searchParams.get('image')==='1'?'/image.jpg':'');
   const response=await createShareHandler({published:async()=>{
     const [real,demo]=await Promise.all([repository.published(),catalog.published()]);return [...real,...demo];
   }})(new Request(url,{method:req.method}));

@@ -45,12 +45,13 @@ export async function fetchCover(value,{fetcher=fetch}={}){
   throw Error('Too many photo redirects');
 }
 
-export async function renderShareImage(bytes,{demo=false}={}){
+export async function renderShareImage(bytes,{demo=false,offer=false,language='es'}={}){
   const background=bytes?await sharp(bytes,{limitInputPixels:40000000,failOn:'warning'}).rotate().resize(1200,630,{fit:'cover',position:'centre'}).flatten({background:'#f0f5ee'}).toBuffer():null;
   const base=background?sharp(background):sharp({create:{width:1200,height:630,channels:3,background:'#e6eee5'}});
   // Raster wordmarks make production independent of server-installed fonts.
-  const brand=await readFile(new URL('./assets/brand.png',import.meta.url));
-  const overlays=[{input:brand,left:445,top:527}];
+  const overlays=offer
+    ?[{input:await readFile(new URL('./assets/offer-'+(language==='en'?'en':'es')+'.png',import.meta.url)),left:0,top:426}]
+    :[{input:await readFile(new URL('./assets/brand.png',import.meta.url)),left:445,top:527}];
   if(demo)overlays.push({input:await readFile(new URL('./assets/demo.png',import.meta.url)),left:475,top:28});
   if(!bytes)overlays.push({input:await readFile(new URL('./assets/no-photo.png',import.meta.url)),left:360,top:230});
   return base.composite(overlays).jpeg({quality:82,mozjpeg:true}).toBuffer();

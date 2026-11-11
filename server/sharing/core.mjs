@@ -4,14 +4,14 @@ import {fetchCover,publicCoverURL,renderShareImage} from './image.mjs';
 
 const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const number=value=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(value);
-const imageVersion=row=>createHash('sha256').update(JSON.stringify([row.images?.[0]||'',row.is_demo===true,'card-v1'])).digest('hex').slice(0,12);
+const imageVersion=(row,offer)=>createHash('sha256').update(JSON.stringify([row.images?.[0]||'',row.is_demo===true,offer?'offer-v1-'+(row.details?.language==='en'?'en':'es'):'card-v1'])).digest('hex').slice(0,12);
 
 export function renderSharePage(row,origin=shareOrigin(),offer=false){
   const listing=shareURL(row.id,origin),url=listing+(offer?'/offer':''),destination=offer?SITE_ORIGIN+'/offer/':propertyURL(row.id);
   const english=row.details?.language==='en',title=offer?(english?'Make an offer: ':'Hacé una oferta: ')+row.name:row.name;
   const price=row.price!==null&&row.price!==undefined&&Number.isFinite(Number(row.price))?number(Number(row.price))+' '+(row.currency||'USD'):'';
   const description=[row.is_demo===true?'DEMO':null,price,row.place,Number(row.area)>0?number(Number(row.area))+' m²':null].filter(Boolean).join(' · ');
-  const image=listing+'/image.jpg?v='+imageVersion(row);
+  const image=url+'/image.jpg?v='+imageVersion(row,offer);
   const script='location.replace('+JSON.stringify(destination)+(offer?'+location.hash':'')+');';
   const scriptHash=createHash('sha256').update(script).digest('base64');
   const html=`<!doctype html><html lang="${row.details?.language==='en'?'en':'es'}"><head>
@@ -37,7 +37,7 @@ export function createShareHandler({published,origin=shareOrigin(),fetchImage=fe
     const error=(status,message)=>new Response(request.method==='HEAD'?null:message,{status,headers:{...headers,'Content-Type':'text/plain; charset=utf-8'}});
     if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405,headers:{...headers,Allow:'GET, HEAD'}});
     const url=new URL(request.url),legacy=url.pathname.startsWith('/p/');
-    const match=url.pathname.match(legacy? /^\/p\/([A-Za-z0-9_-]{10})(\/image\.jpg)?\/?$/ : /^\/([A-Z][0-9][A-Za-z0-9]{4})(\/image\.jpg|\/offer)?\/?$/);
+    const match=url.pathname.match(legacy? /^\/p\/([A-Za-z0-9_-]{10})(\/image\.jpg)?\/?$/ : /^\/([A-Z][0-9][A-Za-z0-9]{4})(\/image\.jpg|\/offer(?:\/image\.jpg)?)?\/?$/);
     if(!match)return error(404,'Propiedad no disponible · Property unavailable');
     try{
       const rows=await published(),matches=rows.filter(row=>(legacy?legacyShareCode:codeFor)(row.id)===match[1]);
@@ -45,12 +45,12 @@ export function createShareHandler({published,origin=shareOrigin(),fetchImage=fe
       if(matches.length>1)return error(409,'Enlace no disponible · Link unavailable');
       if(!matches.length)return error(404,'Propiedad no disponible · Property unavailable');
       const row=matches[0];
-      if(match[2]==='/image.jpg'){
+      if(match[2]?.endsWith('/image.jpg')){
         if(request.method==='HEAD')return new Response(null,{headers:{...headers,'Content-Type':'image/jpeg'}});
         const cover=row.images?.[0];
         const bytes=publicCoverURL(cover)?await fetchImage(cover):null;
         // Failed downloads are retryable errors, not cacheable placeholder photos.
-        const image=await renderImage(bytes,{demo:row.is_demo===true});
+        const image=await renderImage(bytes,{demo:row.is_demo===true,offer:match[2]==='/offer/image.jpg',language:row.details?.language});
         return new Response(image,{headers:{...headers,'Content-Type':'image/jpeg','Content-Length':String(image.length)}});
       }
       const page=renderSharePage(row,origin,match[2]==='/offer');

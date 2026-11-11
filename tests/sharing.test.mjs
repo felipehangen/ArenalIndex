@@ -63,10 +63,20 @@ test('offer previews identify the property and open its buyer form with the orig
   const meta=key=>document.querySelector('[property="'+key+'"]').getAttribute('content');
   assert.equal(meta('og:title'),'Hacé una oferta: '+row.name);
   assert.equal(meta('og:url'),shareURL(row.id,origin)+'/offer');
-  assert.ok(meta('og:image').startsWith(shareURL(row.id,origin)+'/image.jpg?'));
+  assert.ok(meta('og:image').startsWith(shareURL(row.id,origin)+'/offer/image.jpg?'));
   const location={hash:'#l.test',replace(url){this.destination=url;}};
   vm.runInNewContext(document.querySelector('script').textContent,{location});
   assert.equal(location.destination,'https://arenalindex.com/offer/#l.test');
+});
+
+test('offer images differ from listing cards and follow the language of the published listing',async()=>{
+  const card=async(path,language)=>{
+    const handler=createShareHandler({origin,published:async()=>[{...row,images:[],details:{language}}]});
+    const res=await handler(request(path));assert.equal(res.headers.get('content-type'),'image/jpeg');
+    return Buffer.from(await res.arrayBuffer());
+  };
+  const [listing,es,en]=await Promise.all([card('/image.jpg','es'),card('/offer/image.jpg','es'),card('/offer/image.jpg','en')]);
+  assert.notDeepEqual(es,listing);assert.notDeepEqual(en,es);
 });
 
 test('edits refresh previews, while withdrawn, missing and failed catalog reads expose no old listing',async()=>{
