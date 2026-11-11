@@ -1,4 +1,4 @@
-import {esc,money,date,proposalSummary} from '../offer/view.mjs?v=4';
+import {esc,money,date,proposalSummary} from '../offer/view.mjs?v=6';
 export function mountOffers({document,window,api,onUnauthorized=()=>{}}){
   const root=document.querySelector('#offers-panel');let identity=null,listings=[],records=[],selected=null,generation=0,busy=false,query='',filter='received',error='',loaded=false,loading=false;
   const language=()=>window.ArenalI18n?.language==='en'?'en':'es',t=(es,en)=>language()==='en'?en:es,$=s=>root.querySelector(s);

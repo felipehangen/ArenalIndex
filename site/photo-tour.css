@@ -1,0 +1,89 @@
+/* Shared photo tour: equal specificity in the listing and offer form. */
+:is(#arenal-index-dos,body) dialog.pd-tour{box-sizing:border-box;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;border:0;padding:0;border-radius:22px;box-shadow:0 16px 70px #142b2440;color-scheme:light;margin:auto}
+:is(#arenal-index-dos,body) dialog.pd-tour *{box-sizing:border-box}
+:is(#arenal-index-dos,body) dialog.pd-tour [hidden]{display:none!important}
+:is(#arenal-index-dos,body) dialog.pd-tour::backdrop{background:#0006;backdrop-filter:blur(3px)}
+:is(#arenal-index-dos,body) .pd-tour .pd-dialog-head{display:flex;align-items:center;justify-content:center;position:relative;gap:12px;border-bottom:1px solid #dededb}
+:is(#arenal-index-dos,body) .pd-tour .pd-dialog-head h2{font-weight:600;line-height:1.35;text-align:center;margin:0;color:#424242}
+:is(#arenal-index-dos,body) .pd-tour .pd-dialog-head .pd-icon{position:absolute;left:14px;top:14px;color:#242424}
+:is(#arenal-index-dos,body) .pd-tour .pd-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-height:44px;border:0;background:transparent;border-radius:50%;padding:10px;cursor:pointer;flex-shrink:0}
+:is(#arenal-index-dos,body) .pd-tour .pd-icon svg{width:22px;height:22px}
+:is(#arenal-index-dos,body) .pd-tour .pd-icon:hover{background:#f1f4ed}
+:is(#arenal-index-dos,body) .pd-tour button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+:is(#arenal-index-dos,body) .pd-tour button:disabled{cursor:default}
+:is(#arenal-index-dos,body) .pd-tour button svg{width:21px;height:21px;flex-shrink:0}
+body:has(dialog.pd-tour[open]){overflow:hidden}
+:is(#arenal-index-dos,body) dialog.pd-tour{width:min(1080px,calc(100% - 48px));max-width:1080px;height:min(880px,92dvh);max-height:92dvh;overflow:hidden;background:#fff;color:#24362b;--m-paper:#fff;--m-line:#e2e6df;--m-text:#24362b;--m-green:#285a3d}
+:is(#arenal-index-dos,body) dialog.pd-tour[open]{display:flex;flex-direction:column}
+:is(#arenal-index-dos,body) .pd-tour .pd-dialog-head{padding:12px 24px;flex-shrink:0;min-height:68px}
+:is(#arenal-index-dos,body) .pd-tour .pd-dialog-head h2{font-size:19px;letter-spacing:-.4px}
+:is(#arenal-index-dos,body) .pd-tour-overview{display:grid;grid-template-columns:180px minmax(0,1fr);flex:1;min-height:0}
+:is(#arenal-index-dos,body) .pd-tour-nav{padding:24px 18px;border-right:1px solid #e7ebe3;overflow:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:12px}
+:is(#arenal-index-dos,body) button.pd-tour-link{padding:6px;border:1px solid transparent;border-radius:12px;background:transparent;text-align:left;flex-shrink:0;cursor:pointer;transition:background .15s,border-color .15s}
+:is(#arenal-index-dos,body) .pd-tour-link img{width:100%;height:82px;object-fit:cover;border-radius:7px;display:block}
+:is(#arenal-index-dos,body) .pd-tour-link span{display:block;font-size:11px;line-height:1.35;padding:8px 2px 3px;font-weight:500}
+:is(#arenal-index-dos,body) .pd-tour-link[aria-current=true]{border-color:#285a3d;background:#f0f5ea}
+:is(#arenal-index-dos,body) .pd-tour-link:hover{background:#f4f6f0}
+:is(#arenal-index-dos,body) .pd-tour-scroll{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;padding:24px 32px 40px;scrollbar-width:thin;overflow-anchor:none}
+:is(#arenal-index-dos,body) .pd-tour-note{color:#77836d;font-size:11px;margin:0 0 28px}
+:is(#arenal-index-dos,body) .pd-tour-block{margin:0 0 40px;scroll-margin-top:20px}
+:is(#arenal-index-dos,body) .pd-tour-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}
+:is(#arenal-index-dos,body) .pd-tour-heading h3{font-size:19px;font-weight:600;letter-spacing:-.3px;margin:0}
+:is(#arenal-index-dos,body) .pd-tour-heading>span{font-size:10px;letter-spacing:.7px;color:#7a8871;white-space:nowrap}
+:is(#arenal-index-dos,body) button.pd-tour-photo{position:relative;display:block;width:100%;padding:0;border:0;border-radius:12px;overflow:hidden;background:#eef2e8;cursor:zoom-in;min-height:0}
+:is(#arenal-index-dos,body) .pd-tour-photo>img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+:is(#arenal-index-dos,body) .pd-tour-photo>span{position:absolute;bottom:12px;right:12px;display:flex;align-items:center;gap:6px;background:#fffffff0;color:#2d4834;border-radius:6px;padding:7px 9px;font-size:10px;box-shadow:0 2px 8px #12382012}
+:is(#arenal-index-dos,body) .pd-tour-photo>span svg{width:13px;height:13px}
+:is(#arenal-index-dos,body) .pd-tour-end{border-top:1px solid #e6eae0;padding-top:24px;text-align:center;font-size:11px;color:#7c8876;margin:0}
+:is(#arenal-index-dos,body) .pd-photo-view{display:flex;flex-direction:column;flex:1;min-height:0;background:#15251b;color:#fff}
+:is(#arenal-index-dos,body) .pd-photo-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 18px;flex-shrink:0}
+:is(#arenal-index-dos,body) button.pd-tour-return{display:flex;gap:7px;align-items:center;padding:6px;border:0;background:transparent;color:#fff;font-size:12px;cursor:pointer}
+:is(#arenal-index-dos,body) .pd-photo-position{font-size:12px;padding:0 8px;white-space:nowrap}
+:is(#arenal-index-dos,body) .pd-photo-track{display:flex;overflow-x:auto;overflow-y:hidden;min-height:0;flex:1;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;touch-action:pan-x pinch-zoom;background:#0e1a13}
+:is(#arenal-index-dos,body) .pd-photo-track::-webkit-scrollbar{display:none}
+:is(#arenal-index-dos,body) .pd-photo-slide{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;display:flex;align-items:center;justify-content:center}
+:is(#arenal-index-dos,body) .pd-photo-slide img{width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
+:is(#arenal-index-dos,body) .pd-photo-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 18px calc(12px + env(safe-area-inset-bottom,0px));flex-shrink:0}
+:is(#arenal-index-dos,body) .pd-photo-controls .pd-icon{color:#fff;background:#ffffff0c;border:1px solid #ffffff25}
+:is(#arenal-index-dos,body) .pd-photo-controls .pd-icon:disabled{opacity:.25;cursor:default}
+:is(#arenal-index-dos,body) .pd-photo-caption{font-size:12px;color:#e4ebde;text-align:center}
+:is(#arenal-index-dos,body) .pd-tour :focus-visible{outline:3px solid #7c9a4f;outline-offset:2px}
+@media(max-width:700px){
+:is(#arenal-index-dos,body) dialog.pd-tour{width:100%;max-width:100%;height:100dvh;max-height:100dvh;margin:0;border-radius:0}
+:is(#arenal-index-dos,body) .pd-tour .pd-dialog-head{padding:8px 20px;min-height:64px}
+:is(#arenal-index-dos,body) .pd-tour-overview{display:flex;flex-direction:column}
+:is(#arenal-index-dos,body) .pd-tour-nav{flex-direction:row;gap:10px;flex-shrink:0;padding:12px 16px;border-right:0;border-bottom:1px solid #e7ebe3;overflow-x:auto;overscroll-behavior-x:contain}
+:is(#arenal-index-dos,body) button.pd-tour-link{width:calc((100vw - 52px)/3);max-width:150px;padding:5px;border-radius:10px}
+:is(#arenal-index-dos,body) .pd-tour-link img{height:58px}
+:is(#arenal-index-dos,body) .pd-tour-link span{font-size:10px;padding:7px 1px 2px;min-height:35px}
+:is(#arenal-index-dos,body) .pd-tour-scroll{padding:20px 20px 32px}
+:is(#arenal-index-dos,body) .pd-tour-note{margin-bottom:22px;font-size:10px}
+:is(#arenal-index-dos,body) .pd-tour-heading h3{font-size:18px}
+:is(#arenal-index-dos,body) .pd-tour-photo>img{aspect-ratio:4/3}
+:is(#arenal-index-dos,body) .pd-tour-block{margin-bottom:32px}
+}
+@media(prefers-reduced-motion:reduce){
+:is(#arenal-index-dos,body) .pd-tour-link{transition:none}}
+:is(#arenal-index-dos,body) .pd-tour-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+:is(#arenal-index-dos,body) .pd-tour-grid.has-lead>.pd-tour-photo:first-child{grid-column:1/-1}
+:is(#arenal-index-dos,body) .pd-tour-grid .pd-tour-photo>img{aspect-ratio:4/3}
+:is(#arenal-index-dos,body) .pd-tour-grid.has-lead>.pd-tour-photo:first-child>img{aspect-ratio:16/10}
+:is(#arenal-index-dos,body) .pd-tour-link small{display:block;margin-top:4px;font-size:10px;font-weight:400;color:#7b8771}
+@media(max-width:700px){
+:is(#arenal-index-dos,body) .pd-tour-grid{gap:8px}
+:is(#arenal-index-dos,body) .pd-tour-grid .pd-tour-photo{border-radius:8px}
+:is(#arenal-index-dos,body) .pd-tour-grid .pd-tour-photo>span{bottom:7px;right:7px;padding:6px}
+:is(#arenal-index-dos,body) .pd-tour-grid .pd-enlarge-label{display:none}
+:is(#arenal-index-dos,body) .pd-tour-link span{min-height:0}
+}
+:is(#arenal-index-dos,body) .pd-tour-link img{border-radius:14px}
+:is(#arenal-index-dos,body) .pd-tour-grid button.pd-tour-photo{border-radius:0}
+:is(#arenal-index-dos,body) dialog.pd-tour{width:min(1080px,calc(100% - 56px));max-width:calc(100% - 56px);height:calc(100dvh - 80px);max-height:calc(100dvh - 80px)}
+:is(#arenal-index-dos,body) .pd-tour .pd-dialog-head{min-height:72px;padding:14px 60px}
+:is(#arenal-index-dos,body) .pd-tour .pd-dialog-head h2{font-size:19px;letter-spacing:0}
+:is(#arenal-index-dos,body) .pd-tour-link span{font-size:12px}
+:is(#arenal-index-dos,body) .pd-tour-link img{border-radius:10px}
+@media(max-width:700px){
+:is(#arenal-index-dos,body) dialog.pd-tour{width:calc(100% - 32px);max-width:calc(100% - 32px);height:calc(100dvh - 48px);max-height:calc(100dvh - 48px);margin:auto;border-radius:20px}}
+@media print{
+:is(#arenal-index-dos,body) dialog.pd-tour{display:none!important}}

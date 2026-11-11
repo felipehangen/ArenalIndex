@@ -5,7 +5,15 @@ const hash=v=>createHash('sha256').update(v).digest('hex');
 const fail=(status,es,en)=>{throw Object.assign(Error(es),{status,offerEnglish:en});};
 const signed=(id,config)=>id+'.'+createHmac('sha256',config.reviewSecret).update('purchase-proposal:'+id).digest('hex');
 const link=(row,config)=>row.kind==='submission'?offerURL('receipt',row.id,config):new URL('/offer/',config.siteURL).href+'#'+signed(row.id,config);
-const snapshot=listing=>({id:listing.id,name:listing.name,place:listing.place,price:listing.price,currency:listing.currency||'USD',area:listing.area,image:listing.images?.[0]||'',images:Array.isArray(listing.images)?listing.images.filter(src=>typeof src==='string').slice(0,200):[],contact:{name:listing.details?.contact?.name||'',whatsapp:String(listing.details?.contact?.whatsapp||'').replace(/\D/g,'')},isDemo:listing.is_demo===true,titles:{es:listing.details?.translations?.es?.title||listing.name,en:listing.details?.translations?.en?.title||listing.name}});
+// Only public tour text and photos already included in the listing may cross into an offer.
+const photoGroups=listing=>{
+  const images=new Set(Array.isArray(listing.images)?listing.images.slice(0,200):[]);
+  return (Array.isArray(listing.details?.photoGroups)?listing.details.photoGroups:[]).slice(0,50).map(group=>({
+    title:typeof group.title==='string'?group.title:'',
+    photos:(Array.isArray(group.photos)?group.photos:[]).filter(photo=>photo&&images.has(photo.src)).slice(0,200).map(photo=>({src:photo.src,caption:typeof photo.caption==='string'?photo.caption:''}))
+  })).filter(group=>group.photos.length);
+};
+const snapshot=listing=>({id:listing.id,name:listing.name,place:listing.place,price:listing.price,currency:listing.currency||'USD',area:listing.area,image:listing.images?.[0]||'',images:Array.isArray(listing.images)?listing.images.filter(src=>typeof src==='string').slice(0,200):[],photoGroups:photoGroups(listing),photoBuildingNames:(listing.details?.buildings||[]).map(b=>b.name).filter(name=>typeof name==='string').slice(0,50),contact:{name:listing.details?.contact?.name||'',whatsapp:String(listing.details?.contact?.whatsapp||'').replace(/\D/g,'')},isDemo:listing.is_demo===true,titles:{es:listing.details?.translations?.es?.title||listing.name,en:listing.details?.translations?.en?.title||listing.name}});
 export async function property({repository,catalog,account,id}){
   if(typeof id!=='string'||!/^[a-zA-Z0-9-]{5,80}$/.test(id))fail(400,'Propiedad inválida.','Invalid property.');
   const row=await repository.get(id);

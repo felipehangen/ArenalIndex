@@ -37,6 +37,7 @@ async function detailFixture(row,offerSession=null){
   window.arenalDemo={items:[item],state:{saved:[],filters:{currency:'USD'}}};
   const context={window,document,location:{hash:'#propiedad/'+item.id},ArenalMotion:{cancel(){},leave(node,done){done();}},IntersectionObserver:class{observe(){}disconnect(){}},ResizeObserver:class{observe(){}disconnect(){}},requestAnimationFrame:()=>1,cancelAnimationFrame(){},matchMedia:()=>({matches:true})};
   vm.runInNewContext(read('ui-format.js'),context);
+  vm.runInNewContext(read('photo-tour.js'),context);
   await vm.runInNewContext(read('property-detail.js'),context);
   const openGallery=()=>{document.querySelector('[data-action="photos"]').click();return document.querySelector('.pd-tour');};
   return {...fixture,item,listeners,openGallery};

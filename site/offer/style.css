@@ -26,90 +26,270 @@
 .simple-message{padding:22px 0 4px}.simple-message h3{font-size:12px;color:#65705f;margin:0 0 8px;font-weight:400}.simple-message p{white-space:pre-wrap;font-size:14px;line-height:1.7;margin:0}
 .simple-paper .proposal-footnote{border-top:1px solid #e7ebe2;margin-top:24px;padding-top:14px}.proposal-footnote p:last-child{margin-bottom:0}
 
-/* The buyer's spread: one real property, one personal proposal. */
-.offer-experience{--offer-ink:#214835;--offer-muted:#687465;overflow-wrap:anywhere}
-.offer-spread{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1fr);gap:clamp(36px,6vw,80px);align-items:start}
-.property-stage{position:sticky;top:30px;min-width:0}
-.property-scene{position:relative;isolation:isolate;overflow:hidden;width:100%;max-width:100%;min-width:0;border-radius:18px;background:#284d3d;aspect-ratio:4/5;max-height:580px;min-height:330px}
+/* Buyer journey: one short task, with a separate, always-visible primary action. */
+.offer-experience{--offer-ink:#284c36;--offer-muted:#68725f;overflow-wrap:anywhere}
+body:has(.offer-experience:is([data-stage=welcome],[data-stage=draft],[data-stage=contact],[data-stage=review])){height:var(--offer-viewport-height,100dvh);display:flex;flex-direction:column;overflow:hidden}
+body:has(.offer-experience) .admin-header{min-height:72px;padding-top:12px;padding-bottom:12px;flex-shrink:0}
+.offer-experience:is([data-stage=welcome],[data-stage=draft],[data-stage=contact],[data-stage=review]){flex:1;min-height:0;width:100%;padding:28px;display:flex;flex-direction:column}
+.offer-spread{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1fr);gap:clamp(32px,5vw,64px);align-items:start;min-height:0;width:100%}
+.offer-experience:is([data-stage=welcome],[data-stage=draft],[data-stage=contact],[data-stage=review]) .offer-spread{flex:1;height:100%;align-items:stretch}
+.property-stage{min-width:0;min-height:0;display:flex;flex-direction:column}
+.property-scene{position:relative;isolation:isolate;overflow:hidden;width:100%;max-width:100%;min-width:0;min-height:0;border-radius:16px;background:#284d3d;aspect-ratio:4/5;max-height:580px;flex:1}
 .property-scene>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .property-scene::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,#101f19a8 68%,#101f19ed 100%);z-index:1;pointer-events:none}
 .property-contours{position:absolute;inset:0;overflow:hidden;background:linear-gradient(135deg,#4e7056,#183e30)}
 .property-contours span{position:absolute;width:120%;height:100%;border:1px solid #bfd0b34d;border-radius:48% 52% 65% 35%;transform:rotate(-28deg);left:25%;top:15%}
 .property-contours span:nth-child(2){width:100%;height:80%;left:34%;top:25%}.property-contours span:nth-child(3){width:80%;height:60%;left:44%;top:35%}
-.property-caption{position:absolute;z-index:2;bottom:0;left:0;right:0;padding:30px;color:#fff}
-.property-caption p{font-size:12px;letter-spacing:.3px;margin:0 0 12px;color:#f0f3ed}.property-caption h2{font:400 clamp(26px,3vw,37px)/1.14 Georgia,"Times New Roman",serif;letter-spacing:-.6px;margin:0;text-wrap:balance}
-.property-price{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px 16px;padding:18px 2px;border-bottom:1px solid #dce3d7;font-size:12px;color:var(--offer-muted)}.property-price strong{font-size:14px;font-weight:550;color:var(--offer-ink)}
-.property-stage .demo-notice{margin:14px 0 0;font-size:11px;padding:10px 12px}
-.offer-desk{min-width:0;scroll-margin-top:28px}.offer-heading{margin:4px 0 32px}.offer-heading .eyebrow{font-size:10px;letter-spacing:1.8px;color:var(--offer-ink);margin-bottom:18px}
-.offer-heading h1{font:400 clamp(38px,4.4vw,54px)/1.04 Georgia,"Times New Roman",serif;letter-spacing:-1.8px;color:var(--offer-ink);margin:0 0 18px;text-wrap:balance;max-width:500px}
-.offer-heading h1:focus{outline:none}.offer-heading>p:last-child{font-size:14px;line-height:1.7;color:var(--offer-muted);margin:0;max-width:420px}
-.simple-field{display:grid;gap:8px;min-width:0}.simple-field label{font-size:12px;font-weight:550;color:#42513f}
-.simple-field input,.simple-field select,.simple-field textarea{box-sizing:border-box;min-width:0;width:100%;min-height:48px;padding:12px 0;border:0;border-bottom:1px solid #c0ccbb;border-radius:0;font:inherit;font-size:16px;background:transparent;color:#253e2b;transition:border-color .16s,background .16s}
-.simple-field input::placeholder,.simple-field textarea::placeholder{color:#6c7866;opacity:1;font-size:14px}
-.simple-field input:focus,.simple-field textarea:focus{border-bottom-color:#285a3d;background:#f0f4eb;outline:2px solid #285a3d;outline-offset:4px}
-.simple-field textarea{resize:vertical;line-height:1.6;min-height:110px}
+.property-caption{position:absolute;z-index:2;bottom:0;left:0;right:0;padding:28px;color:#fff}
+.property-caption p{font-size:12px;letter-spacing:.3px;margin:0 0 10px;color:#f0f3ed}
+.property-caption h2{font:400 clamp(25px,2.7vw,36px)/1.14 Georgia,"Times New Roman",serif;letter-spacing:-.6px;margin:0;text-wrap:balance}
+.property-price{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px 16px;padding:14px 2px;border-bottom:1px solid #dce3d7;font-size:12px;color:var(--offer-muted);flex-shrink:0}
+.property-price strong{font-size:14px;font-weight:550;color:var(--offer-ink)}
+.property-stage .demo-notice{margin:8px 0 0;font-size:10px;padding:8px 10px;flex-shrink:0}
+.property-view-photos{position:absolute;z-index:3;top:18px;right:18px;min-height:44px;padding:10px 16px;border:1px solid #ffffff70;border-radius:24px;background:#fffef5eb;color:#284835;font:inherit;font-size:12px;box-shadow:0 2px 12px #162a1915}
+.property-full-link{display:inline-flex;align-items:center;min-height:36px;font-size:12px;color:#385540;text-underline-offset:4px;flex-shrink:0;width:fit-content}
+.offer-questions{display:flex;flex-shrink:0}
+.offer-desk{min-width:0;min-height:0;display:flex;flex-direction:column}
+.offer-heading{margin:4px 0 24px;flex-shrink:0}
+.offer-heading .eyebrow{font-size:10px;letter-spacing:1.6px;margin-bottom:14px}
+.offer-heading h1{font:400 clamp(32px,3.5vw,46px)/1.08 Georgia,"Times New Roman",serif;letter-spacing:-1.2px;color:var(--offer-ink);margin:0;text-wrap:balance}
+.offer-heading h1:focus{outline:none}
+.offer-heading>p:last-child:not(.eyebrow){font-size:14px;line-height:1.6;color:var(--offer-muted);margin:14px 0 0}
+.offer-step-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-shrink:0}
+.offer-step-nav .text-button{padding:0;text-decoration:none}
+.offer-progress{font-size:12px;color:var(--offer-muted);margin:0}
+#offer-form{display:flex;flex-direction:column;flex:1;min-height:0}
+.offer-step-fields{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:4px 6px 16px 4px;margin:0 -6px 0 -4px}
+.simple-field{display:grid;gap:8px;min-width:0}
+.simple-field label{font-size:13px;font-weight:550;color:#42513f}
+.simple-field input,.simple-field select,.simple-field textarea{box-sizing:border-box;min-width:0;width:100%;min-height:50px;padding:12px 14px;border:1px solid #a6b79d;border-radius:10px;font:inherit;font-size:16px;background:#fff;color:#253e2b;transition:border-color .16s,box-shadow .16s}
+.simple-field input::placeholder,.simple-field textarea::placeholder{color:#778270;opacity:1;font-size:14px}
+.simple-field :is(input,select,textarea):focus{border-color:#285a3d;outline:2px solid #285a3d;outline-offset:2px;box-shadow:0 0 0 4px #285a3d0c}
+.simple-field textarea{resize:none;line-height:1.6;min-height:106px}
 .simple-field [aria-invalid=true]{border-color:#a14b36}.field-error{font-size:12px;color:#8a3c2c}
-.offer-amount-block{border-top:1px solid #d5dfcf;border-bottom:1px solid #d5dfcf;padding:24px 0 26px;margin-bottom:28px}
-.simple-amount{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:18px;align-items:start}
-.simple-amount input{font-size:clamp(36px,4.3vw,54px);font-weight:450;letter-spacing:-1.8px;line-height:1.1;min-height:74px;padding:8px 0;border-bottom-color:transparent;font-variant-numeric:tabular-nums;appearance:textfield;-moz-appearance:textfield}
+.offer-amount-block{margin:0 0 24px}
+.simple-amount{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:14px;align-items:start}
+.simple-amount input{font-size:clamp(30px,3.5vw,44px);letter-spacing:-1px;line-height:1.1;min-height:72px;font-variant-numeric:tabular-nums;appearance:textfield;-moz-appearance:textfield}
 .simple-amount input::-webkit-inner-spin-button,.simple-amount input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-.simple-amount input::placeholder{font-size:inherit;color:#8b9983}.simple-amount input[data-long=true]{font-size:25px;letter-spacing:-.5px}
-.simple-amount select{padding:12px 10px;border:1px solid #d5dfcf;border-radius:9px;background:#fff;margin-top:13px;font-size:14px;min-height:46px}
-.simple-contact{display:grid;gap:22px;margin-bottom:22px}
-.offer-message{border-bottom:1px solid #d5dfcf;padding:0 0 12px}.offer-message summary{display:flex;align-items:center;gap:9px;list-style:none;cursor:pointer;font-size:13px;color:#385640;min-height:44px;width:fit-content}.offer-message summary::-webkit-details-marker{display:none}.message-plus{font-size:21px;font-weight:300}.offer-message[open] .message-plus{transform:rotate(45deg)}.offer-message .simple-field{margin:12px 0 10px}.optional{font-size:11px;font-weight:400;color:#687465;margin-left:3px}
-.offer-delivery{display:flex;align-items:baseline;gap:9px;font-size:12px;color:var(--offer-muted);margin:22px 0}.offer-delivery p{margin:0}.offer-delivery strong{color:#3f573e;font-weight:550}.delivery-dot{width:6px;height:6px;border-radius:50%;background:#63825d;flex:0 0 6px}
-.simple-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:22px}.simple-help{font-size:12px;line-height:1.5;color:var(--offer-muted)}
-.offer-experience .primary{min-height:54px;padding:15px 22px;border-radius:10px;font-size:14px;background:var(--offer-ink);gap:22px;transition:background .16s,transform .16s}.offer-experience .primary:hover{background:#173b29}.offer-experience .primary:active{transform:translateY(1px)}.offer-experience .primary>span{font-size:21px;font-weight:400;line-height:1}
-.offer-send-status{font-size:13px;color:var(--offer-ink);margin:16px 0 0}.offer-send-status:empty{display:none}
-.offer-scope{margin:18px 0 0;font-size:11px;line-height:1.7;color:var(--offer-muted)}
-.offer-desk .simple-paper{border-radius:2px;border-top:3px solid #31563f;padding:28px;box-shadow:0 8px 24px #24432a06;animation:offer-arrive .32s ease-out both}.offer-desk .simple-paper .simple-offer-value{font-family:Georgia,"Times New Roman",serif;font-size:clamp(30px,3.5vw,44px);font-weight:400;letter-spacing:-1px}.offer-desk .simple-paper .muted{font-size:12px}
-.offer-success-mark{display:grid;place-items:center;width:60px;height:60px;border:1px solid #bbceb0;border-radius:50%;background:#eaf2e4;color:#2b583b;margin:0 0 24px}.offer-success-mark svg{width:32px;height:32px}.offer-success-mark path{stroke-dasharray:30;stroke-dashoffset:0;animation:offer-check .55s ease-out both}
-.offer-heading.offer-success .offer-retry-note{font-size:12px;background:#f0f4eb;padding:12px;margin-top:14px}.receipt-link{font-size:12px;min-height:44px;display:inline-flex;align-items:center}.receipt-note{font-size:11px;color:var(--offer-muted);line-height:1.7;margin:0}
-@keyframes offer-arrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes offer-check{from{stroke-dashoffset:30}to{stroke-dashoffset:0}}
-@media(max-width:860px){.offer-main{max-width:600px;padding:28px 24px 60px}.offer-spread{grid-template-columns:1fr;gap:32px}.property-stage{position:static}.property-scene{aspect-ratio:16/8;min-height:220px;max-height:280px;border-radius:14px}.property-caption{padding:24px}.property-caption h2{font-size:29px}.property-caption p{margin-bottom:8px;font-size:11px}.property-price{padding:14px 2px}.offer-heading{margin:0 0 28px}.offer-heading h1{font-size:44px;max-width:420px}.offer-heading .eyebrow{margin-bottom:14px}.simple-amount input{font-size:48px}.offer-desk .simple-paper .simple-offer-value{font-size:38px}}
-@media(max-width:420px){.offer-main{padding:20px 20px 48px}.property-scene{min-height:210px;aspect-ratio:16/9}.property-caption{padding:20px}.property-caption h2{font-size:26px}.offer-heading h1{font-size:40px}.offer-heading>p:last-child{font-size:13px}.simple-amount{gap:12px;grid-template-columns:minmax(0,1fr) 78px}.simple-amount input{font-size:42px}.simple-amount input[data-long=true]{font-size:22px}.simple-actions{gap:10px}.offer-experience .primary{padding:14px 16px;font-size:13px;gap:14px}.simple-help{font-size:11px}.offer-desk .simple-paper{padding:22px}.proposal-section dl>div{grid-template-columns:1fr;gap:3px}.offer-desk .simple-paper .simple-offer-value{font-size:32px}}
-@media(prefers-reduced-motion:reduce){.offer-experience *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
-@media print{
-  body{background:#fff;font-size:10pt}.admin-header,.admin-footer,.workspace-tabs,.offer-heading,.property-stage,.simple-actions,.offer-toolbar,.offer-delivery,.offer-scope,.offer-history,.receipt-note,.offer-error,.offer-send-status,.offer-inbox-header,.offer-inbox-list,.offer-detail-back{display:none!important}
-  .offer-main,.offer-spread,.offer-desk,#inbox,.admin-workspace{display:block;max-width:none;padding:0;margin:0;border:0}.proposal-paper,.offer-desk .simple-paper{border:0;padding:0;box-shadow:none;animation:none}
-  .proposal-paper h2{font-size:20pt}.proposal-section{padding:12px 0}.proposal-section dd,.proposal-section dt{font-size:10pt}.proposal-section dl>div{grid-template-columns:40% 1fr}.proposal-letterhead{padding-bottom:10px}.proposal-footnote{font-size:8pt}.simple-offer-value,.offer-desk .simple-paper .simple-offer-value{font-size:24pt}.simple-message{break-inside:avoid}
-  #listings-panel,#resources-panel{display:none!important}.offer-detail .proposal-paper{display:block}.proposal-section-heading button{display:none}a{color:inherit}@page{size:A4;margin:16mm}
-}
-/* The invitation, writing desk and personal confirmation share one quiet palette. */
-.offer-experience{--offer-ink:#284c36;--offer-muted:#68725f}
-.offer-experience[data-stage=welcome]{padding-top:56px}
-.offer-experience[data-stage=welcome] .property-scene{border-radius:160px 160px 16px 16px}
-.property-view-photos{position:absolute;z-index:3;top:22px;right:22px;min-height:44px;padding:11px 17px;border:1px solid #ffffff70;border-radius:24px;background:#fffef5eb;color:#284835;font:inherit;font-size:12px;box-shadow:0 2px 12px #162a1915}
-.offer-experience[data-stage=welcome] .property-view-photos{top:auto;bottom:24px;right:24px}
-.offer-experience[data-stage=welcome] .property-caption{padding-bottom:88px}
-.property-full-link{display:inline-flex;align-items:center;min-height:44px;margin:5px 0;font-size:12px;color:#385540;text-underline-offset:4px}
-.welcome-price{border-top:1px solid #d9e1d2;padding:24px 0 4px;margin-top:28px}.welcome-price span{display:block;font-size:12px;color:#68725f}.welcome-price strong{display:block;font-size:26px;font-weight:450;letter-spacing:-.6px;margin-top:8px}
-.offer-broker{display:flex;align-items:center;gap:14px;padding:24px 0;margin:18px 0 12px;border-top:1px solid #d9e1d2}.broker-initial{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:#e9eedf;color:#385a40;border:1px solid #d5dfcb;flex-shrink:0;font:400 23px Georgia,serif}.offer-broker p{font-size:12px;line-height:1.7;margin:0}.offer-broker strong{font-weight:600}.offer-broker a{display:inline-flex;align-items:center;min-height:36px;font-size:12px;text-underline-offset:4px}
-.offer-experience .offer-prepare{width:100%;justify-content:space-between}.offer-assurance{text-align:center;font-size:11px;line-height:1.7;color:#68725f;max-width:400px;margin:14px auto 0}
-.offer-property-back{margin:0 0 16px;padding:0}.offer-experience .simple-contact{margin:24px 0}.offer-experience .simple-actions{flex-wrap:wrap}.offer-experience .simple-actions .primary{width:100%;justify-content:space-between;text-align:left}.offer-experience .simple-actions .primary>span{flex-shrink:0}
-.reply-choice{border:0;margin:0;padding:0;min-width:0}.reply-choice legend{font-size:12px;font-weight:550;margin-bottom:12px;line-height:1.6;color:#42513f}.reply-choice>div{display:grid;grid-template-columns:1fr 1fr;gap:12px}.reply-choice label{display:flex;align-items:center;justify-content:center;gap:9px;min-height:48px;border:1px solid #d5dfcf;border-radius:9px;background:#fff;cursor:pointer;font-size:13px}.reply-choice input{width:16px;height:16px;margin:0;accent-color:#285a3d;flex-shrink:0}.reply-choice label:has(input:checked){border-color:#587750;background:#eaf0e2}.reply-choice label:has(input:focus-visible){outline:2px solid #285a3d;outline-offset:3px}.reply-choice .field-error{display:block;margin-top:10px}
-.offer-phone{display:grid;grid-template-columns:minmax(120px,.85fr) minmax(0,1.2fr);gap:14px}.offer-phone select{font-size:14px;padding-right:14px}.proposal-reply-method{display:block;font-size:11px;color:#68725f;margin-top:5px}
-.offer-team-note{border-top:1px solid #d9e1d2;border-bottom:1px solid #d9e1d2;padding:28px 0;margin:24px 0 30px}.offer-team-note p{font:italic 400 34px/1.15 Georgia,"Times New Roman",serif;letter-spacing:-.5px;transform:rotate(-2deg);margin:0 0 18px;color:#426642}.offer-team-note small{font-size:11px;color:#68725f}
-.offer-gallery{width:min(1000px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:0;border:1px solid #d8e2d0;border-radius:16px;background:#f8f9f4;color:#284835}.offer-gallery::backdrop{background:#14221be0}.offer-gallery header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 22px;background:#fff}.offer-gallery h2{font-size:17px;margin:0;overflow-wrap:anywhere}.offer-gallery [data-gallery-close]{font-size:25px;padding:0;width:44px;flex-shrink:0}.offer-gallery-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;touch-action:pan-x pan-y pinch-zoom}.offer-gallery-track::-webkit-scrollbar{display:none}.offer-gallery-slide{position:relative;flex:0 0 100%;min-width:0;scroll-snap-align:start;height:clamp(220px,64dvh,700px);display:grid;place-items:center;background:#e8eddf}.offer-gallery-slide img{width:100%;height:100%;object-fit:contain}.offer-gallery-slide p{font-size:14px;padding:24px}.offer-gallery footer{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 22px}.offer-gallery-status{margin:0;font-size:12px;text-align:center}.offer-gallery-track:focus-visible{outline:2px solid #285a3d;outline-offset:-3px}body:has(.offer-gallery[open]){overflow:hidden}
-@media(max-width:860px){.offer-experience[data-stage=welcome]{padding-top:28px}.offer-experience[data-stage=welcome] .property-scene{border-radius:70px 70px 14px 14px;min-height:260px}.offer-experience[data-stage=welcome] .property-caption{padding-bottom:76px}.offer-experience[data-stage=welcome] .property-view-photos{bottom:18px;right:20px}.offer-experience[data-stage=draft] .property-scene,.offer-experience[data-stage=review] .property-scene{aspect-ratio:auto;min-height:155px;height:155px}.offer-experience[data-stage=draft] .property-caption,.offer-experience[data-stage=review] .property-caption{padding:18px;padding-top:65px}.offer-experience[data-stage=draft] .property-caption h2,.offer-experience[data-stage=review] .property-caption h2{font-size:23px}.property-view-photos{top:12px;right:12px}.offer-team-note p{font-size:30px}.offer-experience .simple-actions{gap:8px}.offer-gallery{width:calc(100% - 16px)}.offer-gallery header,.offer-gallery footer{padding:14px 16px}}
-@media(max-width:380px){.offer-phone{grid-template-columns:1fr}.offer-team-note p{font-size:28px}.reply-choice>div{gap:8px}.offer-gallery h2{font-size:14px}}
+.simple-amount input::placeholder{font-size:inherit;color:#8b9983}.simple-amount input[data-long=true]{font-size:24px;letter-spacing:-.5px}
+.simple-amount select{min-height:72px;font-size:15px}
+.optional{font-size:11px;font-weight:400;color:var(--offer-muted);margin-left:5px}
+.simple-contact{display:grid;gap:22px}
+.reply-choice{border:0;margin:0;padding:0;min-width:0}
+.reply-choice legend{font-size:13px;font-weight:550;margin-bottom:10px;line-height:1.5;color:#42513f}
+.reply-choice>div{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.reply-choice label{display:flex;align-items:center;justify-content:center;gap:9px;min-height:50px;border:1px solid #a6b79d;border-radius:10px;background:#fff;cursor:pointer;font-size:14px}
+.reply-choice input{width:16px;height:16px;margin:0;accent-color:#285a3d;flex-shrink:0}
+.reply-choice label:has(input:checked){border-color:#587750;background:#eaf0e2}
+.reply-choice label:has(input:focus-visible){outline:2px solid #285a3d;outline-offset:3px}
+.reply-choice .field-error{display:block;margin-top:8px}
+.offer-phone{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:12px}
+.offer-phone select{font-size:14px;padding-right:10px}
+.proposal-reply-method{display:block;font-size:11px;color:var(--offer-muted);margin-top:3px}
+.offer-action-zone{flex-shrink:0;padding:16px 0 0;margin-top:24px;border-top:1px solid #d9e1d2;display:grid;gap:12px;background:#f8f9f6}
+.offer-experience .primary{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:62px;padding:17px 22px;border:0;border-radius:12px;text-align:left;font-size:16px;font-weight:550;background:var(--offer-ink);color:#fff;gap:20px;cursor:pointer;transition:background .16s,transform .16s}
+.offer-experience .primary:hover{background:#173b29}.offer-experience .primary:active{transform:translateY(1px)}
+.offer-experience .primary>span{font-size:24px;font-weight:400;line-height:1;flex-shrink:0}
+.offer-assurance{font-size:11px;line-height:1.5;color:var(--offer-muted);margin:0;text-align:center}
+.offer-action-zone .offer-error,.offer-send-status{margin:0;font-size:13px}.offer-send-status:empty{display:none}
+.offer-experience[data-stage=welcome] .property-scene{border-radius:100px 100px 16px 16px}
+.offer-experience[data-stage=welcome] .property-caption{padding-bottom:28px}
+.offer-experience[data-stage=welcome] .offer-heading{margin-top:clamp(0px,4dvh,32px)}
+.offer-welcome-details{flex:1;min-height:0;overflow:auto;scrollbar-width:thin}
+.welcome-price{border-top:1px solid #d9e1d2;padding-top:20px;margin-top:6px}
+.welcome-price span{display:block;font-size:12px;color:var(--offer-muted)}
+.welcome-price strong{display:block;font-size:26px;font-weight:450;letter-spacing:-.6px;margin-top:6px}
+.offer-broker{font-size:13px;line-height:1.7;margin:20px 0 0;color:var(--offer-muted)}
+.offer-broker strong{color:var(--offer-ink)}
+.offer-experience[data-stage=welcome] .offer-action-zone{margin-top:auto}
+.offer-experience[data-stage=review] .simple-offer-details>div:last-child{display:none}
+.offer-desk .simple-paper{border-top:3px solid #31563f;padding:22px;box-shadow:0 8px 24px #24432a06}
+.offer-desk .simple-paper .simple-offer-value{font-family:Georgia,"Times New Roman",serif;font-size:36px;font-weight:400;letter-spacing:-1px;margin:20px 0}
+.offer-desk .simple-paper .muted{font-size:12px}
+.offer-experience[data-stage=review] .simple-paper{padding:18px 20px}
+.offer-experience[data-stage=review] .simple-paper :is(h2,.muted,.eyebrow){display:none}
+.offer-experience[data-stage=review] .simple-offer-value{margin:0 0 16px}
+.offer-experience[data-stage=review] .simple-offer-details{gap:10px}
+.offer-experience[data-stage=review] .simple-message{padding-top:14px}
+.offer-experience[data-stage=review] .simple-paper .proposal-footnote{margin-top:16px;padding-top:10px;font-size:11px;line-height:1.6}
+.offer-experience[data-stage=review] .proposal-footnote p{margin:0}
+.offer-success-mark{display:grid;place-items:center;width:60px;height:60px;border:1px solid #bbceb0;border-radius:50%;background:#eaf2e4;color:#2b583b;margin:0 0 24px}
+.offer-success-mark svg{width:32px;height:32px}
+.offer-heading.offer-success .offer-retry-note{font-size:12px;background:#f0f4eb;padding:12px;margin-top:14px}
+.offer-team-note{border-top:1px solid #d9e1d2;border-bottom:1px solid #d9e1d2;padding:24px 0;margin:24px 0}
+.offer-team-note p{font:italic 400 32px/1.15 Georgia,"Times New Roman",serif;letter-spacing:-.5px;margin:0 0 14px;color:#426642}
+.offer-team-note small{font-size:11px;color:var(--offer-muted)}
+.receipt-link{font-size:12px;min-height:44px;display:inline-flex;align-items:center}
+.receipt-note{font-size:11px;color:var(--offer-muted);line-height:1.7;margin:0}
 .offer-private-copy{max-width:680px;margin:0 auto}
-/* Give the mobile photograph a definite size: min-height plus aspect-ratio can
-   otherwise transfer an oversized intrinsic width into the one-column grid. */
 @media(max-width:860px){
-  .offer-spread{grid-template-columns:minmax(0,1fr)}
-  .offer-experience[data-stage=welcome] .property-scene{aspect-ratio:auto;height:clamp(240px,64vw,300px);min-height:0;max-height:none}
+  body:has(.offer-experience) .admin-header{min-height:64px;padding:10px 20px;gap:14px}
+  .offer-experience:is([data-stage=welcome],[data-stage=draft],[data-stage=contact],[data-stage=review]){padding:16px 20px max(14px,env(safe-area-inset-bottom,0px));max-width:600px}
+  .offer-spread{grid-template-columns:minmax(0,1fr);gap:18px}
+  .offer-experience:is([data-stage=welcome],[data-stage=draft],[data-stage=contact],[data-stage=review]) .offer-spread{grid-template-rows:auto minmax(0,1fr)}
+  .property-scene{aspect-ratio:auto;flex:none;height:180px}
+  .property-caption{padding:18px}.property-caption h2{font-size:24px}.property-caption p{font-size:11px;margin-bottom:6px}
+  .property-price{padding:8px 0}
+  .property-stage .demo-notice{padding:5px 8px;font-size:10px;margin-top:6px}
+  .offer-experience[data-stage=welcome] .property-scene{height:clamp(110px,23dvh,190px);min-height:0;max-height:none;border-radius:44px 44px 12px 12px}
+  .offer-experience[data-stage=welcome] .property-caption{padding:18px}
+  .offer-experience[data-stage=welcome] .property-caption h2{font-size:22px}
+  .offer-experience[data-stage=welcome] .property-view-photos{top:12px;bottom:auto;right:12px;font-size:11px;padding:10px 12px}
+  .offer-experience[data-stage=welcome] .property-stage{position:relative;padding-bottom:36px}
+  .offer-experience[data-stage=welcome] .property-full-link{position:absolute;bottom:0;left:0;font-size:11px}
+  .offer-experience[data-stage=welcome] .offer-questions .property-full-link{left:auto;right:0}
+  .offer-experience[data-stage=welcome] .offer-heading{margin:0 0 12px}
+  .offer-experience[data-stage=welcome] .eyebrow{display:none}
+  .offer-experience[data-stage=welcome] .welcome-price{padding-top:12px;margin-top:0}
+  .welcome-price strong{font-size:22px;margin-top:2px}.offer-broker{margin-top:10px;font-size:12px}
+  .offer-experience[data-stage=welcome] .offer-heading>p:last-child{font-size:12px;margin-top:8px}
+  .offer-experience:is([data-stage=draft],[data-stage=contact],[data-stage=review]) .property-scene{height:auto;background:none;overflow:visible;flex:none}
+  .offer-experience:is([data-stage=draft],[data-stage=contact],[data-stage=review]) :is(.property-scene>img,.property-contours){display:none}
+  .offer-experience:is([data-stage=draft],[data-stage=contact],[data-stage=review]) .property-caption{position:static;padding:0;color:var(--offer-ink)}
+  .offer-experience:is([data-stage=draft],[data-stage=contact],[data-stage=review]) .property-caption h2{font:550 16px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:0;text-wrap:initial}
+  .offer-experience:is([data-stage=draft],[data-stage=contact],[data-stage=review]) .property-caption p{display:none}
+  .offer-experience:is([data-stage=draft],[data-stage=contact],[data-stage=review]) .property-scene::after{display:none}
+  .offer-experience:is([data-stage=contact],[data-stage=review]) .property-price{display:none}
+  .offer-heading{margin:0 0 18px}.offer-heading h1{font-size:32px;letter-spacing:-.8px}
+  .offer-step-nav{margin-bottom:10px;min-height:36px}.offer-step-nav .text-button{min-height:36px}
+  .offer-amount-block{margin-bottom:20px}.simple-amount{grid-template-columns:minmax(0,1fr) 86px;gap:12px}
+  .simple-amount input{font-size:34px}.simple-amount :is(input,select){min-height:62px}
+  .simple-contact{gap:18px}.simple-field textarea{min-height:94px}
+  .offer-action-zone{margin-top:12px;padding-top:12px;gap:8px}.offer-experience .primary{min-height:58px;padding:16px 18px;font-size:15px}
+  .offer-desk .simple-paper .simple-offer-value{font-size:30px}
+  .offer-experience[data-stage=review] .simple-paper{padding:14px 16px}
+  .offer-experience[data-stage=review] .simple-offer-details dd{font-size:13px;line-height:1.5}
+  .offer-experience[data-stage=review] .simple-message p{font-size:13px;line-height:1.6}
 }
-@media(max-width:599px){
-  .offer-experience[data-stage=welcome]{padding-top:20px}
-  .offer-experience[data-stage=welcome] .offer-spread{gap:24px}
-  .offer-experience[data-stage=welcome] .property-caption{padding:20px 20px 78px}
-  .offer-experience[data-stage=welcome] .property-caption h2{font-size:25px;line-height:1.12}
-  .offer-experience[data-stage=welcome] .offer-heading{margin-bottom:20px}
-  .offer-experience[data-stage=welcome] .offer-heading h1{font-size:36px;letter-spacing:-1px;margin-bottom:12px}
-  .offer-experience[data-stage=welcome] .offer-heading .eyebrow{margin-bottom:10px}
-  .offer-experience[data-stage=welcome] .welcome-price{margin-top:20px;padding-top:18px}
-  .offer-experience[data-stage=welcome] .offer-broker{padding:18px 0;margin-top:12px}
+@media(max-height:740px) and (max-width:860px){
+  body:has(.offer-experience) .admin-header{min-height:56px;padding-top:6px;padding-bottom:6px}
+  .offer-step-fields{padding-bottom:8px}
+  .reply-choice legend{font-size:12px;margin-bottom:6px}
+
+  .offer-spread{gap:12px}
+  .offer-experience:is([data-stage=draft],[data-stage=contact],[data-stage=review]) .property-caption h2{font-size:15px}
+  .property-price{padding:4px 0;font-size:10px}.property-price strong{font-size:12px}
+  .property-stage .demo-notice{padding:3px 8px;font-size:9px;margin-top:4px}
+  .offer-step-nav,.offer-step-nav .text-button{min-height:30px}
+  .simple-field{gap:6px}.simple-field label{font-size:12px}
+  .offer-amount-block{margin-bottom:14px}
+  .simple-field textarea{min-height:72px;height:72px;padding:10px 12px}
+
+  .offer-experience[data-stage=review] .simple-paper{padding:10px 14px}
+  .offer-experience[data-stage=review] .simple-offer-value{font-size:27px;margin-bottom:10px}
+  .offer-experience[data-stage=review] .proposal-reply-method{display:none}
+  .offer-experience[data-stage=review] .simple-message{padding-top:10px}
+  .offer-experience[data-stage=review] .simple-message h3{margin-bottom:4px}
+  .offer-experience[data-stage=review] .simple-message p{font-size:12px;line-height:1.4}
+  .offer-experience[data-stage=review] .simple-paper .proposal-footnote{font-size:10px;line-height:1.4;margin-top:8px;padding-top:6px}
+  .offer-experience[data-stage=welcome] .offer-heading>p:last-child{display:none}
+  .offer-experience[data-stage=welcome] .property-scene{height:130px}
+  .offer-experience[data-stage=welcome] .property-caption p{display:none}
+  .offer-experience[data-stage=welcome] .property-caption h2{font-size:19px}
+  .offer-heading h1{font-size:28px}.offer-heading{margin-bottom:12px}.simple-contact{gap:9px}
+  .simple-field :is(input,select){min-height:44px;padding:10px 12px}.reply-choice label{min-height:44px}
+  .simple-amount :is(input,select){min-height:52px}.offer-step-nav{margin-bottom:6px}
 }
-@media print{.offer-team-note,.offer-gallery,.offer-property-back,.offer-assurance,.offer-broker{display:none!important}}
+@media(max-height:540px){
+  .offer-experience:is([data-stage=welcome],[data-stage=draft],[data-stage=contact],[data-stage=review]){padding-top:10px;padding-bottom:10px}
+  .offer-experience:is([data-stage=draft],[data-stage=contact],[data-stage=review]) .property-stage{display:none}
+  .offer-experience:is([data-stage=draft],[data-stage=contact],[data-stage=review]) .offer-spread{display:flex}
+  .offer-experience:is([data-stage=draft],[data-stage=contact],[data-stage=review]) .offer-desk{flex:1}
+  .offer-heading h1{font-size:26px}.offer-step-nav{margin-bottom:0}.offer-action-zone{margin-top:6px;padding-top:8px}
+  .offer-action-zone .offer-assurance{display:none}
+}
+@media(prefers-reduced-motion:reduce){.offer-experience *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+/* The confirmation is the end of this action, with an optional copy below. */
+.offer-print-copy,.proposal-document-header,.proposal-document-title{display:none}
+.offer-experience[data-stage=sent]{max-width:760px;padding-top:24px;padding-bottom:24px}
+.offer-complete{text-align:center;max-width:620px;margin:0 auto}
+.offer-complete .offer-heading{margin:0 0 18px}
+.offer-complete .offer-success-mark{margin:0 auto 14px;width:56px;height:56px;background:#e6efdc;border-color:#a8c297}
+.offer-complete .offer-heading .eyebrow{margin-bottom:12px}
+.offer-complete .offer-heading h1{font-size:clamp(36px,4.5vw,46px)}
+.offer-complete .offer-heading>p:last-child{max-width:460px;margin:14px auto 0;font-size:14px}
+.offer-complete-record{padding:14px 22px;border:1px solid #dce4d5;border-radius:14px;background:#fff}
+.offer-complete-property{font-size:14px;font-weight:550;color:var(--offer-ink);margin:0 0 7px}
+.offer-complete-amount{font:400 32px/1.2 Georgia,"Times New Roman",serif;color:var(--offer-ink);margin:0}
+.offer-complete-date{font-size:11px;color:var(--offer-muted);margin:10px 0 0}
+.offer-complete-record .demo-notice{margin:12px 0 0;padding:6px 10px;font-size:10px}
+.offer-complete-done{font-size:14px;font-weight:550;margin:18px 0 0;color:var(--offer-ink)}
+.offer-complete .offer-team-note{border:0;margin:16px 0 18px;padding:0}
+.offer-complete .offer-team-note p{font-size:26px;margin-bottom:8px}
+.offer-complete-copy{border-top:1px solid #dce4d5;padding-top:16px}
+.offer-complete-copy>p{font-size:11px;color:var(--offer-muted);margin:0}
+.offer-complete-copy .offer-toolbar{justify-content:center;margin:8px 0 0;gap:12px 20px}
+.offer-complete .offer-retry-note{font-size:12px;line-height:1.6;padding:10px;background:#f0f4eb;border-radius:8px}
+@media(max-width:600px){
+  .offer-experience[data-stage=sent]{padding:22px 20px}
+  .offer-complete .offer-success-mark{width:52px;height:52px;margin-bottom:14px}
+  .offer-complete .offer-heading{margin-bottom:18px}
+  .offer-complete .offer-heading h1{font-size:36px}
+  .offer-complete .offer-heading>p:last-child{font-size:13px;line-height:1.6;margin-top:12px}
+  .offer-complete-record{padding:15px 18px}
+  .offer-complete-amount{font-size:28px}
+  .offer-complete-done{font-size:13px;margin-top:18px}
+  .offer-complete .offer-team-note{margin:16px 0 20px}
+  .offer-complete .offer-team-note p{font-size:24px}
+}
+@media(min-width:861px) and (max-height:720px){
+  .offer-experience[data-stage=sent]{padding-top:16px;padding-bottom:12px}
+  .offer-complete .offer-success-mark{width:48px;height:48px;margin-bottom:12px}
+  .offer-complete .offer-heading{margin-bottom:16px}
+  .offer-complete .offer-heading h1{font-size:44px}
+  .offer-complete .offer-heading>p:last-child{font-size:13px}
+  .offer-complete-record{padding-top:12px;padding-bottom:12px}
+  .offer-complete-done{margin-top:16px}
+  .offer-complete .offer-team-note{margin:12px 0 14px}
+  .offer-complete .offer-team-note p{font-size:24px}
+}
+@media(max-width:600px) and (max-height:650px){
+  .offer-experience[data-stage=sent]{padding:12px 20px 8px}
+  .offer-complete .offer-success-mark{width:40px;height:40px;margin-bottom:10px}
+  .offer-complete .offer-heading{margin-bottom:14px}
+  .offer-complete .offer-heading .eyebrow{font-size:9px;margin-bottom:8px}
+  .offer-complete .offer-heading h1{font-size:32px}
+  .offer-complete .offer-heading>p:last-child{font-size:12px;line-height:1.5;margin-top:10px}
+  .offer-complete-record{padding:12px 14px}
+  .offer-complete-property{font-size:13px;margin-bottom:5px}
+  .offer-complete-amount{font-size:26px}
+  .offer-complete-date{font-size:10px;margin-top:6px}
+  .offer-complete-record .demo-notice{font-size:9px;padding:4px 8px;margin-top:8px}
+  .offer-complete-done{font-size:12px;margin-top:14px}
+  .offer-complete .offer-team-note{margin:12px 0 14px}
+  .offer-complete .offer-team-note p{font-size:22px;margin-bottom:5px}
+  .offer-complete .offer-team-note small{font-size:10px}
+  .offer-complete-copy{padding-top:12px}
+  .offer-complete-copy .offer-toolbar{flex-wrap:nowrap;gap:10px;margin-top:6px}
+  .offer-complete-copy .quiet{font-size:12px;padding:9px 10px;flex-shrink:0}
+  .offer-complete-copy .receipt-link{font-size:11px;min-width:0;text-align:left}
+}
+@media print{
+  @page{size:A4;margin:18mm 20mm}
+  html,body{background:#fff!important;color:#24362b;font:11pt/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;height:auto!important;min-height:0!important;overflow:visible!important;display:block!important}
+  .admin-header,.admin-footer,.workspace-tabs,.offer-heading,.property-stage,.simple-actions,.offer-toolbar,.offer-action-zone,.offer-history,.receipt-note,.offer-error,.offer-send-status,.offer-inbox-header,.offer-inbox-list,.offer-detail-back,.offer-team-note,.offer-step-nav,.offer-complete{display:none!important}
+  .offer-main,.offer-spread,.offer-desk,#inbox,.admin-workspace,.offer-step-fields{display:block!important;width:auto!important;max-width:none!important;height:auto!important;min-height:0!important;overflow:visible!important;padding:0!important;margin:0!important;border:0!important}
+  .offer-print-copy{display:block!important}
+  .proposal-paper,.offer-desk .simple-paper{border:0!important;border-radius:0!important;padding:0!important;box-shadow:none!important;animation:none!important;overflow:visible!important}
+  .proposal-document-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-bottom:6mm;border-bottom:1px solid #aab9a0;margin-bottom:8mm;color:#284c36;font-size:9pt;break-inside:avoid}
+  .proposal-document-brand{display:flex;align-items:center;gap:10px;font-size:25pt;font-weight:700;letter-spacing:-1pt;line-height:1}
+  .proposal-document-brand b{font-size:8pt;font-weight:600;letter-spacing:1.5pt}
+  .proposal-document-title{display:block;font:400 27pt/1.15 Georgia,"Times New Roman",serif;letter-spacing:-.5pt;margin:0 0 7mm;color:#284c36;break-after:avoid}
+  .simple-paper>.eyebrow{display:none!important}
+  .proposal-paper h2,.offer-experience[data-stage=review] .simple-paper h2{display:block!important;font-size:15pt;line-height:1.3;margin:0 0 2mm;letter-spacing:0;break-after:avoid}
+  .simple-paper .muted{display:block!important;font-size:10pt;color:#64715d;margin:0 0 6mm}
+  .simple-offer-value,.offer-desk .simple-paper .simple-offer-value{font:400 26pt/1.2 Georgia,"Times New Roman",serif!important;letter-spacing:-.4pt!important;color:#284c36;margin:0 0 8mm!important;break-after:avoid}
+  .simple-offer-details{display:grid;gap:5mm;margin:0 0 7mm}
+  .simple-offer-details>div,.offer-experience[data-stage=review] .simple-offer-details>div:last-child{display:grid!important;grid-template-columns:20mm minmax(0,1fr);gap:6mm;break-inside:avoid}
+  .simple-offer-details dt{font-size:10pt;color:#64715d}
+  .simple-offer-details dd{font-size:11pt!important;line-height:1.6!important;margin:0}
+  .proposal-reply-method{display:block!important;font-size:9pt;color:#64715d;margin-top:1mm}
+  .simple-message{border-top:1px solid #dce4d5;padding:6mm 0 0!important;break-inside:auto}
+  .simple-message h3{font-size:10pt;color:#64715d;font-weight:500;margin:0 0 2mm!important;break-after:avoid}
+  .simple-message p{font-size:11pt!important;line-height:1.6!important;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;orphans:3;widows:3}
+  .simple-paper .proposal-footnote{border-top:1px solid #dce4d5;margin-top:8mm!important;padding-top:4mm!important;font-size:9pt!important;line-height:1.6!important;color:#64715d;break-inside:avoid}
+  .proposal-footnote p{margin:0 0 2mm!important}
+  .proposal-section{padding:4mm 0;break-inside:avoid}.proposal-section dd,.proposal-section dt{font-size:10pt}.proposal-section dl>div{grid-template-columns:40% 1fr}
+  .proposal-letterhead{padding-bottom:3mm}.proposal-footnote{font-size:9pt}
+  #listings-panel,#resources-panel{display:none!important}.offer-detail .proposal-paper{display:block}.proposal-section-heading button{display:none}a{color:inherit}
+}
