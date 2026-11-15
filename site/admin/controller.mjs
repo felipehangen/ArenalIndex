@@ -9,6 +9,14 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
   const $=selector=>document.querySelector(selector);
   const t=(text,values)=>window.ArenalI18n?.t(text,values)||text.replace(/\{(\w+)\}/g,(_,key)=>values?.[key]??'');
   let epoch=0,expiryTimer,records=[],loaded=false,google,config,activeIdentity;
+  const menu=owner?$('#account-menu'):null;
+  function renderAccount(identity){
+    menu.removeAttribute('open');menu.hidden=!identity;
+    $('#admin-account').textContent=identity?.email||'';
+    $('#account-google').hidden=identity?.method!=='google';
+    $('#account-password').hidden=identity?.method!=='password';
+    $('#change-password').hidden=identity?.method!=='password'||identity.requiresRulesAcceptance||identity.requiresPasswordChange;
+  }
   function clearPrivate(){
     cancel(expiryTimer);records=[];loaded=false;$('#admin-records').replaceChildren();$('#admin-account').textContent='';$('#admin-count').textContent='';
     $('#admin-search').value='';$('#inbox').hidden=true;$('#sign-out').hidden=true;$('#inbox-error').hidden=true;$('#admin-empty').hidden=true;
@@ -24,7 +32,10 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     if($('#accounts-panel')){$('#accounts-panel').hidden=true;$('#listings-panel').hidden=false;for(const tab of document.querySelectorAll('[data-panel]')){if(tab.dataset.panel==='listings')tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current');}}
     activeIdentity=null;
     if($('#resources-panel'))$('#resources-panel').hidden=true;
-    if(owner)window.dispatchEvent(new window.CustomEvent('arenal-owner-clear'));
+    if(owner){
+      renderAccount(null);$('#account-notice').hidden=true;$('#admin-status').selectedIndex=0;
+      window.dispatchEvent(new window.CustomEvent('arenal-owner-clear'));
+    }
     if($('#analytics-panel')){$('#analytics-panel').hidden=true;$('#analytics-panel').replaceChildren();window.dispatchEvent(new window.CustomEvent('arenal-admin-clear'));}
   }
   function loginMessage(message,retry=false){$('#login-status').textContent=t(message);$('#login-status').classList.toggle('login-error',retry&&!!message);$('#retry-login').hidden=!retry;}
@@ -36,7 +47,8 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     if(!loaded)return;
     const shown=selectRecords(records,{status:$('#admin-status').value,query:$('#admin-search').value,source:$('#admin-source')?.value||'all'});
     $('#admin-records').innerHTML=renderRows(shown,{owner});$('#admin-empty').hidden=shown.length>0;
-    $('#admin-count').textContent=t('{shown} de {total} anuncios',{shown:shown.length,total:records.length});
+    if(owner){$('#first-listing').hidden=records.length>0;$('#no-matches').hidden=records.length===0;}
+    $('#admin-count').textContent=owner&&shown.length===1&&records.length===1?t('1 anuncio'):t('{shown} de {total} anuncios',{shown:shown.length,total:records.length});
     if(owner)for(const option of $('#admin-status').options){
       option.dataset.label = {all:'Todos',ready_for_review:'En revisión',approved:'Listos para publicar',published:'Publicados',draft:'Borradores',unlisted:'Retirados'}[option.value];
       option.setAttribute('translate','no');
@@ -45,7 +57,7 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
   }
   async function refresh(){
     const current=++epoch;loaded=false;records=[];$('#admin-records').replaceChildren();$('#admin-empty').hidden=true;$('#inbox-error').hidden=true;
-    $('#refresh').disabled=true;$('#admin-records').setAttribute('aria-busy','true');$('#admin-count').textContent=t('Cargando propuestas…');
+    $('#refresh').disabled=true;$('#admin-records').setAttribute('aria-busy','true');$('#admin-count').textContent=t(owner?'Cargando anuncios…':'Cargando propuestas…');
     try{
       const found=new Map(),visited=new Set();let cursor;
       do{
@@ -65,12 +77,13 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
         try{const identity=await api.request('session');if(current===epoch)await openInbox(identity);}
         catch{if(current===epoch)expire();}return;
       }
-      $('#admin-count').textContent='';$('#inbox-error').hidden=false;$('#inbox-error').textContent=t('No se pudieron cargar todas las propuestas. Intentá actualizar.');
+      $('#admin-count').textContent='';$('#inbox-error').hidden=false;$('#inbox-error').textContent=t(owner?'No se pudieron cargar tus anuncios. Intentá actualizar.':'No se pudieron cargar todas las propuestas. Intentá actualizar.');
     }finally{if(current===epoch){$('#refresh').disabled=false;$('#admin-records').setAttribute('aria-busy','false');}}
   }
   async function openInbox(identity){
     if(!api.session()){expire();return;}
     activeIdentity=identity;
+    if(owner)renderAccount(identity);
     if(owner)for(const node of $('#password-panel').querySelectorAll('input'))node.value='';
     cancel(expiryTimer);expiryTimer=schedule(expire,Math.max(0,identity.expiresAt-now()));
     if(owner&&identity.requiresRulesAcceptance){showRules(identity);return;}
@@ -100,12 +113,15 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
     $('#rules-title').focus();
   }
   function showPassword(identity){
+    if(identity?.method!=='password')return;
+    menu.removeAttribute('open');$('#change-password').hidden=true;$('#account-notice').hidden=true;
     ++epoch;$('#inbox').hidden=true;$('#login-panel').hidden=true;$('#password-panel').hidden=false;$('#sign-out').hidden=false;
     $('#password-note').textContent=t(identity.requiresPasswordChange?'Elegí una contraseña personal para reemplazar la temporal y abrir tus fichas.':'Usá al menos 12 caracteres. Podés combinar varias palabras.');
     $('#current-password-label').hidden=identity.requiresPasswordChange||identity.method!=='password';
     $('#current-password').required=!$('#current-password-label').hidden;
     $('#password-back').hidden=!!identity.requiresPasswordChange;$('#password-status').textContent='';
     for(const node of $('#password-panel').querySelectorAll('input'))node.value='';
+    $('#password-panel h1').focus();
   }
   async function prepareGoogle(message=''){
     const current=++epoch;
@@ -141,6 +157,11 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
   }
   $('#retry-login').onclick=start;
   if(owner){
+    document.addEventListener('click',event=>{if(!menu.contains(event.target))menu.removeAttribute('open');});
+    document.addEventListener('keydown',event=>{
+      if(event.key==='Escape'&&menu.hasAttribute('open')){menu.removeAttribute('open');menu.querySelector('summary').focus();}
+    });
+    $('#reset-filters').onclick=()=>{$('#admin-search').value='';$('#admin-status').selectedIndex=0;render();$('#admin-search').focus();};
     $('#rules-accept').onchange=()=>{$('#rules-submit').disabled=!$('#rules-accept').checked;};
     $('#rules-decline').onclick=()=>$('#sign-out').click();
     $('#rules-form').onsubmit=async event=>{
@@ -161,19 +182,24 @@ export function mountAdmin({document,window,api=client,googleLoader=loadGoogle,s
         api.saveSession(identity);await openInbox(identity);
       }catch(error){if(current===epoch)await prepareGoogle(error.message);}finally{button.disabled=false;}
     };
-    $('#change-password').onclick=()=>showPassword(activeIdentity);
-    $('#password-back').onclick=()=>openInbox(activeIdentity);
+    $('#change-password').onclick=()=>{if(!$('#inbox').hidden)showPassword(activeIdentity);};
+    $('#password-back').onclick=async()=>{
+      if(!activeIdentity||activeIdentity.requiresPasswordChange)return;
+      await openInbox(activeIdentity);if(!$('#inbox').hidden)menu.querySelector('summary').focus();
+    };
     $('#password-form').onsubmit=async event=>{
-      event.preventDefault();const current=epoch,password=$('#new-password').value;
+      event.preventDefault();if(activeIdentity?.method!=='password'||$('#password-panel').hidden)return;
+      const current=epoch,password=$('#new-password').value;
       if(password!==$('#confirm-password').value){$('#password-status').textContent=t('Las contraseñas no coinciden.');return;}
-      const button=$('#password-form button[type=submit]'),currentPassword=$('#current-password').value;button.disabled=true;
+      const button=$('#password-form button[type=submit]'),currentPassword=$('#current-password').value;button.disabled=true;$('#password-back').disabled=true;
       try{
         await api.request('change_password',{password,currentPassword});if(current!==epoch)return;
         const identity=await api.request('session');if(current!==epoch)return;
         for(const node of $('#password-panel').querySelectorAll('input'))node.value='';
         await openInbox(identity);
+        if(activeIdentity===identity&&!$('#inbox').hidden){$('#account-notice').hidden=false;menu.querySelector('summary').focus();}
       }catch(error){if(current===epoch){if(error.status===401)expire();else $('#password-status').textContent=t(error.message);}}
-      finally{button.disabled=false;}
+      finally{button.disabled=false;$('#password-back').disabled=false;}
     };
   }
   $('#sign-out').onclick=async()=>{

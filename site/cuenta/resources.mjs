@@ -18,9 +18,15 @@ export function mountBrokerResources({document,window}){
     }
   }
   for(const tab of document.querySelectorAll('[data-owner-panel]'))tab.onclick=()=>select(tab.dataset.ownerPanel);
+  const shareCollection=document.querySelector('#share-collection');
+  shareCollection.onclick=()=>{
+    select('resources');
+    $('[data-copy="collection"]')?.focus();
+  };
   function render(){
     generation++;
     const url=collectionURL(identity?.publicPage),name=identity?.publicPage?.name||'ArenalIndex';
+    shareCollection.hidden=!url;
     const message=t('Explorá las propiedades de '+name+' en ArenalIndex. Encontrá fotos, ubicación y el contacto de cada anuncio.','Explore properties from '+name+' on ArenalIndex. Find photos, locations, and contact details for each listing.')+'\n'+url;
     const qr=url?makeQR(url):'';
     const email=window.ArenalConfig?.siteContact?.email||'';
@@ -48,6 +54,6 @@ export function mountBrokerResources({document,window}){
     finally{if(current===generation)button.disabled=false;}
   };
   window.addEventListener('arenal-language-change',()=>{if(identity)render();});
-  window.addEventListener('arenal-owner-clear',()=>{generation++;identity=null;root.replaceChildren();select('listings');});
+  window.addEventListener('arenal-owner-clear',()=>{generation++;identity=null;shareCollection.hidden=true;root.replaceChildren();select('listings');});
   return {setIdentity(value){identity=value;render();}};
 }

@@ -167,3 +167,28 @@ test('owner status counts follow search, include drafts of published listings, a
   assert.equal(e.$('#admin-status option[value=draft]').textContent,'Borradores (2)');
   e.controller.destroy();
 });
+
+test('the account menu follows the authenticated sign-in method and clears on expiry',async()=>{
+  for(const method of ['google','password']){
+    const e=setup({signedIn:true,handler:action=>action==='session'?{...identity,method,requiresPasswordChange:false}:undefined});
+    await e.controller.ready;
+    assert.equal(e.$('#account-menu').hidden,false);assert.equal(e.$('#admin-account').textContent,identity.email);
+    assert.equal(e.$('#account-google').hidden,method!=='google');
+    assert.equal(e.$('#account-password').hidden,method!=='password');
+    assert.equal(e.$('#change-password').hidden,method!=='password');
+    assert.ok(e.$('#account-menu #change-password'));
+    e.$('#change-password').onclick();assert.equal(e.$('#password-panel').hidden,method!=='password');
+    e.controller.expire();assert.equal(e.$('#account-menu').hidden,true);assert.equal(e.$('#admin-account').textContent,'');
+    e.controller.destroy();
+  }
+});
+
+test('an empty portfolio has first-listing guidance; a search with no matches can be cleared',async()=>{
+  const rows=[];const e=setup({signedIn:true,handler:action=>action==='session'?{...identity,requiresPasswordChange:false}:action==='list'?{records:rows,cursor:null}:undefined});
+  await e.controller.ready;
+  assert.equal(e.$('#admin-empty').hidden,false);assert.equal(e.$('#first-listing').hidden,false);assert.equal(e.$('#no-matches').hidden,true);
+  rows.push({id:'draft-0001',title:'Casa',status:'draft',currency:'USD'});
+  await e.controller.refresh();e.$('#admin-search').value='apartamento';e.$('#admin-search').oninput();
+  assert.equal(e.$('#first-listing').hidden,true);assert.equal(e.$('#no-matches').hidden,false);
+  e.$('#reset-filters').onclick();assert.equal(e.$('#admin-empty').hidden,true);assert.match(e.$('#admin-records').textContent,/Casa/);e.controller.destroy();
+});

@@ -3,7 +3,14 @@ export function mountOffers({document,window,api,onUnauthorized=()=>{}}){
   const root=document.querySelector('#offers-panel');let identity=null,listings=[],records=[],selected=null,generation=0,busy=false,query='',filter='received',error='',loaded=false,loading=false;
   const language=()=>window.ArenalI18n?.language==='en'?'en':'es',t=(es,en)=>language()==='en'?en:es,$=s=>root.querySelector(s);
   const status=row=>row.revoked?t('Cerrada','Closed'):row.revision>row.reviewedRevision?t('Por revisar','To review'):row.revision?t('Revisada','Reviewed'):t('Enlace anterior','Earlier link');
+  const pendingBadge=document.querySelector('#pending-offers');
+  function updatePendingBadge(){
+    const count=records.filter(row=>!row.revoked && row.revision>row.reviewedRevision).length;
+    pendingBadge.hidden=!loaded || !!error || count===0;
+    pendingBadge.textContent=pendingBadge.hidden?'':count+' '+t('por revisar','to review');
+  }
   function render(){
+    updatePendingBadge();
     if(!identity)return;root.setAttribute('aria-label',t('Ofertas','Offers'));if(selected){renderDetail();return;}
     const found=records.filter(row=>(filter==='received'?row.revision>0:row.revision===0)&&[row.property.name,row.versions.at(-1)?.offer.name,row.versions.at(-1)?.offer.contact,row.versions.at(-1)?.offer.email].join(' ').toLowerCase().includes(query.toLowerCase()));
     root.innerHTML='<div class="workspace-heading offer-inbox-header"><div><h1>'+t('Ofertas','Offers')+'</h1><p class="muted">'+t('Las propuestas de tus compradores, en un solo lugar.','Your buyers’ proposals, all in one place.')+'</p></div></div>'+
@@ -83,6 +90,6 @@ export function mountOffers({document,window,api,onUnauthorized=()=>{}}){
     }
   });
   window.addEventListener('arenal-language-change',()=>{render();if(sharing){const focused=document.activeElement;const selector=focused?.hasAttribute('data-copy')?'[data-copy]':focused?.hasAttribute('data-view-form')?'[data-view-form]':focused?.tagName==='TEXTAREA'?'textarea':'[data-share-close]';renderShare();modal(selector)?.focus({preventScroll:true});}});
-  window.addEventListener('arenal-owner-clear',()=>{generation++;closeShare(false);identity=null;listings=[];records=[];selected=null;loaded=false;loading=false;busy=false;query='';filter='received';error='';root.replaceChildren();root.hidden=true;});
-  return {setIdentity(value){identity=value;render();},setListings(value){listings=value;render();}};
+  window.addEventListener('arenal-owner-clear',()=>{generation++;closeShare(false);identity=null;listings=[];records=[];selected=null;loaded=false;loading=false;busy=false;query='';filter='received';error='';root.replaceChildren();root.hidden=true;updatePendingBadge();});
+  return {refresh,setIdentity(value){identity=value;render();},setListings(value){listings=value;render();}};
 }

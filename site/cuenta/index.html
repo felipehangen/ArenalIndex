@@ -7,23 +7,30 @@
 
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
-  <title>Mis anuncios · Arenal Index</title>
-  <script src="/i18n-en.js?v=24-simple-offers"></script><script src="/i18n.js?v=2-demo-titles"></script><script src="/config.js?v=7-equipo-email"></script>
+  <title>Mi cuenta · Arenal Index</title>
+  <script src="/i18n-en.js?v=26-broker-shortcuts"></script><script src="/i18n.js?v=2-demo-titles"></script><script src="/config.js?v=7-equipo-email"></script>
   <link rel="stylesheet" href="/admin/style.css?v=4-workflow"><link rel="stylesheet" href="/i18n.css?v=3-header-subtitle">
   <link rel="stylesheet" href="/cuenta/rules.css?v=1">
-  <link rel="stylesheet" href="/cuenta/workspace.css?v=5-offer-dialog">
+  <link rel="stylesheet" href="/cuenta/workspace.css?v=7-broker-shortcuts">
   <link rel="stylesheet" href="/offer/style.css?v=7">
-  <script type="module" src="/cuenta/app.mjs?v=16-offer-copy"></script>
+  <script type="module" src="/cuenta/app.mjs?v=19-broker-shortcuts"></script>
 </head>
 <body>
-  <header class="admin-header"><a class="brand" href="/">arenal <span>INDEX</span></a><span class="admin-header-label">Mis anuncios</span><div class="header-actions"><span data-language-mount></span><button id="sign-out" class="quiet" hidden>Salir</button></div></header>
+  <header class="admin-header"><a class="brand" href="/">arenal <span>INDEX</span></a><span class="admin-header-label">Portal de propiedades</span><div class="header-actions"><span data-language-mount></span><details id="account-menu" class="account-menu" hidden>
+    <summary class="quiet">Mi cuenta</summary>
+    <div class="account-popover">
+      <strong id="admin-account" translate="no"></strong>
+      <span id="account-google" hidden>Entraste con Google</span><span id="account-password" hidden>Entraste con correo y contraseña</span>
+      <div class="account-actions"><button id="change-password" type="button" hidden>Cambiar contraseña</button><button id="sign-out" type="button" hidden>Cerrar sesión</button></div>
+    </div>
+  </details></div></header>
   <main>
     <section id="login-panel" class="login-panel">
       <span class="lock-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></span>
       <p class="eyebrow">ACCESO PRIVADO</p><h1>Tus anuncios, en un solo lugar</h1><p class="muted">Guardá borradores, enviá tus fichas a revisión y administrá tus anuncios publicados.</p>
-      <div id="google-button"></div><p id="login-status" role="alert" aria-live="polite">Comprobando acceso…</p><button id="retry-login" class="quiet" hidden>Usar otra cuenta / reintentar</button><div class="login-divider"><span>o con tu correo</span></div>
+      <div id="google-button"></div><p id="login-status" role="alert" aria-live="polite">Comprobando acceso…</p><button id="retry-login" class="quiet" hidden>Usar otra cuenta / reintentar</button><div class="login-divider"><span>o con correo y contraseña</span></div>
       <form id="email-login" class="access-form"><label>Correo electrónico<input id="owner-email" type="email" autocomplete="username" required maxlength="254"></label><label>Contraseña<input id="owner-password" type="password" autocomplete="current-password" required maxlength="128"></label><button type="submit" class="primary">Entrar</button></form>
-      <p class="login-note">Usá el correo habilitado por ArenalIndex. Para obtener acceso o restablecer tu contraseña, contactá a administración.</p>
+      <p class="login-note">Usá el correo habilitado por ArenalIndex. <a href="mailto:equipo@arenalindex.com">Pedir ayuda con el acceso</a></p>
       <p class="login-note"><a href="/publicar/">Antes de entrar: conocé las reglas para publicar</a></p>
     </section>
     <section id="rules-panel" class="rules-panel" hidden aria-labelledby="rules-title">
@@ -37,19 +44,21 @@
         <p id="rules-status" role="status"></p><div class="rules-actions"><button id="rules-submit" type="submit" class="primary" disabled>Aceptar y continuar</button><button id="rules-decline" type="button" class="quiet">Ahora no, salir</button></div>
       </form>
     </section>
-    <section id="password-panel" class="login-panel" hidden><p class="eyebrow">TU CUENTA</p><h1>Cambiar contraseña</h1><p id="password-note" class="muted"></p><form id="password-form" class="access-form"><label id="current-password-label">Contraseña actual<input id="current-password" type="password" autocomplete="current-password" maxlength="128"></label><label>Nueva contraseña<input id="new-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><label>Repetir contraseña<input id="confirm-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><button type="submit" class="primary">Guardar contraseña</button></form><p id="password-status" role="alert"></p><button id="password-back" class="quiet" hidden>Volver a mis anuncios</button></section>
+    <section id="password-panel" class="login-panel" hidden><p class="eyebrow">TU CUENTA</p><h1 tabindex="-1">Cambiar contraseña</h1><p id="password-note" class="muted"></p><form id="password-form" class="access-form"><label id="current-password-label">Contraseña actual<input id="current-password" type="password" autocomplete="current-password" maxlength="128"></label><label>Nueva contraseña<input id="new-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><label>Repetir contraseña<input id="confirm-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><button type="submit" class="primary">Guardar contraseña</button></form><p id="password-status" role="alert"></p><button id="password-back" class="quiet" hidden>Cancelar</button></section>
     <section id="inbox" class="admin-workspace" hidden>
-      <nav class="workspace-tabs" aria-label="Mi cuenta"><button type="button" data-owner-panel="listings" aria-current="page" aria-controls="listings-panel">Mis anuncios</button><button type="button" data-owner-panel="offers" aria-controls="offers-panel">Ofertas</button><button type="button" data-owner-panel="resources" aria-controls="resources-panel">Recursos</button></nav>
+      <p id="account-notice" role="status" hidden>Contraseña actualizada.</p>
+      <nav class="workspace-tabs" aria-label="Mi cuenta"><button type="button" data-owner-panel="listings" aria-current="page" aria-controls="listings-panel">Mis anuncios</button><button type="button" data-owner-panel="offers" aria-controls="offers-panel"><span>Ofertas</span> <span id="pending-offers" translate="no" hidden></span></button><button type="button" data-owner-panel="resources" aria-controls="resources-panel">Recursos</button></nav>
       <section id="listings-panel" aria-label="Mis anuncios">
-      <div class="workspace-heading"><div><p class="eyebrow">MIS ANUNCIOS</p><h1>Mis anuncios</h1><p class="muted">Borradores, fichas en revisión y anuncios publicados.</p></div><a class="primary" href="/newlisting/?cuenta=new">Nueva propiedad</a></div>
-      <div class="admin-toolbar"><label class="admin-search"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="admin-search" type="search" placeholder="Buscar por propiedad, contacto o correo" aria-label="Buscar propuestas"></label><label class="status-filter">Estado<select id="admin-status"><option value="all">Todos</option><option value="ready_for_review">En revisión</option><option value="approved">Listos para publicar</option><option value="published">Publicados</option><option value="draft">Borradores</option><option value="unlisted">Retirados</option></select></label><button id="refresh" class="quiet refresh-button" title="Actualizar lista" aria-label="Actualizar lista">↻</button></div>
-      <div class="results-meta"><p id="admin-count" role="status"></p><p id="admin-account" translate="no"></p></div>
+      <div class="workspace-heading"><div><h1>Mis anuncios</h1><p class="muted">Borradores, fichas en revisión y anuncios publicados.</p></div><div class="listing-actions"><a class="primary" href="/newlisting/?cuenta=new">Nueva propiedad</a><button id="share-collection" type="button" class="quiet" hidden>Compartir mi colección</button></div></div>
+      <div class="admin-toolbar"><label class="admin-search"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="admin-search" type="search" placeholder="Propiedad, contacto o correo" aria-label="Buscar anuncios"></label><label class="status-filter">Estado<select id="admin-status"><option value="all">Todos</option><option value="ready_for_review">En revisión</option><option value="approved">Listos para publicar</option><option value="published">Publicados</option><option value="draft">Borradores</option><option value="unlisted">Retirados</option></select></label><button id="refresh" class="quiet refresh-button" title="Actualizar lista" aria-label="Actualizar lista">↻</button></div>
+      <div class="results-meta"><p id="admin-count" role="status"></p></div>
       <div class="admin-table"><div class="admin-table-head" aria-hidden="true"><span>Propiedad y contacto</span><span>Precio y área</span><span>Estado</span><span>Actualización</span><span></span></div><div id="admin-records" aria-busy="true"></div></div>
-      <div id="admin-empty" class="empty-state" hidden><h2>No hay propuestas en esta vista</h2><p>Cambiá el estado o la búsqueda para ver otras fichas.</p></div><p id="inbox-error" role="alert" hidden></p>
+      <div id="admin-empty" class="empty-state" hidden><div id="first-listing"><h2>Todavía no tenés anuncios</h2><p>Elegí «Nueva propiedad» para empezar. Podés guardar la ficha como borrador.</p></div>
+        <div id="no-matches" hidden><h2>Ningún anuncio coincide con tu búsqueda o estado</h2><button id="reset-filters" type="button" class="quiet">Limpiar filtros</button></div></div><p id="inbox-error" role="alert" hidden></p>
       </section>
       <section id="offers-panel" hidden aria-label="Ofertas" translate="no"></section>
       <section id="resources-panel" hidden aria-label="Recursos" translate="no"></section>
-      <footer class="admin-footer"><a href="/">← Volver al catálogo</a><button id="change-password" class="text-button">Cambiar contraseña</button></footer>
+      <footer class="admin-footer"><a href="/">← Volver al catálogo</a></footer>
     </section>
   </main>
 </body>
