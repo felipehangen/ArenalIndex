@@ -75,11 +75,12 @@
   }
   function openMenu(trigger){
     if(document.querySelector('.language-dialog'))return;
-    const dialog=document.createElement('dialog');dialog.className='language-dialog';dialog.setAttribute('aria-labelledby','language-title');dialog.setAttribute('data-no-translate','');
-    dialog.innerHTML='<div class="language-dialog-heading"><h2 id="language-title">Idioma / Language</h2><button type="button" data-language-close aria-label="'+(language==='en'?'Close':'Cerrar')+'">×</button></div><div class="language-options">'+[['es','Español'],['en','English']].map(([code,label])=>'<button type="button" lang="'+code+'" data-set-language="'+code+'" aria-pressed="'+(code===language)+'"><span>'+label+'</span><span aria-hidden="true">'+(code===language?'✓':'')+'</span></button>').join('')+'</div>';
+    const dialog=document.createElement('dialog');dialog.id='language-dialog';dialog.setAttribute('closedby','any');dialog.className='language-dialog';dialog.setAttribute('aria-labelledby','language-title');dialog.setAttribute('data-no-translate','');
+    dialog.innerHTML='<div class="language-dialog-heading"><h2 id="language-title">Idioma / Language</h2><button type="button" command="close" commandfor="language-dialog" data-language-close aria-label="'+(language==='en'?'Close':'Cerrar')+'">×</button></div><div class="language-options">'+[['es','Español'],['en','English']].map(([code,label])=>'<button type="button" lang="'+code+'" data-set-language="'+code+'" aria-pressed="'+(code===language)+'"><span>'+label+'</span><span aria-hidden="true">'+(code===language?'✓':'')+'</span></button>').join('')+'</div>';
     document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove());
-    dialog.querySelector('[data-language-close]').onclick=()=>dialog.close();
-    dialog.addEventListener('click',event=>{const choice=event.target.closest('[data-set-language]');if(choice){dialog.close();setLanguage(choice.dataset.setLanguage);if(trigger.isConnected)trigger.focus({preventScroll:true});}else if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
+    const closeButton=dialog.querySelector('[data-language-close]');
+    if(!('commandForElement' in closeButton))closeButton.onclick=()=>dialog.close();
+    dialog.addEventListener('click',event=>{const choice=event.target.closest('[data-set-language]');if(choice){dialog.close();setLanguage(choice.dataset.setLanguage);if(trigger.isConnected)trigger.focus({preventScroll:true});}else if(!('closedBy' in dialog)&&event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
     dialog.showModal();dialog.querySelector('[aria-pressed="true"]').focus();
   }
   function listingText(item,key='title'){

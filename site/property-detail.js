@@ -100,12 +100,14 @@
   function open(id){if(current?.id===id)return;window.history.pushState({arenalDetail:true},'', '#propiedad/'+id);route();}
   function back(toOffer=true){const offer=toOffer&&current&&offerContext(current.id);if(offer&&offerSession.returnToOffer(offer))return;if(window.ArenalPreview){window.close();return;}if(window.history.state?.arenalDetail)window.history.back();else{window.history.replaceState(null,'',location.pathname+location.search);hide();}}
   function dialog(title,content,extra='') {
-    openDialog?.close(); const node=document.createElement('dialog');node.className='pd-dialog '+extra;node.setAttribute('aria-label',title);
+    openDialog?.close(); const node=document.createElement('dialog');node.setAttribute('closedby','any');node.className='pd-dialog '+extra;node.setAttribute('aria-label',title);
     node.innerHTML=`<div class="pd-dialog-head"><h2>${title}</h2>${iconButton('close-dialog','Cerrar','close')}</div>${content}`;
     const nativeClose=node.close.bind(node);node.close=value=>ArenalMotion.leave(node,()=>nativeClose(value));
     node.addEventListener('cancel',e=>{if(node.classList.contains('is-photo'))return;e.preventDefault();node.close();});
     root.append(node);openDialog=node;node.querySelector('[data-action="close-dialog"]').onclick=()=>node.close();
-    node.addEventListener('close',()=>{node.remove();if(openDialog===node)openDialog=null;});node.addEventListener('click',e=>{if(e.target===node){const r=node.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)node.close();}});node.showModal();return node;
+    node.addEventListener('close',()=>{node.remove();if(openDialog===node)openDialog=null;});
+    if(!('closedBy' in node))node.addEventListener('click',e=>{if(e.target===node){const r=node.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)node.close();}});
+    node.showModal();return node;
   }
   async function copy(text,status,field) {try{await navigator.clipboard.writeText(text);status.textContent='Copiado. Podés pegarlo donde prefirás.';}catch{field.focus();field.select();status.textContent='Seleccioná y copiá el texto con el teclado.';}}
   function contact() {

@@ -37,8 +37,9 @@ window.ArenalSortPicker = ({button,dialog,getMode,isAvailable,onSelect,capturePo
     }
     dialog.close();
   });
-  dialog.querySelector('[data-sort-close]').addEventListener('click',()=>dialog.close());
-  dialog.addEventListener('click',event=>{
+  const closeButton=dialog.querySelector('[data-sort-close]');
+  if(closeButton.commandForElement!==dialog)closeButton.addEventListener('click',()=>dialog.close());
+  if(dialog.closedBy!=='any')dialog.addEventListener('click',event=>{
     if(event.target!==dialog)return;
     const r=dialog.getBoundingClientRect();
     if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();

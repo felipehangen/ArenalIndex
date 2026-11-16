@@ -7,12 +7,12 @@ export function mountGallery({document,window}){
   function restoreFocus(){if(trigger?.isConnected)trigger.focus({preventScroll:true});else document.querySelector('[data-photos]')?.focus({preventScroll:true});}
   function close(){if(!active)return;if(active.close)active.close();else{active.removeAttribute('open');active.dispatchEvent(new window.Event('close'));}}
   function dialog(title,html,extra){
-    const node=document.createElement('dialog');node.className='pd-dialog '+extra;node.setAttribute('aria-label',title);
+    const node=document.createElement('dialog');node.setAttribute('closedby','any');node.className='pd-dialog '+extra;node.setAttribute('aria-label',title);
     node.innerHTML='<div class="pd-dialog-head"><h2>'+title+'</h2>'+iconButton('close-dialog','Cerrar','close')+'</div>'+html;
     document.body.append(node);active=node;
     node.querySelector('[data-action="close-dialog"]').onclick=close;
     node.addEventListener('cancel',event=>{if(node.classList.contains('is-photo'))return;event.preventDefault();close();});
-    node.addEventListener('click',event=>{if(event.target!==node)return;const r=node.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)close();});
+    if(!('closedBy' in node))node.addEventListener('click',event=>{if(event.target!==node)return;const r=node.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)close();});
     node.addEventListener('close',()=>{if(active===node)active=null;node.remove();restoreFocus();},{once:true});
     if(node.showModal)node.showModal();else node.setAttribute('open','');
     node.querySelector('[data-action="close-dialog"]').focus({preventScroll:true});

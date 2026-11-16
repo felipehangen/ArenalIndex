@@ -35,7 +35,8 @@
     dialog.showModal();
   }));
   menuTrigger?.addEventListener('click',()=>{menuReturn=menuTrigger;updateLinks();window.ArenalI18n?.translate(menu);menu.showModal();});
-  menu?.querySelector('[data-menu-close]').addEventListener('click',()=>menu.close());
+  const menuClose=menu?.querySelector('[data-menu-close]');
+  if(menuClose && menuClose.commandForElement!==menu)menuClose.addEventListener('click',()=>menu.close());
   menu?.querySelectorAll('[data-menu-language]').forEach(button=>button.addEventListener('click',()=>window.ArenalI18n?.setLanguage(button.dataset.menuLanguage)));
   const root=document.getElementById('arenal-index-dos');
   const browseButtons=[...menu?.querySelectorAll('[data-browse-to]')||[]];
@@ -51,8 +52,9 @@
     if(button?.getClientRects().length)button.focus({preventScroll:true});
     else document.querySelector('#nav-explore')?.focus({preventScroll:true});
   };
-  dialog.querySelector('[data-contact-close]').addEventListener('click',()=>dialog.close());
-  for(const panel of [dialog,menu].filter(Boolean))panel.addEventListener('click',event=>{
+  const closeButton=dialog.querySelector('[data-contact-close]');
+  if(closeButton.commandForElement!==dialog)closeButton.addEventListener('click',()=>dialog.close());
+  for(const panel of [dialog,menu].filter(panel=>panel && panel.closedBy!=='any'))panel.addEventListener('click',event=>{
     if(event.target!==panel)return;
     const r=panel.getBoundingClientRect();
     if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)panel.close();
