@@ -18,6 +18,10 @@ test('release fingerprint catches frontend and API changes but permits daily rat
   for(const file of ['api/listings.mjs','site/index.html','package-lock.json']){
     await writeFile(join(root,file),'changed');assert.notEqual(await runtimeDigest(root),original);await writeFile(join(root,file),'initial');
   }
+  await writeFile(join(root,'release-source-config.json'),'initial');
+  await writeFile(join(root,'vercel.json'),'provider-generated configuration');
+  assert.notEqual(await runtimeDigest(root),original);
+  assert.equal(await runtimeDigest(root,{sourceConfigFile:'release-source-config.json'}),original);
 });
 
 test('Pages gate requires both production hosts and fails closed on old builds or errors',async()=>{

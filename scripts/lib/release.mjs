@@ -4,7 +4,7 @@ import {join} from 'node:path';
 
 // Compare executable source rather than Git SHAs so documentation-only commits
 // and the daily exchange-rate refresh do not require an API redeployment.
-export async function runtimeDigest(root,{diagnose=false}={}){
+export async function runtimeDigest(root,{diagnose=false,sourceConfigFile='vercel.json'}={}){
   const files=['package.json','package-lock.json','vercel.json','scripts/build.mjs','scripts/lib/release.mjs','scripts/lib/exchange-rate.mjs'];
   for(const directory of ['api','server','site']){
     const entries=await readdir(join(root,directory),{recursive:true,withFileTypes:true});
@@ -18,7 +18,7 @@ export async function runtimeDigest(root,{diagnose=false}={}){
   }
   const hash=createHash('sha256'),groups=new Map();
   for(const file of files.sort()){
-    const bytes=await readFile(join(root,file));
+    const bytes=await readFile(join(root,file==='vercel.json'?sourceConfigFile:file));
     hash.update(file+'\0').update(bytes).update('\0');
     const key=file.includes('/')?file.split('/')[0]:file;
     if(!groups.has(key))groups.set(key,createHash('sha256'));

@@ -19,6 +19,9 @@ try{
   execFileSync('tar',['-x','-C',stage],{input:archive});
   await mkdir(join(stage,'.vercel'));
   await writeFile(join(stage,'.vercel/project.json'),JSON.stringify(project));
+  // Vercel rewrites vercel.json while preparing its builders. Preserve the exact
+  // committed input for the cloud fingerprint; never hash that generated config.
+  await writeFile(join(stage,'release-source-config.json'),await readFile(join(stage,'vercel.json')));
   console.log('Testing and deploying committed source '+commit+(dirty?' (local edits excluded)':''));
   run('npm',['ci']);
   run('npm',['run','update:exchange-rate']);
