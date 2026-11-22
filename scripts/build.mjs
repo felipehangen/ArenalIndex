@@ -22,5 +22,5 @@ await rm(output,{recursive:true,force:true});await mkdir(output,{recursive:true}
 await cp(source,output,{recursive:true});
 const rate=validateSnapshot(JSON.parse(await readFile(new URL('exchange-rate.json',source),'utf8')));
 await writeFile(new URL('exchange-rate.js',output),'/* Daily BCCR snapshot. */\nwindow.ArenalExchangeRate=Object.freeze('+JSON.stringify(rate)+');\n');
-await writeFile(new URL('release.json',output),JSON.stringify({runtimeDigest:await runtimeDigest(fileURLToPath(root).replace(/\/$/,''))})+'\n');
+await writeFile(new URL('release.json',output),JSON.stringify({runtimeDigest:await runtimeDigest(fileURLToPath(root).replace(/\/$/,''),{diagnose:true})})+'\n');
 console.log('Built dist/ with the public Supabase catalog configuration.');

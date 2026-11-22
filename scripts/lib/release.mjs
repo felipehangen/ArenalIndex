@@ -4,7 +4,7 @@ import {join} from 'node:path';
 
 // Compare executable source rather than Git SHAs so documentation-only commits
 // and the daily exchange-rate refresh do not require an API redeployment.
-export async function runtimeDigest(root){
+export async function runtimeDigest(root,{diagnose=false}={}){
   const files=['package.json','package-lock.json','vercel.json','scripts/build.mjs','scripts/lib/release.mjs','scripts/lib/exchange-rate.mjs'];
   for(const directory of ['api','server','site']){
     const entries=await readdir(join(root,directory),{recursive:true,withFileTypes:true});
@@ -16,8 +16,15 @@ export async function runtimeDigest(root){
       if(!['site/exchange-rate.json','site/exchange-rate.js','site/CNAME','site/.nojekyll','site/vendor/QR-CODE-LICENSE.txt'].includes(relative)&&!relative.endsWith('.md')&&entry.name!=='.DS_Store')files.push(relative);
     }
   }
-  const hash=createHash('sha256');
-  for(const file of files.sort())hash.update(file+'\0').update(await readFile(join(root,file))).update('\0');
+  const hash=createHash('sha256'),groups=new Map();
+  for(const file of files.sort()){
+    const bytes=await readFile(join(root,file));
+    hash.update(file+'\0').update(bytes).update('\0');
+    const key=file.includes('/')?file.split('/')[0]:file;
+    if(!groups.has(key))groups.set(key,createHash('sha256'));
+    groups.get(key).update(file+'\0').update(bytes).update('\0');
+  }
+  if(diagnose)console.log('Release input hashes: '+JSON.stringify(Object.fromEntries([...groups].map(([key,value])=>[key,value.digest('hex')]))));
   return hash.digest('hex');
 }
 
