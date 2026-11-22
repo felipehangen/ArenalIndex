@@ -2,7 +2,7 @@ import * as blob from '@vercel/blob';
 import {createHash} from 'node:crypto';
 import {analyticsStore} from '../analytics/store.mjs';
 import {storageRequest} from './storage-request.mjs';
-import {inspectImage,optimizePhoto,publicPhotoPath} from './images.mjs';
+import {inspectImage,optimizePhoto,publicPhotoPath,isPublicPhoto} from './images.mjs';
 
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const conflict=error=>error instanceof blob.BlobPreconditionFailedError||/already exists/i.test(error.message);
@@ -152,13 +152,20 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now,timeoutMs,
     },
     uploadURL(path,file){return signed('files/'+path,'put',file);},
     downloadURL(path){return signed('files/'+path,'get');},
+    async publicPhotoContent(file){
+      if(!isPublicPhoto(file))throw Object.assign(Error('La foto pública necesita preparación.'),{status:422});
+      const bytes=await imageBytes(file.path,file);
+      if(!bytes)throw Error('Public photo unavailable');
+      return bytes;
+    },
     async publicPhoto(path,file){
       const outputPath=publicPhotoPath(path);
       const cached=await run('read-photo','files',async signal=>{
         const result=await sdk.get('files/'+outputPath,readOptions(signal));
         if(!result)return null;
         await result.stream.cancel();
-        return result.blob.contentType==='image/jpeg'&&result.blob.size>0?{path:outputPath,type:'image/jpeg',size:result.blob.size}:null;
+        const photo={path:outputPath,type:result.blob.contentType,size:result.blob.size};
+        return isPublicPhoto(photo)?photo:null;
       },{retry:true});
       if(cached)return cached;
       const bytes=await imageBytes(path,file);

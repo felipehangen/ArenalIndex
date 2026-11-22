@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "buildCommand": "npm test && npm run build",
   "outputDirectory": "dist",
   "functions": {
     "api/admin.mjs": {
@@ -30,6 +31,10 @@
     }
   },
   "headers": [
+    {
+      "source": "/release.json",
+      "headers": [{"key":"Cache-Control","value":"no-store"}]
+    },
     {
       "source": "/cuenta/(.*)",
       "headers": [

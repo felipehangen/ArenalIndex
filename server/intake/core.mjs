@@ -1,6 +1,7 @@
 import {validateDraft,pending,buyerCopy,knownConcerns,validSignature,reference,normalizeReview} from '../../site/newlisting/model.mjs';
 import {createPublication} from './publication.mjs';
 import {shareURL} from '../sharing/links.mjs';
+import {isPublicPhoto} from './images.mjs';
 export const digest=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),b=>b.toString(16).padStart(2,'0')).join('');
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const summary=row=>({status:row.status,version:row.version,editRevision:row.edit_revision||0,feedback:row.feedback||'',notificationSent:row.notification_sent===true,publishedVersion:row.publication?.version||null,publicationRevision:row.publication_revision||0});
@@ -113,7 +114,11 @@ export function createHandler({repository,mailer,config,now=()=>new Date(),autho
           try{publication=createPublication({...row,...approval},body.editorial||{},{apiURL:config.publicAPIURL,date:now().toISOString()});}catch(error){fail(422,error.message);}
           // Every publication uses a server-generated, metadata-free image, even
           // for older drafts or clients that skipped browser-side optimization.
-          for(const [photoId,file] of Object.entries(publication.media))publication.media[photoId]=await repository.publicPhoto(file.path,file);
+          for(const [photoId,file] of Object.entries(publication.media)){
+            const photo=await repository.publicPhoto(file.path,file);
+            if(!isPublicPhoto(photo))fail(422,'No se pudo preparar una foto para publicar. Volvé a guardar la ficha.');
+            publication.media[photoId]=photo;
+          }
           if(action==='preview_publication'){
             const images=new Map();
             for(const group of publication.listing.details.photoGroups)for(const photo of group.photos){const url=await repository.downloadURL(publication.media[photo.id].path);images.set(photo.src,url);photo.src=url;}

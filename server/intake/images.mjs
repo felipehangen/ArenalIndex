@@ -2,6 +2,9 @@ import sharp from 'sharp';
 import {checkDimensions,IMAGE_MAX_PIXELS,PHOTO_MAX_EDGE,PHOTO_TARGET_BYTES} from '../../site/newlisting/photo-policy.mjs';
 
 const formats={'image/jpeg':'jpeg','image/png':'png','image/webp':'webp'};
+// Stay comfortably below the serverless response limit, including transport overhead.
+export const MAX_PUBLIC_PHOTO_BYTES=2*1024*1024;
+export const isPublicPhoto=file=>file?.type==='image/jpeg'&&typeof file.path==='string'&&file.path.endsWith('/web-v1.jpg')&&Number.isInteger(file.size)&&file.size>0&&file.size<=MAX_PUBLIC_PHOTO_BYTES;
 const invalid=()=>Object.assign(Error('No se pudo comprobar la imagen. Usá otra copia JPG, PNG o WebP.'),{status:422});
 const pipeline=bytes=>sharp(bytes,{limitInputPixels:IMAGE_MAX_PIXELS,failOn:'warning',sequentialRead:true});
 async function metadata(bytes,type){
@@ -26,6 +29,7 @@ export async function optimizePhoto(bytes,type){
       result=await pipeline(bytes).rotate().resize({width:PHOTO_MAX_EDGE,height:PHOTO_MAX_EDGE,fit:'inside',withoutEnlargement:true}).flatten({background:'#fff'}).jpeg({quality,mozjpeg:true}).toBuffer();
       if(result.length<=PHOTO_TARGET_BYTES)break;
     }
+    if(result.length>MAX_PUBLIC_PHOTO_BYTES)throw invalid();
     return result;
   }catch{throw invalid();}
 }

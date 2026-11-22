@@ -26,7 +26,13 @@ export function publicAccountProfile(account){
 }
 export async function publicAccountPage(repository,key,{catalog}={}){
   if(!/^[a-z0-9][a-z0-9-]{0,99}$/.test(key||''))return null;
-  const matches=(await repository.ownerAccounts()).filter(account=>publicAccountKey(account)===key||account.public_slug===key);
+  // Reserved slugs resolve in two keyed reads. The earlier opaque account links
+  // still use the legacy scan; never fall back after a stale/mismatched reservation.
+  const reservation=repository.portalGet?await repository.portalGet('account-slugs',hash(key)):null;
+  const candidate=reservation&&await repository.portalGet('accounts',hash(reservation.subject));
+  const matches=reservation?(reservation.slug===key&&candidate?.public_slug===key?[candidate]:[]):
+    repository.portalGet&&!/^a-[a-f0-9]{24}$/.test(key)?[]:
+    (await repository.ownerAccounts()).filter(account=>publicAccountKey(account)===key||account.public_slug===key);
   if(matches.length!==1)return null;
   const account=matches[0],profile=publicAccountProfile(account);
   if(!profile)return null;

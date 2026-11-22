@@ -2,6 +2,7 @@ name: Publish Arenal Index
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
   schedule:
     # 06:17 Costa Rica; 09:17 retries an unsuccessful morning rate update.
@@ -10,7 +11,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   build:
@@ -25,8 +26,12 @@ jobs:
       - run: npm test
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
         with:
           path: dist
+      - name: Require matching production API release
+        if: github.ref == 'refs/heads/main'
+        run: node scripts/check-release.mjs
   deploy:
     if: github.ref == 'refs/heads/main'
     needs: build

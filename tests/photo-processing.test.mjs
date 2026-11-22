@@ -96,6 +96,9 @@ test('private storage validates real contents and creates immutable public deriv
   const repository=createRepository({sdk}),file={size:original.length,type:'image/jpeg'};
   assert.ok(await repository.inspectFile('property/1/photo',file));
   const result=await repository.publicPhoto('property/1/photo',file);assert.equal(result.path,'property/1/photo/web-v1.jpg');
+  assert.deepEqual(await repository.publicPhotoContent(result),rows.get('files/'+result.path).data);
+  await assert.rejects(repository.publicPhotoContent({path:'property/1/photo',...file}),{status:422});
+  await assert.rejects(repository.publicPhotoContent({...result,size:3*1024*1024}),{status:422});
   assert.deepEqual(await repository.publicPhoto('property/1/photo',file),result);assert.equal(writes.length,1);assert.equal(rows.get('files/property/1/photo').data,original);
   const info=await sharp(rows.get('files/'+result.path).data).metadata();assert.equal(info.height,2000);assert.equal(info.width,1333);assert.equal(info.exif,undefined);
   rows.set('files/broken',{data:original.subarray(0,500),type:'image/jpeg'});

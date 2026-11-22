@@ -1,11 +1,13 @@
 import {publicAccountPage} from '../portal/public-page.mjs';
 import {recordInventory} from '../analytics/core.mjs';
 import {withShareURL} from '../sharing/links.mjs';
+import {isPublicPhoto} from './images.mjs';
+import {catalogCache,photoCache} from './public-cache.mjs';
 let lastSnapshot=0;
 export function createPublicHandler(repository,{catalog,defer}={}){
   return async request=>{
     const headers={'Access-Control-Allow-Origin':'*','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
-    const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{...headers,'Content-Type':'application/json'}});
+    const json=(body,status=200)=>new Response(request.method==='HEAD'?null:JSON.stringify(body),{status,headers:{...headers,...(status===200?{'Cache-Control':catalogCache}:{}),'Content-Type':'application/json'}});
     if(!['GET','HEAD'].includes(request.method))return json({error:'Método no permitido.'},405);
     try{
       const url=new URL(request.url),id=url.searchParams.get('id'),photo=url.searchParams.get('photo');
@@ -14,8 +16,13 @@ export function createPublicHandler(repository,{catalog,defer}={}){
         const publication=(await repository.get(id))?.publication;
         const file=publication?.media[photo];
         if(!file||String(publication.version)!==url.searchParams.get('version')||!['image/jpeg','image/png','image/webp'].includes(file.type))return json({error:'No disponible.'},404);
+        if(isPublicPhoto(file)){
+          const bytes=request.method==='HEAD'?null:await repository.publicPhotoContent(file);
+          return new Response(bytes,{headers:{...headers,'Content-Type':'image/jpeg','Content-Length':String(file.size),'Cache-Control':photoCache}});
+        }
         // Delegate only this published image. Direct storage delivery also supports
-        // the intake's 12 MB files without passing them through a function response.
+        // legacy originals until their existing publication is prepared. Private
+        // documents never enter publication.media and never get public cache headers.
         const location=await repository.downloadURL(file.path);
         return new Response(null,{status:307,headers:{...headers,Location:location}});
       }
