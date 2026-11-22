@@ -124,8 +124,9 @@ test('clean collection paths load directly and use absolute assets under the Ver
     const path=node.getAttribute('src')||node.getAttribute('href');assert.match(path,/^(\/|https:)/);
   }
   const config=JSON.parse(fs.readFileSync(new URL('../vercel.json',import.meta.url),'utf8'));
-  assert.ok(config.rewrites.some(route=>route.source.startsWith('/collection/:slug')&&route.destination==='/index.html'));
-  assert.ok(config.rewrites.some(route=>route.source.startsWith('/collection/:slug')&&route.source.endsWith('/')&&route.destination==='/index.html'));
+  const route='/collection/:slug([a-z0-9][a-z0-9-]{0,99})';
+  for(const suffix of ['', '/'])assert.equal(config.rewrites.find(entry=>entry.source===route+suffix)?.destination,'/api/share?collection=:slug');
+  assert.equal(config.rewrites.find(entry=>entry.source===route+'/image.jpg')?.destination,'/api/share?collection=:slug&image=1');
 });
 
 test('saving within an account preserves favorites belonging to other accounts',()=>{

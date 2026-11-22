@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import {parseHTML} from 'linkedom';
 import {shareCode,legacyShareCode,shareURL,propertyURL} from '../server/sharing/links.mjs';
 import {createShareHandler,renderSharePage} from '../server/sharing/core.mjs';
+import {createCollectionShareHandler} from '../server/sharing/collection.mjs';
 import {fetchCover,publicCoverURL,renderShareImage} from '../server/sharing/image.mjs';
 import {createPublicHandler} from '../server/intake/public.mjs';
 
@@ -145,4 +146,59 @@ test('public catalog and contact/share UI use the canonical URL, preserving lega
   for(const invalid of ['https://evil.example/p/1234567890',shareURL(row.id,origin)+'?token=secret','javascript:alert(1)']){
     const legacy=window.ArenalData.normalize({...published,shareUrl:invalid});assert.equal(window.ArenalListing.publicURL(legacy),propertyURL(row.id));
   }
+});
+
+test('collection URLs keep the explorer and expose broker and photo metadata before scripts run',async()=>{
+  const url=origin+'/collection/homes/';
+  let listings=[{...row,is_demo:true,images:['/photos/demo.jpg']},row];
+  const loaded=[],rendered=[];
+  const handler=createCollectionShareHandler({
+    origin,
+    publicCollection:async slug=>{
+      assert.equal(slug,'homes');
+      return {account:{name:'Homes <Arenal> & Co. $&',email:'PRIVATE'},listings};
+    },
+    fetchImage:async cover=>{loaded.push(cover);return Buffer.from('cover');},
+    renderImage:async(bytes,options)=>{rendered.push([bytes?.toString(),options.demo]);return Buffer.from('jpeg');}
+  });
+  const response=await handler(new Request(url.slice(0,-1)));
+  assert.equal(response.status,200);
+  const html=await response.text(),{document}=parseHTML(html);
+  const meta=name=>document.querySelector(`[property="${name}"]`)?.getAttribute('content');
+  assert.equal(meta('og:title'),'Terrenos en La Fortuna · Homes <Arenal> & Co. $&');
+  assert.equal(meta('og:url'),url);
+  assert.match(meta('og:image'),/\/collection\/homes\/image\.jpg\?v=[a-f0-9]{12}$/);
+  assert.equal(document.querySelector('link[rel="canonical"]').href,url);
+  assert.ok(document.querySelector('#account-identity'));
+  assert.doesNotMatch(html,/PRIVATE|50688889999/);
+  const imageURL=meta('og:image');
+  assert.equal((await handler(new Request(imageURL,{method:'HEAD'}))).headers.get('content-type'),'image/jpeg');
+  assert.equal(loaded.length,0);
+  assert.equal(await (await handler(new Request(imageURL))).text(),'jpeg');
+  assert.deepEqual(loaded,[row.images[0]]);
+  assert.deepEqual(rendered,[['cover',false]]);
+  listings=listings.slice(0,1);
+  assert.match(await (await handler(new Request(url))).text(),/Colección de demostración/);
+  await handler(new Request(imageURL));
+  assert.deepEqual(rendered.at(-1),['cover',true]);
+  assert.equal(loaded.at(-1),'/photos/demo.jpg');
+});
+
+test('missing, empty and unavailable collections cannot borrow a listing image',async()=>{
+  const url=origin+'/collection/homes/',loaded=[];
+  let state=null;
+  const handler=createCollectionShareHandler({
+    origin,publicCollection:async()=>{if(state instanceof Error)throw state;return state;},
+    fetchImage:async cover=>{loaded.push(cover);throw Error('Photo unavailable');},
+    renderImage:async(bytes,options)=>{assert.equal(bytes,null);assert.equal(options.demo,false);return Buffer.from('placeholder');}
+  });
+  assert.equal((await handler(new Request(url))).status,404);
+  assert.equal((await handler(new Request(url+'image.jpg'))).status,404);
+  state=new Error('Collection unavailable');
+  assert.equal((await handler(new Request(url))).status,503);
+  state={account:{name:'Homes'},listings:[{...row,images:['https://unrelated.example/not-public.jpg']},{...row,is_demo:true}]};
+  assert.equal(await (await handler(new Request(url+'image.jpg'))).text(),'placeholder');
+  assert.deepEqual(loaded,[]);
+  state.listings=[row];
+  assert.equal((await handler(new Request(url+'image.jpg'))).status,503);
 });

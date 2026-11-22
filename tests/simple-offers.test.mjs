@@ -4,6 +4,7 @@ import {portalFixture,hash} from './portal-fixture.mjs';
 import {shareURL} from '../server/sharing/links.mjs';
 import {offerToken} from '../server/offers/links.mjs';
 import {blankSimpleOffer,simpleNoticeVersion} from '../site/offer/model.mjs';
+import {createMailer} from '../server/intake/services.mjs';
 const valid=name=>({...blankSimpleOffer('USD'),name,contact:name.toLowerCase()+'@example.test',amount:'150000'});
 async function setup(){
   const e=portalFixture(),admin=await e.adminSession();await e.register('broker-a',admin);await e.register('broker-b',admin);const a=(await e.login('broker-a')).body.token,b=(await e.login('broker-b')).body.token,subject=e.auth.get('owner-session/'+hash(a)).subject;
@@ -27,11 +28,47 @@ test('two buyers use one link but get separate offers and private receipts; shar
   const receiptToken=new URL(alice.body.receiptURL).hash.slice(1),copy=await e.call('offer_receipt',{token:receiptToken});assert.equal(copy.status,200);assert.equal(copy.body.versions[0].offer.name,'Alice');assert.doesNotMatch(JSON.stringify(copy.body),/Bob/);
   assert.equal((await e.call('offer_receipt',{token:e.token})).status,404);assert.equal((await e.call('offer_form_open',{token:receiptToken})).status,404);
   assert.equal((await e.call('offers_list',{},e.a)).body.records.length,2);assert.deepEqual((await e.call('offers_list',{},e.b)).body.records,[]);
-  const latest=alice.body.versions[0];assert.equal(latest.validUntil,null);assert.equal('funding' in latest.offer,false);assert.equal('deposit' in latest.offer,false);assert.equal(latest.noticeVersion,simpleNoticeVersion);assert.equal(e.emails.length,0);
+  const latest=alice.body.versions[0];assert.equal(latest.validUntil,null);assert.equal('funding' in latest.offer,false);assert.equal('deposit' in latest.offer,false);assert.equal(latest.noticeVersion,simpleNoticeVersion);assert.deepEqual(e.emails.map(m=>m.recipient),['broker-a@gmail.com','broker-a@gmail.com']);assert.equal(e.emails[0].url,'https://arenalindex.com/cuenta/#ofertas');
 });
 test('retries, including simultaneous retries, save exactly one receipt and never silently replace an earlier offer',async()=>{
   const e=await setup(),results=await Promise.all([e.send(),e.send()]);assert.ok(results.every(r=>r.status===200));assert.equal(results[0].body.id,results[1].body.id);assert.equal((await e.call('offers_list',{},e.a)).body.records.length,1);
-  const changed=await e.send('Alice',{offer:{...valid('Alice'),amount:'170000'}});assert.equal(changed.status,200);assert.equal(changed.body.alreadySent,true);assert.equal(changed.body.versions[0].offer.amount,'150000');
+  const changed=await e.send('Alice',{offer:{...valid('Alice'),amount:'170000'}});assert.equal(changed.status,200);assert.equal(changed.body.alreadySent,true);assert.equal(changed.body.versions[0].offer.amount,'150000');assert.equal(e.emails.length,1);
+});
+test('a mail outage preserves the offer and a replay retries the same notification',async()=>{
+  const e=await setup(),keys=[];
+  e.options.mailer.sendOfferNotice=async message=>{keys.push(message.idempotencyKey);throw Error('Offline');};
+  const submitted=await e.send();assert.equal(submitted.status,200);
+  e.options.mailer.sendOfferNotice=async message=>{keys.push(message.idempotencyKey);e.emails.push(message);};
+  assert.equal((await e.send()).body.id,submitted.body.id);
+  assert.equal(new Set(keys).size,1);assert.equal(e.emails.length,1);
+});
+test('older offers never send retroactive notifications and notification state stays private',async()=>{
+  const e=await setup(),sent=await e.send();
+  const stored=e.portal.get('offers/'+sent.body.id);
+  assert.equal(stored.emailState,'sent');
+  assert.doesNotMatch(JSON.stringify(sent.body),/emailState|emailAttemptAt/);
+  delete stored.emailState;delete stored.emailAttemptAt;
+  e.emails.length=0;
+  assert.equal((await e.send()).status,200);
+  assert.equal(e.emails.length,0);
+});
+test('notification mail targets only the broker, escapes public copy and preserves delivery identity',async()=>{
+  const calls=[];
+  const mailer=createMailer({key:'test-key',from:'ArenalIndex <team@example.test>',to:'review@example.test',fetcher:async(url,options)=>{
+    calls.push({url,...options,payload:JSON.parse(options.body)});return Response.json({id:'test-message'});
+  }});
+  await mailer.sendOfferNotice({recipient:'broker@example.test',property:'House <script> & garden',amount:'USD 150,000',url:'https://arenalindex.com/cuenta/#ofertas',idempotencyKey:'broker-offer-test'});
+  const sent=calls[0];
+  assert.equal(sent.url,'https://api.resend.com/emails');
+  assert.deepEqual(sent.payload.to,['broker@example.test']);
+  assert.equal(sent.payload.from,'ArenalIndex <team@example.test>');
+  assert.equal(sent.headers['Idempotency-Key'],'broker-offer-test');
+  assert.match(sent.payload.html,/House &lt;script&gt; &amp; garden/);
+  assert.doesNotMatch(sent.payload.html,/<script>/);
+  assert.match(sent.payload.text,/https:\/\/arenalindex.com\/cuenta\/#ofertas/);
+  await mailer.send({title:'Review',version:1,fileCount:2,url:'https://example.test/review',idempotencyKey:'review-test'});
+  assert.deepEqual(calls[1].payload.to,['review@example.test']);
+  assert.equal(calls[1].headers['Idempotency-Key'],'review-test');
 });
 test('short form validates contact and amount, requires reviewed terms, and rejects stale property details',async()=>{
   const e=await setup();

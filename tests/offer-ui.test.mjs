@@ -9,6 +9,26 @@ import {mountBrokerResources} from '../site/cuenta/resources.mjs';
 import {blankSimpleOffer,simpleNotice,blankOffer} from '../site/offer/model.mjs';
 import {proposalSummary,propertyStage} from '../site/offer/view.mjs';
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
+test('broker notification links open Offers after sign-in and refresh the inbox only once',async()=>{
+  for(const hash of ['#ofertas','']){
+    const {document,window}=parseHTML(fs.readFileSync(new URL('../site/cuenta/index.html',import.meta.url),'utf8'));
+    window.location={hash};window.ArenalI18n={language:'en'};
+    let signedIn,refreshes=0;
+    const source=fs.readFileSync(new URL('../site/cuenta/app.mjs',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
+    vm.runInNewContext(source,{
+      document,window,client:{},mountBrokerResources,
+      mountOffers(){
+        document.querySelector('[data-owner-panel="offers"]').addEventListener('click',()=>refreshes++);
+        return {setIdentity(){},setListings(){},refresh(){refreshes++;}};
+      },
+      mountAdmin(options){signedIn=options.onSignedIn;return {};}
+    });
+    signedIn({email:'broker@example.test'});
+    assert.equal(refreshes,1);
+    assert.equal(document.querySelector('#offers-panel').hidden,hash!=='#ofertas');
+    assert.equal(document.querySelector('[data-owner-panel="offers"]').getAttribute('aria-current'),hash==='#ofertas'?'page':null);
+  }
+});
 const token='listing.'+'a'.repeat(64)+'.'+'b'.repeat(64),receiptToken='receipt.'+'c'.repeat(64)+'.'+'d'.repeat(64);
 const record=()=>({property:{id:'lake-house',images:['/photos/lot.jpg','/photos/garden-volcano.jpg'],contact:{whatsapp:'50688887777'},name:'Lake <House>',titles:{en:'Lake <House>',es:'Casa del lago'},place:'La Fortuna',currency:'USD',price:180000,area:1000,image:'/photos/lot.jpg',isDemo:true},broker:'Broker <Arenal>',propertyVersion:'a'.repeat(64)});
 function dom(path){

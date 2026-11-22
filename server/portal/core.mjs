@@ -22,7 +22,7 @@ export function createOwnerHandler({repository,catalog,verifyGoogle,config,maile
       const raw=await request.text();if(raw.length>250000)fail(413,'Solicitud demasiado grande.');
       const body=JSON.parse(raw);if(!body||typeof body!=='object'||Array.isArray(body))fail(400,'Solicitud inválida.');
       const action=body.action;
-      if(['offer_form_open','offer_form_submit','offer_receipt'].includes(action))return json(await simpleOfferAction({action,body,repository,catalog,config,now,request}));
+      if(['offer_form_open','offer_form_submit','offer_receipt'].includes(action))return json(await simpleOfferAction({action,body,repository,catalog,config,now,request,mailer}));
       if(['offer_open','offer_submit'].includes(action))return json(await publicOfferAction({action,body,repository,catalog,config,now,request}));
       if(action==='config')return json({configured:!!config.googleClientId,clientId:config.googleClientId||null,passwordEnabled:true});
       const startSession=async(account,method)=>{

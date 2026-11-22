@@ -10,6 +10,7 @@ const controller=mountAdmin({
   onSignedIn(identity){
     resources.setIdentity(identity);
     offers.setIdentity(identity);
-    offers.refresh();
+    if(window.location.hash==='#ofertas')document.querySelector('[data-owner-panel="offers"]').click();
+    else offers.refresh();
   }
 });

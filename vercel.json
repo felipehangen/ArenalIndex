@@ -26,7 +26,7 @@
     },
     "api/share.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/sharing/**,server/intake/**,server/catalog/**,server/analytics/**,site/newlisting/photo-policy.mjs}"
+      "includeFiles": "{server/sharing/**,server/intake/**,server/catalog/**,server/analytics/**,server/portal/public-page.mjs,site/index.html,site/newlisting/photo-policy.mjs}"
     }
   },
   "headers": [
@@ -142,12 +142,16 @@
       "destination": "/api/share?code=:code"
     },
     {
+      "source": "/collection/:slug([a-z0-9][a-z0-9-]{0,99})/image.jpg",
+      "destination": "/api/share?collection=:slug&image=1"
+    },
+    {
       "source": "/collection/:slug([a-z0-9][a-z0-9-]{0,99})",
-      "destination": "/index.html"
+      "destination": "/api/share?collection=:slug"
     },
     {
       "source": "/collection/:slug([a-z0-9][a-z0-9-]{0,99})/",
-      "destination": "/index.html"
+      "destination": "/api/share?collection=:slug"
     }
   ]
 }
