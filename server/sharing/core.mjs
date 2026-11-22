@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {shareCode,legacyShareCode,shareURL,shareOrigin,propertyURL,SITE_ORIGIN} from './links.mjs';
 import {fetchCover,publicCoverURL,renderShareImage} from './image.mjs';
+import {catalogCache} from '../intake/public-cache.mjs';
 
 const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const number=value=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(value);
@@ -46,15 +47,15 @@ export function createShareHandler({published,origin=shareOrigin(),fetchImage=fe
       if(!matches.length)return error(404,'Propiedad no disponible · Property unavailable');
       const row=matches[0];
       if(match[2]?.endsWith('/image.jpg')){
-        if(request.method==='HEAD')return new Response(null,{headers:{...headers,'Content-Type':'image/jpeg'}});
+        if(request.method==='HEAD')return new Response(null,{headers:{...headers,'Cache-Control':catalogCache,'Content-Type':'image/jpeg'}});
         const cover=row.images?.[0];
         const bytes=publicCoverURL(cover)?await fetchImage(cover):null;
         // Failed downloads are retryable errors, not cacheable placeholder photos.
         const image=await renderImage(bytes,{demo:row.is_demo===true,offer:match[2]==='/offer/image.jpg',language:row.details?.language});
-        return new Response(image,{headers:{...headers,'Content-Type':'image/jpeg','Content-Length':String(image.length)}});
+        return new Response(image,{headers:{...headers,'Cache-Control':catalogCache,'Content-Type':'image/jpeg','Content-Length':String(image.length)}});
       }
       const page=renderSharePage(row,origin,match[2]==='/offer');
-      return new Response(request.method==='HEAD'?null:page.html,{headers:{...headers,'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':page.csp}});
+      return new Response(request.method==='HEAD'?null:page.html,{headers:{...headers,'Cache-Control':catalogCache,'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':page.csp}});
     }catch{return error(503,'Intentá de nuevo · Please try again');}
   };
 }

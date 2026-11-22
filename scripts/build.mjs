@@ -3,6 +3,7 @@ import {validateSnapshot} from './lib/exchange-rate.mjs';
 import vm from 'node:vm';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {runtimeDigest} from './lib/release.mjs';
 const root=new URL('../',import.meta.url),source=new URL('site/',root),output=new URL('dist/',root);
 for(const file of await readdir(source,{recursive:true})){
   if(file.endsWith('.mjs'))execFileSync(process.execPath,['--check',fileURLToPath(new URL(file,source))],{stdio:'pipe'});
@@ -21,4 +22,5 @@ await rm(output,{recursive:true,force:true});await mkdir(output,{recursive:true}
 await cp(source,output,{recursive:true});
 const rate=validateSnapshot(JSON.parse(await readFile(new URL('exchange-rate.json',source),'utf8')));
 await writeFile(new URL('exchange-rate.js',output),'/* Daily BCCR snapshot. */\nwindow.ArenalExchangeRate=Object.freeze('+JSON.stringify(rate)+');\n');
+await writeFile(new URL('release.json',output),JSON.stringify({runtimeDigest:await runtimeDigest(fileURLToPath(root).replace(/\/$/,''))})+'\n');
 console.log('Built dist/ with the public Supabase catalog configuration.');

@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {fetchCover,publicCoverURL,renderShareImage} from './image.mjs';
+import {catalogCache} from '../intake/public-cache.mjs';
 
 export const collectionShareRoute=/^\/collection\/([a-z0-9][a-z0-9-]{0,99})(\/image\.jpg)?\/?$/;
 
@@ -46,7 +47,7 @@ export function createCollectionShareHandler({
 }){
   return async request=>{
     const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Robots-Tag':'noindex, follow'};
-    const content=(body,status,type)=>new Response(request.method==='HEAD'?null:body,{status,headers:{...headers,'Content-Type':type}});
+    const content=(body,status,type)=>new Response(request.method==='HEAD'?null:body,{status,headers:{...headers,...(status===200?{'Cache-Control':catalogCache}:{}),'Content-Type':type}});
     if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405,headers:{...headers,Allow:'GET, HEAD'}});
     const match=new URL(request.url).pathname.match(collectionShareRoute);
     const plain='text/plain; charset=utf-8',html='text/html; charset=utf-8';

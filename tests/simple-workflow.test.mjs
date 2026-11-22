@@ -35,6 +35,8 @@ test('photo preparation failure and a racing reopen cannot approve or replace th
   e.repository.publicPhoto=async()=>{throw Error('Storage unavailable');};
   assert.equal((await e.run()).status,500);assert.deepEqual(e.rows.get(e.row.id),before);
   e.repository.publicPhoto=async(path,file)=>({...file,path});
+  assert.equal((await e.run()).status,422);assert.deepEqual(e.rows.get(e.row.id),before);
+  e.repository.publicPhoto=async(path,file)=>({...file,path:path+'/web-v1.jpg',type:'image/jpeg'});
   e.repository.ensurePublishedIndex=async()=>{e.row.status='draft';e.row.edit_revision++;e.row.review_token_hash=null;};
   assert.equal((await e.run()).status,409);assert.deepEqual(e.row.publication,before.publication);assert.deepEqual(e.row.review,{});assert.equal(e.row.status,'draft');
 });

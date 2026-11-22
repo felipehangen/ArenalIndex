@@ -3,14 +3,27 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {parseHTML} from 'linkedom';
-import {publicAccountKey,publicAccountProfile,ensureAccountSlug} from '../server/portal/public-page.mjs';
+import {publicAccountKey,publicAccountProfile,ensureAccountSlug,publicAccountPage} from '../server/portal/public-page.mjs';
 import {createPublicHandler} from '../server/intake/public.mjs';
 import {portalFixture} from './portal-fixture.mjs';
 import {sampleListing} from './publication-fixture.mjs';
+import {catalogCache} from '../server/intake/public-cache.mjs';
 
 const account={subject:'private-subject',email:'private@example.com',name:'Arenal Homes',active:true,password:{hash:'PRIVATE-PASSWORD'}};
 const key=publicAccountKey(account);
 const request=(handler,value=key)=>handler(new Request('https://api.example/api/listings?catalog=1&account='+value));
+
+test('reserved collection slugs use keyed reads and reject stale reservations without scanning all accounts',async()=>{
+  const e=portalFixture(),entry={...account};
+  await e.repository.portalCreate('accounts',await import('node:crypto').then(({createHash})=>createHash('sha256').update(entry.subject).digest('hex')),entry);
+  const assigned=await ensureAccountSlug(e.repository,entry);
+  e.repository.ownerAccounts=async()=>{throw Error('Must not scan accounts for a slug');};
+  assert.equal((await publicAccountPage(e.repository,assigned.public_slug)).account.name,account.name);
+  assert.equal(await publicAccountPage(e.repository,'unknown-broker'),null);
+  const stored=[...e.portal.values()].find(value=>value.email===account.email);
+  stored.active=false;assert.equal(await publicAccountPage(e.repository,assigned.public_slug),null);
+  stored.active=true;stored.public_slug='different';assert.equal(await publicAccountPage(e.repository,assigned.public_slug),null);
+});
 
 test('public account key is stable across name and email changes; inactive and unnamed profiles are hidden',()=>{
   assert.equal(publicAccountKey({...account,name:'New name',email:'new@example.com'}),key);
@@ -33,7 +46,7 @@ test('public endpoint scopes all pages by immutable ownership and returns only c
   },published:async()=>{throw Error('Must not fetch full catalog');}};
   const handler=createPublicHandler(repository,{catalog:{published:async subject=>{assert.equal(subject,account.subject);return [];}}});
   const response=await request(handler),data=await response.json();
-  assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'no-store');
+  assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),catalogCache);
   assert.deepEqual(data.listings.map(row=>row.id),[listing.id,'second-property']);
   assert.deepEqual(calls,[[account.subject,undefined],[account.subject,'next']]);
   const serialized=JSON.stringify(data);

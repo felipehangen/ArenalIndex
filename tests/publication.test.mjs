@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import fs from 'node:fs';
-import {createPublication} from '../server/intake/publication.mjs';
+import {createPublication,asDemoListing} from '../server/intake/publication.mjs';
+import {catalogCache,photoCache} from '../server/intake/public-cache.mjs';
 import {createPublicHandler} from '../server/intake/public.mjs';
 import {approvedRow,editorial,sampleListing} from './publication-fixture.mjs';
 const options={apiURL:'https://api.example/api/listings'};
@@ -47,6 +48,39 @@ test('public media reads require the currently published photo/version and rejec
   const photo=publication.listing.images[0],response=await handler(new Request(photo));assert.equal(response.status,307);assert.equal(response.headers.get('Location'),'https://storage.example/approved-photo');
   for(const url of [photo.replace('view-1','plan-1'),photo.replace('version=2','version=1'),photo.replace('view-1','..%2Fplan-1')])assert.equal((await handler(new Request(url))).status,404);
   current={};assert.equal((await handler(new Request(photo))).status,404);assert.equal(reads.length,1);
+});
+
+test('optimized public photos are bounded cacheable JPEGs; withdrawals, versions and failures remain protected',async()=>{
+  const publication=createPublication(approvedRow(),editorial,options);
+  const bytes=Buffer.from([255,216,255,0,128,255,217]);
+  publication.media['view-1']={path:'record/2/view-1/web-v1.jpg',type:'image/jpeg',size:bytes.length};
+  let current={publication},reads=0,offline=false;
+  const handler=createPublicHandler({get:async()=>current,published:async()=>[publication.listing],publicPhotoContent:async file=>{
+    reads++;assert.equal(file.path,publication.media['view-1'].path);if(offline)throw Error('Offline');return bytes;
+  }});
+  const url=publication.listing.images[0];
+  const photo=await handler(new Request(url));
+  assert.equal(photo.status,200);assert.equal(photo.headers.get('cache-control'),photoCache);
+  assert.equal(photo.headers.get('content-type'),'image/jpeg');assert.equal(photo.headers.get('location'),null);
+  assert.deepEqual(Buffer.from(await photo.arrayBuffer()),bytes);
+  const head=await handler(new Request(url,{method:'HEAD'}));assert.equal(head.status,200);assert.equal(await head.text(),'');assert.equal(reads,1);
+  const list=await handler(new Request('https://api.example/api/listings'));
+  assert.equal(list.headers.get('cache-control'),catalogCache);
+  const missing=await handler(new Request(url.replace('view-1','plan-1')));
+  assert.equal(missing.status,404);assert.equal(missing.headers.get('cache-control'),'no-store');
+  assert.equal((await handler(new Request(url.replace('version=2','version=1')))).status,404);
+  offline=true;const failure=await handler(new Request(url));assert.equal(failure.status,503);assert.equal(failure.headers.get('cache-control'),'no-store');
+  current={};assert.equal((await handler(new Request(url))).status,404);
+});
+
+test('classifying an existing public snapshot as a demo preserves inventory and never publishes draft changes',()=>{
+  const original=sampleListing(),before=structuredClone(original),demo=asDemoListing(original);
+  assert.deepEqual(original,before);assert.equal(demo.id,original.id);
+  for(const key of ['name','price','currency','area','images','lat','lng'])assert.deepEqual(demo[key],original[key]);
+  assert.equal(demo.is_demo,true);assert.equal(demo.approximate,true);
+  assert.equal(demo.details.reviewedAt,undefined);assert.equal(demo.details.publishedAt,undefined);
+  assert.match(demo.details.conditions[0],/No es una oferta de venta/);
+  assert.deepEqual(asDemoListing(demo),demo);
 });
 
 test('the standalone reviewer preview opens the real detail without a catalog list',async()=>{
