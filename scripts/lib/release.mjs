@@ -11,7 +11,9 @@ export async function runtimeDigest(root){
     for(const entry of entries)if(entry.isFile()){
       const parent=entry.parentPath||entry.path;
       const relative=join(parent,entry.name).slice(root.length+1).replaceAll('\\','/');
-      if(!['site/exchange-rate.json','site/exchange-rate.js'].includes(relative))files.push(relative);
+      // Vercel excludes Pages metadata and documentation from uploads. These
+      // files do not execute; keep all other assets (including future robots.txt).
+      if(!['site/exchange-rate.json','site/exchange-rate.js','site/CNAME','site/.nojekyll','site/vendor/QR-CODE-LICENSE.txt'].includes(relative)&&!relative.endsWith('.md')&&entry.name!=='.DS_Store')files.push(relative);
     }
   }
   const hash=createHash('sha256');

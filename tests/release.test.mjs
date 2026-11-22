@@ -13,6 +13,7 @@ test('release fingerprint catches frontend and API changes but permits daily rat
   for(const file of files)await writeFile(join(root,file),'initial');
   const original=await runtimeDigest(root);
   await writeFile(join(root,'site/exchange-rate.json'),'updated');await writeFile(join(root,'docs/note.md'),'updated');
+  await writeFile(join(root,'site/.nojekyll'),'');await writeFile(join(root,'site/CNAME'),'example.test');await writeFile(join(root,'site/README.md'),'Documentation');
   assert.equal(await runtimeDigest(root),original);
   for(const file of ['api/listings.mjs','site/index.html','package-lock.json']){
     await writeFile(join(root,file),'changed');assert.notEqual(await runtimeDigest(root),original);await writeFile(join(root,file),'initial');
