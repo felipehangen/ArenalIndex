@@ -21,7 +21,7 @@ Listing creation requires an authorized account and explicit acceptance of the l
 
 Broker accounts provide listing management, public collections, short links with sharing previews, QR codes, printable sheets, and an Offers inbox. Shared offer forms collect a nonbinding first proposal, give the buyer a private receipt, and notify the broker by email. Failed email delivery does not discard an offer. There is no scheduled email retry worker. Contact-click analytics are indicative and must not be used as verified leads or billing counts.
 
-Owner agreements are available under **Account → Agreements**. Brokers set a percentage or fixed commission, explicit IVA treatment, property details and term, review the document and email a private invitation. Owners accept explicitly without an account or certified signature. Saved terms and consent are immutable; each party receives a copy, with separate retry status for pending emails. Opening a link does not accept. [Agreement operations and limitations](docs/OWNER-AGREEMENTS-2026-11-22.md).
+Owner agreements are available under **Account → Agreements**. Brokers set a percentage or fixed commission, explicit IVA treatment and property details, review the document and email preview, then send a private invitation. New agreements have no fixed end date and can be ended anytime by email. Owners accept explicitly without an account or certified signature. Saved terms and consent are immutable; each party receives a confirmation linking to the saved copy, with separate retry status for pending emails. Full terms stay at the private link, with print/save PDF available. Opening a link does not accept. [Agreement operations and limitations](docs/OWNER-AGREEMENTS-2026-11-22.md).
 
 ## Architecture and caching
 
