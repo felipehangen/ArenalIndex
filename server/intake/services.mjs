@@ -1,3 +1,4 @@
+import {agreementEmail as agreementEmailV2} from '../agreements/email-v2.mjs';
 import {legacyAgreementEmail} from '../agreements/email-v1.mjs';
 import {agreementEmail} from '../../site/agreement/email.mjs';
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -15,7 +16,7 @@ export function createMailer({key,from,to,fetcher=fetch}){
   return {
     async sendAgreement(message){
       if(message.templateVersion===1)return deliver(legacyAgreementEmail(message),message.idempotencyKey,5000);
-      const {subject,text,html}=agreementEmail(message);
+      const {subject,text,html}=(message.templateVersion===2?agreementEmailV2:agreementEmail)(message);
       return deliver({to:[message.recipient],reply_to:message.replyTo,subject,text,html},message.idempotencyKey,5000);
     },
     async send(message){

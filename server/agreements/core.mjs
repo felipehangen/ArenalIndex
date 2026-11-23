@@ -26,7 +26,7 @@ async function deliver(row,kind,{repository,mailer,config,now}){
   row=await repository.portalGet('agreements',row.id);
   if(!row||kind==='invitation'&&row.state!=='sent'||kind!=='invitation'&&row.state!=='accepted')return;
   if(row[state]==='sent'||row[state]==='sending'&&now().getTime()-row[attempt]<60000)return;
-  const template=field+'Template',templateVersion=row[template]||(row[attempt]>0?1:2);
+  const template=field+'Template',templateVersion=row[template]||(row[attempt]>0?1:3);
   const claim={[state]:'sending',[attempt]:now().getTime(),[template]:templateVersion};
   const claimed=await mailUpdate(repository,row.id,{state:row.state,[state]:row[state],[attempt]:row[attempt]},claim);if(!claimed)return;
   try{

@@ -1,4 +1,4 @@
-import {mountAgreements} from './agreements.mjs?v=2';
+import {mountAgreements} from './agreements.mjs?v=3-brand';
 import {mountOffers} from './offers.mjs?v=6';
 import {mountAdmin} from '../admin/controller.mjs?v=18-owner-agreements';
 import {mountBrokerResources} from './resources.mjs?v=2';

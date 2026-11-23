@@ -1,4 +1,4 @@
-import {agreementEmail} from '../agreement/email.mjs?v=2';
+import {agreementEmail} from '../agreement/email.mjs?v=3-brand';
 import {blankAgreement,normalizeTerms,validateTerms,documentFor,termsVersion,feeLabel,feeExample,money} from '../agreement/model.mjs?v=2';
 import {esc,agreementPaper} from '../agreement/view.mjs?v=2';
 export function mountAgreements({document,window,api,onUnauthorized=()=>{}}){
