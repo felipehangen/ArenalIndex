@@ -26,11 +26,12 @@ async function deliver(row,kind,{repository,mailer,config,now}){
   row=await repository.portalGet('agreements',row.id);
   if(!row||kind==='invitation'&&row.state!=='sent'||kind!=='invitation'&&row.state!=='accepted')return;
   if(row[state]==='sent'||row[state]==='sending'&&now().getTime()-row[attempt]<60000)return;
-  const claim={[state]:'sending',[attempt]:now().getTime()};
+  const template=field+'Template',templateVersion=row[template]||(row[attempt]>0?1:2);
+  const claim={[state]:'sending',[attempt]:now().getTime(),[template]:templateVersion};
   const claimed=await mailUpdate(repository,row.id,{state:row.state,[state]:row[state],[attempt]:row[attempt]},claim);if(!claimed)return;
   try{
     const language=kind==='invitation'?row.terms.language:row.acceptance.language,document=row.documents[language];
-    await mailer.sendAgreement({recipient:kind==='broker'?row.brokerEmail:row.terms.ownerEmail,replyTo:kind==='broker'?row.terms.ownerEmail:row.brokerEmail,kind,language,property:row.terms.propertyName,broker:row.terms.brokerName,url:ownerURL(row,config),text:plainDocument(document),reference:row.id,version:row.termsVersion,termsHash:row.termsHash,acceptance:row.acceptance,acceptedAt:row.acceptedAt,expiresAt:row.expiresAt,idempotencyKey:'agreement-'+row.id+'-'+kind});
+    await mailer.sendAgreement({templateVersion,recipient:kind==='broker'?row.brokerEmail:row.terms.ownerEmail,replyTo:kind==='broker'?row.terms.ownerEmail:row.brokerEmail,kind,language,property:row.terms.propertyName,broker:row.terms.brokerName,url:ownerURL(row,config),text:plainDocument(document),terms:row.terms,owner:row.terms.ownerName,reference:row.id,version:row.termsVersion,termsHash:row.termsHash,acceptance:row.acceptance,acceptedAt:row.acceptedAt,expiresAt:row.expiresAt,idempotencyKey:'agreement-'+row.id+'-'+kind});
     await mailUpdate(repository,row.id,claim,{[state]:'sent'});
   }catch{
     await mailUpdate(repository,row.id,claim,{[state]:'pending'}).catch(()=>{});
@@ -92,7 +93,7 @@ export async function publicAgreementAction(options){
     if(JSON.stringify(row.acceptance)!==JSON.stringify(acceptance))fail(409,'Este acuerdo ya fue aceptado. Revisá la copia guardada.','This agreement has already been accepted. Review the saved copy.');
     await copies(row,options);
   }else{
-    const acceptedAt=now().toISOString(),endsAt=new Date(now().getTime()+Number(row.terms.durationDays)*86400000).toISOString();
+    const acceptedAt=now().toISOString(),endsAt=row.terms.durationDays==='ongoing'?null:new Date(now().getTime()+Number(row.terms.durationDays)*86400000).toISOString();
     const saved=await repository.portalUpdate('agreements',id,{state:'sent',termsHash:row.termsHash},{state:'accepted',acceptedAt,endsAt,acceptance});
     if(!saved){row=await repository.portalGet('agreements',id);if(row?.state!=='accepted'||JSON.stringify(row.acceptance)!==JSON.stringify(acceptance))fail(409,'El acuerdo cambió. Abrí el enlace nuevamente.','The agreement changed. Open the link again.');}else row=saved;
     await copies(row,options);

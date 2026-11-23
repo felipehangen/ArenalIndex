@@ -11,7 +11,7 @@
     },
     "api/owner.mjs": {
       "maxDuration": 60,
-      "includeFiles": "{server/{admin,portal,offers,agreements,intake,analytics,catalog}/**,site/{agreement,offer,newlisting}/model.mjs,site/publicar/rules.mjs,site/newlisting/photo-policy.mjs,server/sharing/links.mjs}"
+      "includeFiles": "{server/{admin,portal,offers,agreements,intake,analytics,catalog}/**,site/{agreement,offer,newlisting}/model.mjs,site/agreement/email.mjs,site/publicar/rules.mjs,site/newlisting/photo-policy.mjs,server/sharing/links.mjs}"
     },
     "api/listings.mjs": {
       "maxDuration": 60,
