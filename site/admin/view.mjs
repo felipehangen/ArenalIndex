@@ -26,6 +26,7 @@ export function renderRows(records,{owner=false}={}){
     if(!owner)actions+=button('delete','Borrar','row-danger');
     if(owner&&catalogDemo(row))actions='<span class="demo-badge">'+t('Demo de prueba')+'</span>';
     if(owner&&row.publishedVersion&&row.publicId)actions+='<a class="row-button" href="/cuenta/sheet/?id='+encodeURIComponent(row.publicId)+(row.collectionSlug?'&collection='+encodeURIComponent(row.collectionSlug):'')+'" target="_blank" rel="noopener">'+t('Ficha imprimible')+'</a>';
+    if(owner&&!row.isDemo)actions+='<button class="row-button" data-agreement="'+esc(row.id)+'">'+t('Acuerdo con propietario')+'</button>';
     if(owner&&row.publishedVersion&&row.publicId)actions+='<button class="row-button" data-offer-invite="'+esc(row.id)+'">'+t('Formulario de oferta')+'</button>';
     const image=safeImage(row.thumbnail);
     const thumb=owner?'<div class="listing-thumbnail">'+(image?'<img src="'+esc(image)+'" width="80" height="64" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="">':'')+'<span'+(image?' hidden':'')+'>'+t('Sin foto')+'</span></div>':'';

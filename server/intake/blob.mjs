@@ -72,6 +72,16 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now,timeoutMs,
       if(!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid offer ID');
       await write('portal/offer-index/'+hash(subject)+'/'+id+'.json',{id});
     },
+    async ensureAgreementIndex(subject,id){
+      if(!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid agreement ID');
+      await write('portal/agreement-index/'+hash(subject)+'/'+id+'.json',{id});
+    },
+    async ownerAgreements(subject,cursor){
+      const prefix='portal/agreement-index/'+hash(subject)+'/',page=await list({prefix,limit:30,...(cursor?{cursor}:{})});
+      const ids=page.blobs.map(b=>b.pathname.slice(prefix.length).match(/^([a-f0-9]{64})\.json$/)?.[1]).filter(Boolean),records=[];
+      for(let offset=0;offset<ids.length;offset+=10){const rows=await Promise.all(ids.slice(offset,offset+10).map(id=>read(portalPath('agreements',id))));records.push(...rows.filter(r=>r?.row.ownerSubject===subject).map(r=>r.row));}
+      return {records,cursor:page.hasMore?page.cursor:null};
+    },
     async ownerOffers(subject,cursor){
       const prefix='portal/offer-index/'+hash(subject)+'/',page=await list({prefix,limit:30,...(cursor?{cursor}:{})});
       const ids=page.blobs.map(b=>b.pathname.slice(prefix.length).match(/^([a-f0-9]{64})\.json$/)?.[1]).filter(Boolean),records=[];
@@ -197,6 +207,6 @@ export function createRepository({storeId,token,sdk=blob,now=Date.now,timeoutMs,
   };
 }
 function portalPath(kind,id){
-  if(!['accounts','account-names','account-slugs','emails','stages','geocodes','offers','offer-forms','offer-links'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid portal key');
+  if(!['accounts','account-names','account-slugs','emails','stages','geocodes','offers','offer-forms','offer-links','agreements'].includes(kind)||!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid portal key');
   return 'portal/'+kind+'/'+id+'.json';
 }

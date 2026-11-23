@@ -8,6 +8,7 @@ export function portalFixture({acceptRules=true}={}){
   const clone=value=>structuredClone(value);
   function update(map,key,filters,patch){const row=map.get(key);if(!row||Object.entries(filters).some(([k,v])=>row[k]!==v))return null;Object.assign(row,clone(patch));return clone(row);}
   const repository={
+    async ensureAgreementIndex(){},async ownerAgreements(subject){return {records:[...portal].filter(([key,value])=>key.startsWith('agreements/')&&value.ownerSubject===subject).map(([,value])=>clone(value)),cursor:null};},
     async ownerAccounts(){return [...portal].filter(([key])=>key.startsWith('accounts/')).map(([,value])=>clone(value));},
     async allow(){return true;},async ensureOwnerIndex(){},async ensurePublishedIndex(){},
     async publicPhoto(path,file){return {path:path+'/web-v1.jpg',type:'image/jpeg',size:file.size};},
@@ -17,7 +18,7 @@ export function portalFixture({acceptRules=true}={}){
     async authGet(kind,id){return clone(auth.get(kind+'/'+id)||null);},async authCreate(kind,id,row){auth.set(kind+'/'+id,clone(row));},async authUpdate(kind,id,filters,patch){return update(auth,kind+'/'+id,filters,patch);},
     async downloadURL(path){return 'https://files.example/'+path;},async uploadURL(path,file){return 'https://files.example/'+path;},async inspectFile(path){return files.get(path)||null;}
   };
-  const options={repository,mailer:{async send(message){emails.push(message);},async sendOfferNotice(message){emails.push(message);}},now:()=>new Date(clock),verifyGoogle:async credential=>{if(credential==='invalid')throw Error('invalid');return {subject:credential,email:credential+'@gmail.com'};},config:{googleClientId:'google-client',adminEmails:['admin@gmail.com'],reviewEmail:'admin@gmail.com',reviewSecret:'x'.repeat(64),rateSalt:'salt',emailReady:true,siteURL:'https://arenalindex.com',publicAPIURL:'https://backend.example/api/listings'}};
+  const options={repository,mailer:{async sendAgreement(message){emails.push(message);},async send(message){emails.push(message);},async sendOfferNotice(message){emails.push(message);}},now:()=>new Date(clock),verifyGoogle:async credential=>{if(credential==='invalid')throw Error('invalid');return {subject:credential,email:credential+'@gmail.com'};},config:{googleClientId:'google-client',adminEmails:['admin@gmail.com'],reviewEmail:'admin@gmail.com',reviewSecret:'x'.repeat(64),rateSalt:'salt',emailReady:true,siteURL:'https://arenalindex.com',publicAPIURL:'https://backend.example/api/listings'}};
   const owner=createOwnerHandler(options),admin=createAdminHandler(options);
   async function call(action,body={},token,role='owner',headers={}){
     const response=await(role==='admin'?admin:owner)(new Request('https://backend.example/api/'+role,{method:'POST',headers:{Origin:'https://arenalindex.com',...(token?{Authorization:'Bearer '+token}:{}),...headers},body:JSON.stringify({action,...body})}));return {status:response.status,body:await response.json()};

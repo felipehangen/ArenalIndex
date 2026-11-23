@@ -1,5 +1,5 @@
 import * as client from './client.mjs';
-import {selectRecords,renderRows} from './view.mjs?v=12-simple-offers';
+import {selectRecords,renderRows} from './view.mjs?v=13-owner-agreements';
 import {createGoogleLoader} from './google-loader.mjs';
 
 let googleLoader;

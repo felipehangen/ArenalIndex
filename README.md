@@ -11,7 +11,7 @@ Bilingual property explorer and broker workspace for La Fortuna and nearby areas
 
 ## Current direction
 
-Felipe confirmed on November 22, 2026 that **all existing listings are demos**, including the previously misclassified test listing. Felipe and one broker friend plan to add 20–30 real listings by December 31, 2026, learn from daily use, and consider additional brokers afterward. See [the pilot plan](docs/PILOT-2026-11-22.md). Historical inventory counts or claims of a real listing in dated notes are superseded by this clarification.
+Felipe confirmed on November 22, 2026 that **all existing listings are demos**, including the previously misclassified test listing. Felipe and one broker friend plan to add 20–30 real listings by December 31, 2026, learn from daily use, and consider additional brokers afterward. The pilot uses non-exclusive commission-based brokerage and includes Lake Arenal. See [the pilot plan](docs/PILOT-2026-11-22.md). Historical inventory counts or claims of a real listing in dated notes are superseded by this clarification.
 
 ## Current behavior
 
@@ -20,6 +20,8 @@ Buyers browse the map and cards, filter and compare prices in USD/CRC, save favo
 Listing creation requires an authorized account and explicit acceptance of the listing rules. Bare `/newlisting/` leads to sign-in. Accounts can save incomplete drafts, submit for review, reopen and submit changes, and withdraw their publications. Admin reviews documents, photos and public copy before **Approve and publish**. Editing a draft does not replace its existing public snapshot. Private documents, contacts, tokens and internal notes are excluded from public projections.
 
 Broker accounts provide listing management, public collections, short links with sharing previews, QR codes, printable sheets, and an Offers inbox. Shared offer forms collect a nonbinding first proposal, give the buyer a private receipt, and notify the broker by email. Failed email delivery does not discard an offer. There is no scheduled email retry worker. Contact-click analytics are indicative and must not be used as verified leads or billing counts.
+
+Owner agreements are available under **Account → Agreements**. Brokers set a percentage or fixed commission, explicit IVA treatment, property details and term, review the document and email a private invitation. Owners accept explicitly without an account or certified signature. Saved terms and consent are immutable; each party receives a copy, with separate retry status for pending emails. Opening a link does not accept. [Agreement operations and limitations](docs/OWNER-AGREEMENTS-2026-11-22.md).
 
 ## Architecture and caching
 
