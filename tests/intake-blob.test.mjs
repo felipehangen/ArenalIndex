@@ -132,3 +132,11 @@ test('short offer capabilities resolve through durable private storage and rejec
   rows.set(entry[0],{...entry[1],text:JSON.stringify({kind:'listing',id:'b'.repeat(64)})});
   assert.equal(await resolveTokenID(token,'listing',config,repository),null);await assert.rejects(()=>shortFormURL(id,config,repository));
 });
+
+test('agreements use private paginated indexes and conditional state transitions',async()=>{
+  const {repository}=setup();
+  for(let n=0;n<33;n++){const id=n.toString(16).padStart(64,'0');await repository.ensureAgreementIndex('broker-a',id);await repository.portalCreate('agreements',id,{id,ownerSubject:n===32?'broker-b':'broker-a',state:'sent'});}
+  const a=await repository.ownerAgreements('broker-a'),b=await repository.ownerAgreements('broker-a',a.cursor);assert.equal(a.records.length,30);assert.equal(b.records.length,2);assert.equal(b.cursor,null);
+  const id='0'.repeat(64),writes=await Promise.all(['accepted','cancelled'].map(state=>repository.portalUpdate('agreements',id,{state:'sent'},{state})));assert.equal(writes.filter(Boolean).length,1);
+  await assert.rejects(()=>repository.ensureAgreementIndex('broker-a','../accounts'));
+});

@@ -11,6 +11,13 @@ export function createMailer({key,from,to,fetcher=fetch}){
     return response.json();
   }
   return {
+    async sendAgreement({recipient,replyTo,kind,language,property,broker,url,text,reference,version,termsHash,acceptance,acceptedAt,expiresAt,idempotencyKey}){
+      const en=language==='en',invitation=kind==='invitation';
+      const heading=invitation?(en?'Review our property agreement':'Revisá nuestro acuerdo para tu propiedad'):(en?'Your accepted agreement':'Tu acuerdo aceptado');
+      const intro=invitation?(en?`${broker} invites you to review the terms for ${property}. Opening this email or link does not accept anything. Please review the complete terms before choosing to accept. The invitation expires on ${expiresAt}.`:`${broker} te invita a revisar los términos para ${property}. Abrir este correo o enlace no acepta nada. Revisá los términos completos antes de elegir aceptar. La invitación vence el ${expiresAt}.`):(en?`Acceptance recorded for ${property} on ${acceptedAt}. Name: ${acceptance.name}. Role: ${acceptance.capacity}. ${acceptance.consent}`:`Aceptación registrada para ${property} el ${acceptedAt}. Nombre: ${acceptance.name}. Rol: ${acceptance.capacity}. ${acceptance.consent}`);
+      const footer=(en?'Private reference: ':'Referencia privada: ')+reference+'\n'+(en?'Version: ':'Versión: ')+version+'\nSHA-256: '+termsHash;
+      return deliver({to:[recipient],reply_to:replyTo,subject:heading+' · '+property,text:intro+'\n\n'+url+'\n\n'+text+'\n\n'+footer,html:'<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#16352b;line-height:1.6"><p>arenal INDEX</p><h1>'+escape(heading)+'</h1><p>'+escape(intro)+'</p><p><a style="display:inline-block;padding:14px 22px;background:#175d46;color:#fff;border-radius:10px" href="'+escape(url)+'">'+(invitation?(en?'Review the agreement':'Revisar el acuerdo'):(en?'View and save your copy':'Ver y guardar tu copia'))+'</a></p><div style="white-space:pre-wrap">'+escape(text)+'</div><hr><p style="overflow-wrap:anywhere;font-size:12px;white-space:pre-wrap">'+escape(footer)+'</p></div>'},idempotencyKey,5000);
+    },
     async send(message){
       return deliver({
         to:[to],subject:'Lista para revisión de publicación · '+message.title,

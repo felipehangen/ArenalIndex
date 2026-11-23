@@ -17,6 +17,7 @@ test('broker notification links open Offers after sign-in and refresh the inbox 
     const source=fs.readFileSync(new URL('../site/cuenta/app.mjs',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
     vm.runInNewContext(source,{
       document,window,client:{},mountBrokerResources,
+      mountAgreements(){return {setIdentity(){},setListings(){}};},
       mountOffers(){
         document.querySelector('[data-owner-panel="offers"]').addEventListener('click',()=>refreshes++);
         return {setIdentity(){},setListings(){},refresh(){refreshes++;}};
